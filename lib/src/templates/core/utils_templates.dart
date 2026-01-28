@@ -1,0 +1,498 @@
+class UtilsTemplates {
+  static String utilsLogger() => '''
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
+
+/// Professional-grade logger with structured output and log levels.
+/// 
+/// Features:
+/// - Color-coded output in debug mode
+/// - Structured log format with timestamps
+/// - Stack trace support for errors
+/// - Production-safe (no console output in release)
+/// 
+/// Usage:
+/// ```dart
+/// AppLogger.info('User logged in', tag: 'AUTH');
+/// AppLogger.error('API failed', error: e, stackTrace: stack);
+/// ```
+class AppLogger {
+  static const String _defaultTag = 'APP';
+  
+  static bool _enableLogging = kDebugMode;
+  
+  /// Enable or disable logging globally
+  static void setEnabled(bool enabled) => _enableLogging = enabled;
+  
+  /// Log informational messages
+  static void info(String message, {String? tag}) {
+    _log(LogLevel.info, message, tag: tag);
+  }
+  
+  /// Log debug messages (development only)
+  static void debug(String message, {String? tag, Object? data}) {
+    _log(LogLevel.debug, message, tag: tag, data: data);
+  }
+  
+  /// Log warning messages
+  static void warning(String message, {String? tag, Object? data}) {
+    _log(LogLevel.warning, message, tag: tag, data: data);
+  }
+  
+  /// Log error messages with optional exception and stack trace
+  static void error(
+    String message, {
+    String? tag,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    _log(LogLevel.error, message, tag: tag, error: error, stackTrace: stackTrace);
+  }
+  
+  /// Log API requests/responses
+  static void network(String message, {String? tag, Object? data}) {
+    _log(LogLevel.network, message, tag: tag ?? 'NETWORK', data: data);
+  }
+  
+  static void _log(
+    LogLevel level,
+    String message, {
+    String? tag,
+    Object? error,
+    StackTrace? stackTrace,
+    Object? data,
+  }) {
+    if (!_enableLogging) return;
+    
+    final timestamp = DateTime.now().toIso8601String().substring(11, 23);
+    final logTag = tag ?? _defaultTag;
+    final prefix = '\${level.emoji} [\$timestamp] [\$logTag]';
+    
+    final buffer = StringBuffer();
+    buffer.writeln('\$prefix \$message');
+    
+    if (data != null) {
+      buffer.writeln('  \u2514\u2500 Data: \$data');
+    }
+    
+    if (error != null) {
+      buffer.writeln('  \u2514\u2500 Error: \$error');
+    }
+    
+    if (stackTrace != null) {
+      buffer.writeln('  \u2514\u2500 StackTrace:');
+      final frames = stackTrace.toString().split('\\n').take(5);
+      for (final frame in frames) {
+        buffer.writeln('       \$frame');
+      }
+    }
+    
+    developer.log(
+      buffer.toString(),
+      name: logTag,
+      level: level.value,
+      error: error,
+      stackTrace: stackTrace,
+    );
+    
+    // Also print to console in debug mode for visibility
+    if (kDebugMode) {
+      // ignore: avoid_print
+      print('\${level.color}\${buffer.toString()}\\x1B[0m');
+    }
+  }
+}
+
+enum LogLevel {
+  debug(500, '\ud83d\udcac', '\\x1B[37m'),   // White
+  info(800, '\u2139\ufe0f', '\\x1B[34m'),    // Blue
+  warning(900, '\u26a0\ufe0f', '\\x1B[33m'), // Yellow
+  error(1000, '\u274c', '\\x1B[31m'),        // Red
+  network(700, '\ud83c\udf10', '\\x1B[36m'); // Cyan
+
+  const LogLevel(this.value, this.emoji, this.color);
+  final int value;
+  final String emoji;
+  final String color;
+}
+''';
+
+  static String utilsValidators() => '''
+/// Basic validators for common input types.
+/// For form-specific validation, use [AppValidators].
+class Validators {
+  static bool isEmail(String value) {
+    final regex = RegExp(r'^[\\w.-]+@[\\w.-]+\\.\\w{2,}\$');
+    return regex.hasMatch(value.trim());
+  }
+  
+  static bool isPhone(String value) {
+    final regex = RegExp(r'^\\+?[0-9]{10,14}\$');
+    return regex.hasMatch(value.replaceAll(RegExp(r'[\\s-]'), ''));
+  }
+  
+  static bool isUrl(String value) {
+    return Uri.tryParse(value)?.hasAbsolutePath ?? false;
+  }
+  
+  static bool isStrongPassword(String value) {
+    // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special
+    final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}\$');
+    return regex.hasMatch(value);
+  }
+}
+''';
+
+  static String appValidators() => '''
+/// Form field validators with localization-ready error messages.
+/// 
+/// Usage:
+/// ```dart
+/// TextFormField(
+///   validator: AppValidators.email,
+/// )
+/// ```
+class AppValidators {
+  /// Validates email format
+  static String? email(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Email is required';
+    }
+    final regex = RegExp(r'^[\\w.-]+@[\\w.-]+\\.\\w{2,}\$');
+    if (!regex.hasMatch(value.trim())) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
+  /// Validates password with minimum requirements
+  static String? password(String? value, {int minLength = 8}) {
+    if (value == null || value.isEmpty) {
+      return 'Password is required';
+    }
+    if (value.length < minLength) {
+      return 'Password must be at least \$minLength characters';
+    }
+    return null;
+  }
+  
+  /// Validates strong password (uppercase, lowercase, number, special char)
+  static String? strongPassword(String? value) {
+    final baseError = password(value);
+    if (baseError != null) return baseError;
+    
+    if (!RegExp(r'[A-Z]').hasMatch(value!)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'Password must contain at least one number';
+    }
+    if (!RegExp(r'[@\$!%*?&]').hasMatch(value)) {
+      return 'Password must contain at least one special character';
+    }
+    return null;
+  }
+  
+  /// Validates password confirmation matches
+  static String? Function(String?) confirmPassword(String password) {
+    return (String? value) {
+      if (value == null || value.isEmpty) {
+        return 'Please confirm your password';
+      }
+      if (value != password) {
+        return 'Passwords do not match';
+      }
+      return null;
+    };
+  }
+
+  /// Generic required field validator
+  static String? Function(String?) required(String fieldName) {
+    return (String? value) {
+      if (value == null || value.trim().isEmpty) {
+        return '\$fieldName is required';
+      }
+      return null;
+    };
+  }
+  
+  /// Validates minimum length
+  static String? Function(String?) minLength(int length, {String? fieldName}) {
+    return (String? value) {
+      if (value == null || value.length < length) {
+        return '\${fieldName ?? 'Field'} must be at least \$length characters';
+      }
+      return null;
+    };
+  }
+  
+  /// Validates maximum length
+  static String? Function(String?) maxLength(int length, {String? fieldName}) {
+    return (String? value) {
+      if (value != null && value.length > length) {
+        return '\${fieldName ?? 'Field'} must be at most \$length characters';
+      }
+      return null;
+    };
+  }
+  
+  /// Validates phone number format
+  static String? phone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Phone number is required';
+    }
+    final cleaned = value.replaceAll(RegExp(r'[\\s-()]'), '');
+    if (!RegExp(r'^\\+?[0-9]{10,14}\$').hasMatch(cleaned)) {
+      return 'Please enter a valid phone number';
+    }
+    return null;
+  }
+  
+  /// Validates numeric input
+  static String? numeric(String? value, {String? fieldName}) {
+    if (value == null || value.trim().isEmpty) {
+      return '\${fieldName ?? 'Field'} is required';
+    }
+    if (double.tryParse(value) == null) {
+      return 'Please enter a valid number';
+    }
+    return null;
+  }
+  
+  /// Combines multiple validators
+  static String? Function(String?) compose(List<String? Function(String?)> validators) {
+    return (String? value) {
+      for (final validator in validators) {
+        final error = validator(value);
+        if (error != null) return error;
+      }
+      return null;
+    };
+  }
+}
+''';
+
+  static String utilsFailure() => '''
+import 'package:dio/dio.dart';
+
+/// Represents all possible failure types in the application.
+/// 
+/// This sealed class enables exhaustive pattern matching:
+/// ```dart
+/// failure.when(
+///   network: (msg) => showNoInternet(),
+///   server: (msg, code) => showServerError(),
+///   // ...
+/// );
+/// ```
+sealed class AppFailure {
+  const AppFailure(this.message);
+  final String message;
+  
+  /// Pattern matching helper
+  T when<T>({
+    required T Function(String message) network,
+    required T Function(String message, int? statusCode) server,
+    required T Function(String message) timeout,
+    required T Function(String message) unauthorized,
+    required T Function(String message) notFound,
+    required T Function(String message) validation,
+    required T Function(String message) cache,
+    required T Function(String message, Object? error) unknown,
+  }) {
+    return switch (this) {
+      NetworkFailure f => network(f.message),
+      ServerFailure f => server(f.message, f.statusCode),
+      TimeoutFailure f => timeout(f.message),
+      UnauthorizedFailure f => unauthorized(f.message),
+      NotFoundFailure f => notFound(f.message),
+      ValidationFailure f => validation(f.message),
+      CacheFailure f => cache(f.message),
+      UnknownFailure f => unknown(f.message, f.error),
+    };
+  }
+  
+  /// Create appropriate failure from DioException
+  factory AppFailure.fromDioException(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return const TimeoutFailure('Connection timed out. Please try again.');
+        
+      case DioExceptionType.connectionError:
+        return const NetworkFailure('No internet connection. Please check your network.');
+        
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        final message = _extractErrorMessage(e.response?.data) ?? 'Something went wrong';
+        
+        return switch (statusCode) {
+          401 => UnauthorizedFailure(message),
+          403 => const UnauthorizedFailure('Access denied'),
+          404 => NotFoundFailure(message),
+          422 => ValidationFailure(message),
+          500 => ServerFailure(message, statusCode: statusCode),
+          _ => ServerFailure(message, statusCode: statusCode),
+        };
+        
+      case DioExceptionType.cancel:
+        return const UnknownFailure('Request was cancelled');
+        
+      default:
+        return UnknownFailure(e.message ?? 'An unexpected error occurred', e);
+    }
+  }
+  
+  /// Create failure from generic exception
+  factory AppFailure.fromException(Object e, [StackTrace? stack]) {
+    if (e is DioException) {
+      return AppFailure.fromDioException(e);
+    }
+    return UnknownFailure(e.toString(), e);
+  }
+  
+  static String? _extractErrorMessage(dynamic data) {
+    if (data == null) return null;
+    if (data is String) return data;
+    if (data is Map) {
+      return data['message'] ?? data['error'] ?? data['msg'];
+    }
+    return null;
+  }
+}
+
+/// No internet or network connectivity issues
+class NetworkFailure extends AppFailure {
+  const NetworkFailure([super.message = 'Network error occurred']);
+}
+
+/// Server returned an error response (5xx)
+class ServerFailure extends AppFailure {
+  const ServerFailure(super.message, {this.statusCode});
+  final int? statusCode;
+}
+
+/// Request timed out
+class TimeoutFailure extends AppFailure {
+  const TimeoutFailure([super.message = 'Request timed out']);
+}
+
+/// User is not authenticated or session expired
+class UnauthorizedFailure extends AppFailure {
+  const UnauthorizedFailure([super.message = 'Session expired. Please login again.']);
+}
+
+/// Requested resource not found (404)
+class NotFoundFailure extends AppFailure {
+  const NotFoundFailure([super.message = 'Resource not found']);
+}
+
+/// Validation error from server (422)
+class ValidationFailure extends AppFailure {
+  const ValidationFailure(super.message);
+}
+
+/// Local cache/storage error
+class CacheFailure extends AppFailure {
+  const CacheFailure([super.message = 'Cache error occurred']);
+}
+
+/// Unknown or unhandled error
+class UnknownFailure extends AppFailure {
+  const UnknownFailure([super.message = 'An unexpected error occurred', this.error]);
+  final Object? error;
+}
+''';
+
+  static String utilsResult() => '''
+import 'package:dartz/dartz.dart';
+
+import 'app_failure.dart';
+
+/// Type alias for Either-based result handling.
+/// 
+/// Left = Failure, Right = Success
+/// 
+/// Usage:
+/// ```dart
+/// Future<Result<User>> getUser(String id) async {
+///   try {
+///     final user = await api.fetchUser(id);
+///     return Right(user);
+///   } catch (e) {
+///     return Left(AppFailure.fromException(e));
+///   }
+/// }
+/// 
+/// // Consuming:
+/// final result = await getUser('123');
+/// result.fold(
+///   (failure) => showError(failure.message),
+///   (user) => showUser(user),
+/// );
+/// ```
+typedef Result<T> = Either<AppFailure, T>;
+
+/// Extension methods for Result type
+extension ResultExtension<T> on Result<T> {
+  /// Returns true if this is a successful result
+  bool get isSuccess => isRight();
+  
+  /// Returns true if this is a failure result
+  bool get isFailure => isLeft();
+  
+  /// Get the success value or null
+  T? get valueOrNull => fold((_) => null, (value) => value);
+  
+  /// Get the failure or null
+  AppFailure? get failureOrNull => fold((failure) => failure, (_) => null);
+  
+  /// Transform success value, preserving failures
+  Result<R> mapSuccess<R>(R Function(T value) transform) {
+    return fold(
+      (failure) => Left(failure),
+      (value) => Right(transform(value)),
+    );
+  }
+  
+  /// Execute side effect on success
+  Result<T> onSuccess(void Function(T value) action) {
+    fold((_) {}, action);
+    return this;
+  }
+  
+  /// Execute side effect on failure
+  Result<T> onFailure(void Function(AppFailure failure) action) {
+    fold(action, (_) {});
+    return this;
+  }
+}
+
+/// Helper functions for creating Results
+class Results {
+  /// Create a successful result
+  static Result<T> success<T>(T value) => Right(value);
+  
+  /// Create a failure result
+  static Result<T> failure<T>(AppFailure failure) => Left(failure);
+  
+  /// Create a failure from exception
+  static Result<T> fromException<T>(Object error, [StackTrace? stack]) {
+    return Left(AppFailure.fromException(error, stack));
+  }
+  
+  /// Run async operation and wrap in Result
+  static Future<Result<T>> guard<T>(Future<T> Function() operation) async {
+    try {
+      return Right(await operation());
+    } catch (e, stack) {
+      return Left(AppFailure.fromException(e, stack));
+    }
+  }
+}
+''';
+}

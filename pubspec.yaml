@@ -1,0 +1,20 @@
+name: arcle
+description: A sample command-line application.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: ^3.5.4
+
+# This is the MAGIC part.
+# It tells Dart: "When I type 'arcle', run bin/arcle.dart"
+executables:
+  arcle: main
+
+dependencies:
+  args: ^2.4.0
+  io: ^1.0.5
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0
