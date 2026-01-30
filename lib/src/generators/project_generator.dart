@@ -184,6 +184,7 @@ class ProjectGenerator {
     _updatePubspec(targetDir);
     _updateDevDependencies(targetDir);
     _writeConfig(targetDir);
+    _updateAndroidGradle(targetDir);
     console.line('');
     ui.success('🏗️  Architecture scaffold complete!');
   }
@@ -297,6 +298,184 @@ class ProjectGenerator {
     }
     pubspecFile.writeAsStringSync(updated);
     ui.itemUpdated('pubspec.yaml dev_dependencies');
+  }
+
+  void _updateAndroidGradle(Directory base) {
+    final androidDir =
+        Directory('${base.path}${Platform.pathSeparator}android');
+    if (!androidDir.existsSync()) {
+      ui.warn('Android folder not found; skipping Gradle updates.');
+      return;
+    }
+
+    _updateSettingsGradle(androidDir);
+    _updateGradleWrapper(androidDir);
+    _updateAppBuildGradle(androidDir);
+  }
+
+  void _updateSettingsGradle(Directory androidDir) {
+    const agpVersion = '8.3.2';
+    const kotlinVersion = '2.1.0';
+    final files = [
+      File('${androidDir.path}${Platform.pathSeparator}settings.gradle'),
+      File('${androidDir.path}${Platform.pathSeparator}settings.gradle.kts'),
+    ];
+
+    for (final file in files) {
+      if (!file.existsSync()) continue;
+      final content = file.readAsStringSync();
+      var updated = content;
+      updated = _replacePluginVersion(
+        updated,
+        'com.android.application',
+        agpVersion,
+      );
+      updated = _replacePluginVersion(
+        updated,
+        'org.jetbrains.kotlin.android',
+        kotlinVersion,
+      );
+      if (updated == content) continue;
+      file.writeAsStringSync(updated);
+      ui.itemUpdated(
+        'android${Platform.pathSeparator}${file.uri.pathSegments.last}',
+      );
+    }
+  }
+
+  String _replacePluginVersion(
+    String content,
+    String pluginId,
+    String version,
+  ) {
+    final pattern = RegExp(
+      'id\\s+[\"\\\']$pluginId[\"\\\']\\s+version\\s+[\"\\\']([^\"\\\']+)[\"\\\']',
+    );
+    if (!pattern.hasMatch(content)) return content;
+    return content.replaceAllMapped(pattern, (match) {
+      return match.group(0)!.replaceAll(match.group(1)!, version);
+    });
+  }
+
+  void _updateGradleWrapper(Directory androidDir) {
+    final file = File(
+      '${androidDir.path}${Platform.pathSeparator}gradle'
+      '${Platform.pathSeparator}wrapper'
+      '${Platform.pathSeparator}gradle-wrapper.properties',
+    );
+    if (!file.existsSync()) return;
+    const gradleVersion = '8.4';
+    final content = file.readAsStringSync();
+    final pattern = RegExp(r'distributionUrl=.*');
+    final replacement =
+        'distributionUrl=https\\://services.gradle.org/distributions/gradle-$gradleVersion-all.zip';
+    final updated = pattern.hasMatch(content)
+        ? content.replaceFirst(pattern, replacement)
+        : content;
+    if (updated == content) return;
+    file.writeAsStringSync(updated);
+    ui.itemUpdated(
+      'android${Platform.pathSeparator}gradle${Platform.pathSeparator}wrapper'
+      '${Platform.pathSeparator}gradle-wrapper.properties',
+    );
+  }
+
+  void _updateAppBuildGradle(Directory androidDir) {
+    final file = File(
+      '${androidDir.path}${Platform.pathSeparator}app'
+      '${Platform.pathSeparator}build.gradle',
+    );
+    if (!file.existsSync()) return;
+    final content = file.readAsStringSync();
+    final lines = content.split('\n');
+    var changed = false;
+
+    if (!_containsLine(lines, 'coreLibraryDesugaringEnabled true')) {
+      changed = _ensureCoreLibraryDesugaringEnabled(lines) || changed;
+    }
+
+    if (!_containsLine(
+      lines,
+      "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
+    )) {
+      changed = _ensureCoreLibraryDesugaringDependency(lines) || changed;
+    }
+
+    if (!_containsLine(lines, 'flutter {')) {
+      lines.add('');
+      lines.add('flutter {');
+      lines.add('  source = "../.."');
+      lines.add('}');
+      changed = true;
+    } else if (!_containsLine(lines, 'source = "../.."')) {
+      changed = _ensureFlutterSource(lines) || changed;
+    }
+
+    if (!changed) return;
+    file.writeAsStringSync(lines.join('\n'));
+    ui.itemUpdated(
+      'android${Platform.pathSeparator}app${Platform.pathSeparator}build.gradle',
+    );
+  }
+
+  bool _ensureCoreLibraryDesugaringEnabled(List<String> lines) {
+    final compileIndex =
+        lines.indexWhere((line) => line.trim().startsWith('compileOptions {'));
+    if (compileIndex != -1) {
+      final indent = _leadingWhitespace(lines[compileIndex]);
+      lines.insert(
+        compileIndex + 1,
+        '$indent  coreLibraryDesugaringEnabled true',
+      );
+      return true;
+    }
+
+    final androidIndex =
+        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    if (androidIndex == -1) return false;
+    final indent = _leadingWhitespace(lines[androidIndex]);
+    lines.insertAll(androidIndex + 1, [
+      '$indent  compileOptions {',
+      '$indent    coreLibraryDesugaringEnabled true',
+      '$indent  }',
+    ]);
+    return true;
+  }
+
+  bool _ensureCoreLibraryDesugaringDependency(List<String> lines) {
+    final depsIndex =
+        lines.indexWhere((line) => line.trim().startsWith('dependencies {'));
+    if (depsIndex == -1) {
+      lines.add('');
+      lines.add('dependencies {');
+      lines.add(
+          "  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'");
+      lines.add('}');
+      return true;
+    }
+    final indent = _leadingWhitespace(lines[depsIndex]);
+    lines.insert(
+      depsIndex + 1,
+      "$indent  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
+    );
+    return true;
+  }
+
+  bool _ensureFlutterSource(List<String> lines) {
+    final flutterIndex =
+        lines.indexWhere((line) => line.trim().startsWith('flutter {'));
+    if (flutterIndex == -1) return false;
+    final indent = _leadingWhitespace(lines[flutterIndex]);
+    lines.insert(flutterIndex + 1, '$indent  source = \"../..\"');
+    return true;
+  }
+
+  bool _containsLine(List<String> lines, String match) {
+    return lines.any((line) => line.trim() == match);
+  }
+
+  String _leadingWhitespace(String line) {
+    return line.substring(0, line.length - line.trimLeft().length);
   }
 
   List<_Dependency> _dependencies() {
