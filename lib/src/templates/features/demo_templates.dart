@@ -224,17 +224,7 @@ class DemoRemoteDataSource {
 
   final ApiService _apiService;
 
-  /// Demo login. Replace with your real API later.
-  Future<Response<dynamic>> login(LoginRequest request) async {
-    // Example of how to call an API:
-    // return _apiService.post('/auth/login', data: request.toJson());
-    await Future.delayed(const Duration(milliseconds: 800));
-    return Response(
-      data: {'token': 'demo_token_\${DateTime.now().millisecondsSinceEpoch}'},
-      statusCode: 200,
-      requestOptions: RequestOptions(path: '/auth/login'),
-    );
-  }
+  /// Demo login. Replace with your real API later.\r\n  Future<Response<dynamic>> login(LoginRequest request) async {\r\n    return _apiService.post('/auth/login', data: request.toJson());\r\n  }
 
   /// Fetch users from JSONPlaceholder (uses token from SessionManager in Dio).
   Future<Response<dynamic>> fetchUsers() async {
@@ -366,14 +356,12 @@ class AuthState extends Equatable {
 
   static String _authBloc() => '''
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
 
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
-@injectable
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._loginUseCase, this._logoutUseCase)
       : super(const AuthState()) {
@@ -467,13 +455,11 @@ class UsersState extends Equatable {
 
   static String _usersBloc() => '''
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
 
 import '../../domain/usecases/get_users_usecase.dart';
 import 'users_event.dart';
 import 'users_state.dart';
 
-@injectable
 class UsersBloc extends Bloc<UsersEvent, UsersState> {
   UsersBloc(this._getUsersUseCase) : super(const UsersState()) {
     on<LoadUsers>(_onLoad);
@@ -689,6 +675,7 @@ import '../../../core/route_handler/app_routes.dart';
 import '../../../core/session_manager/session_manager.dart';
 import '../../../core/utils/dimensions.dart';
 import '../../../core/di/injection.dart';
+import '../domain/usecases/get_users_usecase.dart';
 import 'bloc/auth_bloc.dart';
 import 'bloc/auth_event.dart';
 import 'bloc/users_bloc.dart';
@@ -701,7 +688,8 @@ class UsersListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<UsersBloc>()..add(const LoadUsers()),
+      create: (_) => UsersBloc(getIt<GetUsersUseCase>())
+        ..add(const LoadUsers()),
       child: const UsersListView(),
     );
   }
@@ -888,7 +876,7 @@ import '../../../core/common_widgets/common_dropdown.dart';
 import '../../../core/common_widgets/common_snackbar.dart';
 import '../../../core/common_widgets/common_text_field.dart';
 import '../../../core/localization/app_strings.dart';
-import '../../../core/route_handler/getx_routes.dart';
+import '../../../core/route_handler/app_routes.dart';
 import '../../../core/utils/dimensions.dart';
 import '../../settings/presentation/app_settings_controller.dart';
 import 'controller/auth_controller.dart';
@@ -922,9 +910,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
     return Scaffold(
-      // Localization: context.tr(...) pulls from GetX translations.
+      // Localization: 'key'.tr pulls from GetX translations.
       appBar: CommonAppBar(
-        title: context.tr('login_title'),
+        title: 'login_title'.tr,
         showBackButton: false,
       ),
       body: Obx(() {
@@ -942,7 +930,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (controller.status.value == AuthStatus.success) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             controller.reset();
-            Get.offNamed(GetxRoutes.users);
+            Get.offNamed(AppRoutes.users);
           });
         }
 
@@ -953,31 +941,31 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                context.tr('login_hint'),
+                'login_hint'.tr,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(height: Dimensions.height(16)),
               CommonTextField(
                 controller: _emailController,
-                labelText: context.tr('email'),
+                labelText: 'email'.tr,
                 keyboardType: TextInputType.emailAddress,
               ),
               SizedBox(height: Dimensions.height(12)),
               CommonTextField(
                 controller: _passwordController,
-                labelText: context.tr('password'),
+                labelText: 'password'.tr,
                 obscureText: true,
               ),
               SizedBox(height: Dimensions.height(20)),
               CommonButton(
-                label: context.tr('login'),
+                label: 'login'.tr,
                 isLoading: controller.status.value == AuthStatus.loading,
                 onPressed: () => _submit(controller),
               ),
               SizedBox(height: Dimensions.height(12)),
               CommonButton(
-                label: context.tr('settings'),
-                onPressed: () => Get.toNamed(GetxRoutes.settings),
+                label: 'settings'.tr,
+                onPressed: () => Get.toNamed(AppRoutes.settings),
               ),
               SizedBox(height: Dimensions.height(20)),
               _SettingsPanel(),
@@ -1001,21 +989,21 @@ class _SettingsPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.tr('theme'),
+              'theme'.tr,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             SizedBox(height: Dimensions.height(8)),
             Obx(() {
               return CommonCheckbox(
                 value: settings.themeMode.value == ThemeMode.dark,
-                label: context.tr('dark_mode'),
+                label: 'dark_mode'.tr,
                 onChanged: (value) =>
                     settings.toggleTheme(value ?? false),
               );
             }),
             SizedBox(height: Dimensions.height(12)),
             Text(
-              context.tr('language'),
+              'language'.tr,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             SizedBox(height: Dimensions.height(8)),
@@ -1050,7 +1038,7 @@ import '../../../core/common_widgets/common_loader.dart';
 import '../../../core/common_widgets/common_checkbox.dart';
 import '../../../core/common_widgets/common_dropdown.dart';
 import '../../../core/localization/app_strings.dart';
-import '../../../core/route_handler/getx_routes.dart';
+import '../../../core/route_handler/app_routes.dart';
 import '../../../core/session_manager/session_manager.dart';
 import '../../settings/presentation/app_settings_controller.dart';
 import 'controller/auth_controller.dart';
@@ -1065,9 +1053,9 @@ class UsersListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Localization: context.tr(...) reads translated strings.
+      // Localization: 'key'.tr reads translated strings.
       appBar: CommonAppBar(
-        title: context.tr('user_list'),
+        title: 'user_list'.tr,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -1077,7 +1065,7 @@ class UsersListScreen extends StatelessWidget {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await authController.logout();
-              Get.offAllNamed(GetxRoutes.login);
+              Get.offAllNamed(AppRoutes.login);
             },
           ),
         ],
@@ -1094,7 +1082,7 @@ class UsersListScreen extends StatelessWidget {
                 Text(usersController.error.value ?? 'Error'),
                 const SizedBox(height: 12),
                 CommonButton(
-                  label: context.tr('retry'),
+                  label: 'retry'.tr,
                   onPressed: usersController.load,
                 ),
               ],
@@ -1117,21 +1105,21 @@ class UsersListScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        context.tr('theme'),
+                        'theme'.tr,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Obx(() {
                         return CommonCheckbox(
                           value: settings.themeMode.value == ThemeMode.dark,
-                          label: context.tr('dark_mode'),
+                          label: 'dark_mode'.tr,
                           onChanged: (value) =>
                               settings.toggleTheme(value ?? false),
                         );
                       }),
                       const SizedBox(height: 12),
                       Text(
-                        context.tr('language'),
+                        'language'.tr,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -1569,3 +1557,4 @@ class UsersListScreen extends ConsumerWidget {
 }
 ''';
 }
+

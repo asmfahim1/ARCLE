@@ -74,7 +74,9 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
         CoreTemplates.responseHandler(),
     'lib/core/error_handler/error_handler.dart': CoreTemplates.errorHandler(),
     'lib/core/route_handler/app_routes.dart': RouteTemplates.routes(),
-    'lib/core/route_handler/app_router.dart': RouteTemplates.router(),
+    'lib/core/route_handler/app_route_observer.dart':
+        RouteTemplates.observer(),
+    'lib/core/route_handler/app_router.dart': RouteTemplates.router(state),
     'lib/core/theme_handler/app_theme.dart': ThemeTemplates.themeHandler(),
     'lib/core/notifications/notification_service.dart':
         ServicesTemplates.notificationService(state),

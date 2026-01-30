@@ -47,6 +47,7 @@ class Language extends Translations {
   @override
   Map<String, Map<String, String>> get keys => {
         'en_US': {
+          'welcome': 'Welcome',
           'login_title': 'Login',
           'login_hint': 'Use your demo credentials to continue.',
           'email': 'Email',
@@ -61,6 +62,7 @@ class Language extends Translations {
           // arcle:keys_en
         },
         'bn_BD': {
+          'welcome': 'সবগতম',
           'login_title': 'লগইন',
           'login_hint': 'ডেমো ক্রেডেনশিয়াল দিয়ে চালিয়ে যান।',
           'email': 'ইমেইল',

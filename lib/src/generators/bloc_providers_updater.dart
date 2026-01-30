@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import '../utils/string_helpers.dart';
+
 class BlocProvidersUpdater {
   BlocProvidersUpdater({required this.stdout, required this.stderr});
 
@@ -25,12 +27,13 @@ class BlocProvidersUpdater {
       return;
     }
 
-    final className = _pascalCase(featureName);
+    final snake = StringHelpers.snakeCase(featureName);
+    final className = StringHelpers.pascalCase(featureName);
     const injectionImport = "import 'injection.dart';";
     final blocImport =
-        "import '../../features/$featureName/presentation/bloc/${featureName}_bloc.dart';";
+        "import '../../features/$snake/presentation/bloc/${snake}_bloc.dart';";
     final usecaseImport =
-        "import '../../features/$featureName/domain/usecase/get_${featureName}_data_usecase.dart';";
+        "import '../../features/$snake/domain/usecase/${snake}_usecase.dart';";
 
     final missingImports = <String>[];
     if (!content.contains(injectionImport)) {
@@ -50,8 +53,8 @@ class BlocProvidersUpdater {
       );
     }
 
-    final providerLine =
-        "    BlocProvider<${className}Bloc>(create: (_) => ${className}Bloc(getIt<Get${className}DataUseCase>())),";
+    final providerLine = "    BlocProvider<${className}Bloc>("
+        "create: (_) => ${className}Bloc(getIt<${className}UseCase>())),";
     if (!content.contains(providerLine)) {
       content = content.replaceFirst(
         providerMarker,
@@ -61,13 +64,5 @@ class BlocProvidersUpdater {
 
     providersFile.writeAsStringSync(content);
     stdout('Updated: lib/core/di/bloc_providers.dart');
-  }
-
-  String _pascalCase(String input) {
-    final parts = input.split(RegExp(r'[\\/_\\-\\s]+'));
-    return parts.map((part) {
-      if (part.isEmpty) return '';
-      return part[0].toUpperCase() + part.substring(1);
-    }).join();
   }
 }

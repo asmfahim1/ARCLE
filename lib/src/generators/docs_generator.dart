@@ -26,16 +26,18 @@ class DocsGenerator {
     final pubspec = File(_join(base.path, 'pubspec.yaml'));
     if (!pubspec.existsSync()) {
       ui.warn('pubspec.yaml not found; writing a basic markdown doc.');
+      const relativePath = 'documentation/PROJECT_DOC.md';
       writer.write(
         base,
-        'documentation/PROJECT_DOC.md',
+        relativePath,
         DocsTemplates.projectDocMarkdown(
           projectName: 'project',
           version: '0.0.0',
           stateLabel: state.label,
         ),
       );
-      ui.success('📚 Documentation generated successfully!');
+      ui.info('Document path: ${_join(base.path, relativePath)}');
+      ui.success('ðŸ“š Documentation generated successfully!');
       return;
     }
 
@@ -55,7 +57,8 @@ class DocsGenerator {
         stateLabel: state.label,
       ),
     );
-    ui.success('📚 Documentation generated: $filename');
+    ui.success('ðŸ“š Documentation generated: $filename');
+    ui.info('Document path: ${_join(base.path, filename)}');
     ui.info('Open the .tex file in a LaTeX editor or convert to PDF.');
   }
 

@@ -6,6 +6,7 @@ import '../ui/cli_ui.dart';
 import '../utils/endpoint_injector.dart';
 import '../utils/file_writer.dart';
 import '../utils/localization_injector.dart';
+import '../utils/string_helpers.dart';
 import 'bloc_providers_updater.dart';
 import 'route_updater.dart';
 
@@ -21,7 +22,7 @@ class FeatureGenerator {
   final bool force;
 
   void createFeature(Directory base, String featureName) {
-    final safeName = _toSnake(featureName);
+    final safeName = StringHelpers.snakeCase(featureName);
     ui.step('GENERATE', 'Creating feature structure...');
     final writer = FileWriter(
       force: force,
@@ -48,13 +49,5 @@ class FeatureGenerator {
     ui.raw('');
     ui.success('✨ Feature "$safeName" created with all layers!');
     ui.info('Includes: data/domain/presentation + routing + DI wiring');
-  }
-
-  String _toSnake(String input) {
-    final normalized = input
-        .trim()
-        .replaceAll(RegExp(r'[\s\-]+'), '_')
-        .replaceAll(RegExp(r'_+'), '_');
-    return normalized.toLowerCase();
   }
 }

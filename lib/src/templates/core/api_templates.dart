@@ -57,27 +57,46 @@ class DioClient {
           options.headers['Authorization'] = 'Bearer \$token';
         }
         
+        final url = options.uri.toString();
         AppLogger.network(
-          '\u2192 \${options.method} \${options.path}',
+          '\u2192 \${options.method} \$url',
           tag: 'HTTP',
-          data: kDebugMode ? options.data : null,
+          data: kDebugMode
+              ? {
+                  'query': options.queryParameters,
+                  'body': options.data,
+                }
+              : null,
         );
         
         return handler.next(options);
       },
       onResponse: (response, handler) {
+        final url = response.requestOptions.uri.toString();
         AppLogger.network(
-          '\u2190 \${response.statusCode} \${response.requestOptions.path}',
+          '\u2190 \${response.statusCode} \${response.requestOptions.method} \$url',
           tag: 'HTTP',
+          data: kDebugMode ? response.data : null,
         );
         return handler.next(response);
       },
       onError: (DioException e, handler) async {
+        final url = e.requestOptions.uri.toString();
         AppLogger.error(
-          '\u2717 \${e.response?.statusCode ?? 'ERR'} \${e.requestOptions.path}',
+          '\u2717 \${e.response?.statusCode ?? 'ERR'} \${e.requestOptions.method} \$url',
           tag: 'HTTP',
           error: e.message,
         );
+        if (kDebugMode) {
+          AppLogger.debug(
+            'Request/response details',
+            tag: 'HTTP',
+            data: {
+              'request_body': e.requestOptions.data,
+              'response_body': e.response?.data,
+            },
+          );
+        }
         
         if (e.response?.statusCode == 401) {
           // Attempt token refresh

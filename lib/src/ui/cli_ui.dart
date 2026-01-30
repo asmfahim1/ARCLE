@@ -8,7 +8,7 @@ class CliUi {
 
   void showWelcome() {
     _banner(
-      title: '🚀 ARCLE - Flutter Clean Architecture CLI',
+      title: ' 🚀 ARCLE - Flutter Clean Architecture CLI',
       subtitle: 'Build scalable, production-ready apps with ease.',
       compact: true,
     );
@@ -17,7 +17,7 @@ class CliUi {
 
   void showFirstRunGreeting() {
     _banner(
-      title: '🚀 ARCLE - Flutter Clean Architecture CLI',
+      title: ' 🚀 ARCLE - Flutter Clean Architecture CLI',
       subtitle: 'Your companion for clean, scalable Flutter apps.',
       compact: false,
     );
@@ -47,7 +47,11 @@ class CliUi {
       );
       final icon = _stateIcon(item);
       final name = item.label.padRight(8);
-      console.line('  $number. $icon $name │ ${_description(item)}');
+      if(item.option != 2) {
+        console.line('  $number. $icon $name │ ${_description(item)} abc');
+      } else {
+        console.line('  $number. $icon  $name │ ${_description(item)} def');
+      }
     }
     console.line('');
     console.line(console.color(
@@ -191,7 +195,7 @@ class CliUi {
     console.line(console.color(
         '  ╔══════════════════════════════════════════════════════════╗',
         ConsoleColor.cyan));
-    console.line('  $border  ${console.bold(title.padRight(55))}$border');
+    console.line('  $border  ${console.bold(title.padRight(55))} $border');
     if (subtitle != null && subtitle.trim().isNotEmpty) {
       console.line('  $border  ${subtitle.padRight(56)}$border');
     }

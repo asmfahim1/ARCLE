@@ -8,12 +8,14 @@ class AppTemplates {
 import 'package:flutter/material.dart';
 
 import 'core/di/app_di.dart';
+import 'core/route_handler/app_route_observer.dart';
 import 'app/app.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await setupDependencies();
+  await AppRouteStorage.restoreInitialRoute();
 
   runApp(const App());
 }
@@ -24,6 +26,7 @@ import 'package:flutter/material.dart';
 
 import 'core/di/app_di.dart';
 import 'core/env/env_factory.dart';
+import 'core/route_handler/app_route_observer.dart';
 import 'app/app.dart';
 
 Future<void> bootstrap() async {
@@ -31,6 +34,7 @@ Future<void> bootstrap() async {
 
   final env = EnvFactory.current();
   await AppDi().register(env);
+  await AppRouteStorage.restoreInitialRoute();
 
   runApp(const App());
 }
@@ -42,6 +46,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/di/app_di.dart';
 import 'core/env/env_factory.dart';
+import 'core/route_handler/app_route_observer.dart';
 import 'app/app.dart';
 
 Future<void> bootstrap() async {
@@ -49,6 +54,7 @@ Future<void> bootstrap() async {
 
   final env = EnvFactory.current();
   final container = await AppDi().register(env);
+  await AppRouteStorage.restoreInitialRoute();
 
   runApp(
     UncontrolledProviderScope(
@@ -83,19 +89,15 @@ Future<void> bootstrap() async {
       StateManagement.getx =>
         "import 'package:get/get.dart';\n"
             "import '../features/settings/presentation/app_settings_controller.dart';\n"
-            "import '../core/route_handler/getx_routes.dart';\n"
             "import '../core/localization/getx_localization.dart';\n",
       StateManagement.riverpod =>
         "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
             "import '../features/settings/presentation/app_settings_provider.dart';\n",
     };
 
-    final routeImports = switch (state) {
-      StateManagement.getx => '',
-      _ =>
+    final routeImports =
         "import '../core/route_handler/app_router.dart';\n"
-            "import '../core/route_handler/app_routes.dart';\n",
-    };
+        "import '../core/route_handler/app_routes.dart';\n";
 
     return '''
 import 'package:flutter/material.dart';
@@ -103,6 +105,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 $stateImports
 import '../core/localization/app_strings.dart';
 $routeImports
+import '../core/route_handler/app_route_observer.dart';
 import '../core/theme_handler/app_theme.dart';
 
 class App extends StatelessWidget {
@@ -148,8 +151,18 @@ $appClass(
           locale: $locale,
           supportedLocales: AppStrings.supportedLocales,
 $localizationDelegates
+          builder: (context, child) {
+            final media = MediaQuery.of(context);
+            return MediaQuery(
+              data: media.copyWith(
+                textScaler: const TextScaler.linear(1.0),
+              ),
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
+          navigatorObservers: [appRouteObserver],
           navigatorKey: AppRoutes.navigatorKey,
-          initialRoute: AppRoutes.login,
+          initialRoute: AppRoutes.initialRoute,
           onGenerateRoute: AppRouter.onGenerateRoute,
         )''';
   }
@@ -192,8 +205,18 @@ GetBuilder<AppSettingsController>(
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            initialRoute: GetxRoutes.login,
-            getPages: getxPages,
+            builder: (context, child) {
+              final media = MediaQuery.of(context);
+              return MediaQuery(
+                data: media.copyWith(
+                  textScaler: const TextScaler.linear(1.0),
+                ),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+            navigatorObservers: [appRouteObserver],
+            initialRoute: AppRoutes.initialRoute,
+            getPages: AppRouter.pages,
           );
         });
       },

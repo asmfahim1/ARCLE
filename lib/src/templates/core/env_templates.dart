@@ -14,7 +14,7 @@ class ProdEnv implements Env {
   String get name => 'prod';
 
   @override
-  String get apiBaseUrl => 'https://api.example.com';
+  String get apiBaseUrl => 'https://prod/jsonplaceholder.typicode.com';
 }
 ''';
 
@@ -26,7 +26,7 @@ class StagEnv implements Env {
   String get name => 'stag';
 
   @override
-  String get apiBaseUrl => 'https://staging-api.example.com';
+  String get apiBaseUrl => 'https://jsonplaceholder.typicode.com';
 }
 ''';
 
@@ -38,7 +38,7 @@ class LocalEnv implements Env {
   String get name => 'local';
 
   @override
-  String get apiBaseUrl => 'https://jsonplaceholder.typicode.com';
+  String get apiBaseUrl => 'https://local/jsonplaceholder.typicode.com';
 }
 ''';
 
@@ -51,7 +51,7 @@ import 'stag_env.dart';
 class EnvFactory {
   // Swap this at build time or by flavor.
   static Env current() {
-    const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'local');
+    const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'stag');
 
     switch (flavor) {
       case 'prod':

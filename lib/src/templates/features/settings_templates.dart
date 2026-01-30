@@ -129,6 +129,9 @@ final appSettingsProvider =
       StateManagement.getx => _getxSettingsBody(),
       StateManagement.riverpod => _riverpodSettingsBody(),
     };
+    final title = state == StateManagement.getx
+        ? "Text('settings'.tr)"
+        : "Text(context.tr('settings'))";
 
     return '''
 import 'package:flutter/material.dart';
@@ -142,7 +145,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('settings'))),
+      appBar: AppBar(title: $title),
       body: $body,
     );
   }
@@ -194,14 +197,24 @@ Consumer(
       )''';
 
   static String settingsBodyWidget(StateManagement state) {
-    final dimensionAccess = state == StateManagement.getx
-        ? 'Dimensions'
-        : 'Dimensions(context)';
+    final dimensionAccess =
+        state == StateManagement.getx ? 'Dimensions' : 'Dimensions(context)';
     final padding = state == StateManagement.getx
         ? 'Dimensions.allPadding(20)'
         : 'Dimensions(context).all(20)';
+    final getxImport =
+        state == StateManagement.getx ? "import 'package:get/get.dart';\n" : '';
+    final themeText =
+        state == StateManagement.getx ? "'theme'.tr" : "context.tr('theme')";
+    final darkModeText = state == StateManagement.getx
+        ? "'dark_mode'.tr"
+        : "context.tr('dark_mode')";
+    final languageText = state == StateManagement.getx
+        ? "'language'.tr"
+        : "context.tr('language')";
     return '''
 import 'package:flutter/material.dart';
+$getxImport
 
 import '../../../core/common_widgets/common_checkbox.dart';
 import '../../../core/common_widgets/common_dropdown.dart';
@@ -228,18 +241,18 @@ class SettingsBody extends StatelessWidget {
       padding: $padding,
       children: [
         Text(
-          context.tr('theme'),
+          $themeText,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         SizedBox(height: ${dimensionAccess}.height(8)),
         CommonCheckbox(
           value: themeMode == ThemeMode.dark,
-          label: context.tr('dark_mode'),
+          label: $darkModeText,
           onChanged: (value) => onThemeChanged(value ?? false),
         ),
         SizedBox(height: ${dimensionAccess}.height(16)),
         Text(
-          context.tr('language'),
+          $languageText,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         SizedBox(height: ${dimensionAccess}.height(8)),

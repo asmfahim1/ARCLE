@@ -9,11 +9,11 @@ class RouteUpdater {
   final void Function(String message) stderr;
 
   void addFeatureRoute(Directory base, String featureName, StateManagement state) {
+    _addAppRouteConstant(base, featureName);
     if (state == StateManagement.getx) {
       _addGetxRoute(base, featureName);
       return;
     }
-    _addAppRouteConstant(base, featureName);
     _addAppRouterRoute(base, featureName);
   }
 
@@ -85,13 +85,13 @@ class RouteUpdater {
   }
 
   void _addGetxRoute(Directory base, String featureName) {
-    final routesFile = File(
+    final routerFile = File(
       '${base.path}${Platform.pathSeparator}lib${Platform.pathSeparator}core'
-      '${Platform.pathSeparator}route_handler${Platform.pathSeparator}getx_routes.dart',
+      '${Platform.pathSeparator}route_handler${Platform.pathSeparator}app_router.dart',
     );
 
-    if (!routesFile.existsSync()) {
-      stderr('getx_routes.dart not found; skipping route update.');
+    if (!routerFile.existsSync()) {
+      stderr('app_router.dart not found; skipping route update.');
       return;
     }
 
@@ -101,30 +101,39 @@ class RouteUpdater {
     final bindingImport =
         "import '../../features/$featureName/presentation/bindings/${featureName}_binding.dart';";
     final entryLine =
-        "  GetPage(name: '/$featureName', page: () => ${className}Screen(), binding: ${className}Binding()),";
+        "    GetPage(name: AppRoutes.${_camelCase(className)}, page: () => const ${className}Screen(), binding: ${className}Binding()),";
 
-    var content = routesFile.readAsStringSync();
+    var content = routerFile.readAsStringSync();
+
+    const importMarker = '// arcle:feature_imports';
+    const pageMarker = '// arcle:feature_pages';
+    if (!content.contains(importMarker) || !content.contains(pageMarker)) {
+      stderr('app_router.dart markers not found; skipping route update.');
+      return;
+    }
 
     if (!content.contains(importLine)) {
       content = content.replaceFirst(
-        '// arcle:getx_imports',
-        '// arcle:getx_imports\n$importLine\n$bindingImport',
+        importMarker,
+        '$importMarker\n$importLine\n$bindingImport',
       );
     }
 
     if (!content.contains(entryLine)) {
       content = content.replaceFirst(
-        '// arcle:getx_pages',
-        '// arcle:getx_pages\n$entryLine',
+        pageMarker,
+        '$entryLine\n    $pageMarker',
       );
     }
 
-    routesFile.writeAsStringSync(content);
-    stdout('Updated: lib/core/route_handler/getx_routes.dart');
+    routerFile.writeAsStringSync(content);
+    stdout('Updated: lib/core/route_handler/app_router.dart');
   }
 
   String _pascalCase(String input) {
-    final parts = input.split(RegExp(r'[\\/_\\-\\s]+'));
+    final normalized =
+        input.trim().replaceAll(RegExp(r'[^A-Za-z0-9]+'), ' ');
+    final parts = normalized.split(RegExp(r'\s+'));
     return parts.map((part) {
       if (part.isEmpty) return '';
       return part[0].toUpperCase() + part.substring(1);

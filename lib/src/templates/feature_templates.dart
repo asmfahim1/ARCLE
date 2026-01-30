@@ -1,9 +1,10 @@
 import '../state_management.dart';
+import '../utils/string_helpers.dart';
 
 class FeatureTemplates {
   static Map<String, String> files(StateManagement state, String name) {
-    final snake = name.toLowerCase();
-    final className = _pascalCase(name);
+    final snake = StringHelpers.snakeCase(name);
+    final className = StringHelpers.pascalCase(name);
 
     final files = <String, String>{
       'lib/features/$snake/README.md': _readme(name),
@@ -19,7 +20,7 @@ class FeatureTemplates {
           _entity(snake, className),
       'lib/features/$snake/domain/repository/${snake}_repository.dart':
           _repositoryContract(snake, className),
-      'lib/features/$snake/domain/usecase/get_${snake}_data_usecase.dart':
+      'lib/features/$snake/domain/usecase/${snake}_usecase.dart':
           _usecase(state, snake, className),
       'lib/features/$snake/presentation/README.md':
           _layerReadme('Presentation'),
@@ -143,7 +144,8 @@ abstract class ${className}Repository {
         : '';
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
-    final camelName = _camelCase(className);
+    // Use the snake name to preserve word boundaries for endpoints.
+    final camelName = StringHelpers.camelCase(snake);
     return '''
 import '../../../../core/api_client/api_service.dart';
 import '../../../../core/session_manager/session_manager.dart';
@@ -204,7 +206,7 @@ class ${className}RepositoryImpl implements ${className}Repository {
       final entities = models.map((e) => e.toEntity()).toList();
       return Right(entities);
     } catch (e) {
-      return Left(AppFailure(e.toString()));
+      return Left(AppFailure.fromException(e));
     }
   }
 }
@@ -224,8 +226,8 @@ import '../repository/${snake}_repository.dart';
 $injectableImport
 
 $injectableAnno
-class Get${className}DataUseCase {
-  Get${className}DataUseCase(this._repo);
+class ${className}UseCase {
+  ${className}UseCase(this._repo);
 
   final ${className}Repository _repo;
 
@@ -288,24 +290,24 @@ class ${className}State extends Equatable {
   static String _blocBloc(String snake, String className) => '''
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/usecase/get_${snake}_data_usecase.dart';
+import '../../domain/usecase/${snake}_usecase.dart';
 import '${snake}_event.dart';
 import '${snake}_state.dart';
 
 class ${className}Bloc extends Bloc<${className}Event, ${className}State> {
-  ${className}Bloc(this._getData) : super(const ${className}State()) {
+  ${className}Bloc(this._useCase) : super(const ${className}State()) {
     on<Load${className}>(_onLoad);
     add(const Load${className}());
   }
 
-  final Get${className}DataUseCase _getData;
+  final ${className}UseCase _useCase;
 
   Future<void> _onLoad(
     Load${className} event,
     Emitter<${className}State> emit,
   ) async {
     emit(state.copyWith(status: ${className}Status.loading));
-    final result = await _getData();
+    final result = await _useCase();
     result.fold(
       (failure) => emit(
         state.copyWith(
@@ -367,12 +369,12 @@ class ${className}Screen extends StatelessWidget {
 import 'package:get/get.dart';
 
 import '../../domain/entity/${snake}_entity.dart';
-import '../../domain/usecase/get_${snake}_data.dart';
+import '../../domain/usecase/${snake}_usecase.dart';
 
 class ${className}Controller extends GetxController {
-  ${className}Controller(this._getData);
+  ${className}Controller(this._useCase);
 
-  final Get${className}Data _getData;
+  final ${className}UseCase _useCase;
 
   final items = <${className}Entity>[].obs;
   final loading = false.obs;
@@ -381,7 +383,7 @@ class ${className}Controller extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    get${className}Data();
+    load${className}Data();
   }
 
   @override
@@ -394,10 +396,10 @@ class ${className}Controller extends GetxController {
     super.onClose();
   }
 
-  Future<void> get${className}Data() async {
+  Future<void> load${className}Data() async {
     loading.value = true;
     error.value = null;
-    final result = await _getData();
+    final result = await _useCase();
     result.fold(
       (failure) => error.value = failure.message,
       (data) => items.assignAll(data),
@@ -410,7 +412,7 @@ class ${className}Controller extends GetxController {
   static String _getxBinding(String snake, String className) => '''
 import 'package:get/get.dart';
 
-import '../../domain/usecase/get_${snake}_data.dart';
+import '../../domain/usecase/${snake}_usecase.dart';
 import '../../domain/repository/${snake}_repository.dart';
 import '../../data/repository/${snake}_repository_impl.dart';
 import '../../data/source/${snake}_remote_source.dart';
@@ -430,8 +432,8 @@ class ${className}Binding extends Bindings {
     Get.lazyPut<${className}Repository>(
       () => ${className}RepositoryImpl(Get.find<${className}RemoteSource>()),
     );
-    Get.lazyPut(() => Get${className}Data(Get.find<${className}Repository>()));
-    Get.lazyPut(() => ${className}Controller(Get.find<Get${className}Data>()));
+    Get.lazyPut(() => ${className}UseCase(Get.find<${className}Repository>()));
+    Get.lazyPut(() => ${className}Controller(Get.find<${className}UseCase>()));
   }
 }
 ''';
@@ -440,7 +442,6 @@ class ${className}Binding extends Bindings {
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/localization/app_strings.dart';
 import '../controller/${snake}_controller.dart';
 import '../widgets/${snake}_card.dart';
 
@@ -451,7 +452,7 @@ class ${className}Screen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<${className}Controller>();
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('${snake}_title'))),
+      appBar: AppBar(title: Text('${snake}_title'.tr)),
       body: Obx(() {
         if (controller.loading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -502,7 +503,7 @@ class ${className}State {
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repository/${snake}_repository.dart';
-import '../../domain/usecase/get_${snake}_data.dart';
+import '../../domain/usecase/${snake}_usecase.dart';
 import '../../data/repository/${snake}_repository_impl.dart';
 import '../../data/source/${snake}_remote_source.dart';
 import '../../../core/api_client/api_service.dart';
@@ -521,25 +522,25 @@ final ${snake}RepositoryProvider = Provider<${className}Repository>((ref) {
   return ${className}RepositoryImpl(ref.watch(${snake}RemoteSourceProvider));
 });
 
-final ${snake}UsecaseProvider = Provider<Get${className}Data>((ref) {
-  return Get${className}Data(ref.watch(${snake}RepositoryProvider));
+final ${snake}UseCaseProvider = Provider<${className}UseCase>((ref) {
+  return ${className}UseCase(ref.watch(${snake}RepositoryProvider));
 });
 
 final ${snake}NotifierProvider =
     StateNotifierProvider<${className}Notifier, ${className}State>(
-  (ref) => ${className}Notifier(ref.watch(${snake}UsecaseProvider)),
+  (ref) => ${className}Notifier(ref.watch(${snake}UseCaseProvider)),
 );
 
 class ${className}Notifier extends StateNotifier<${className}State> {
-  ${className}Notifier(this._getData) : super(const ${className}State()) {
+  ${className}Notifier(this._useCase) : super(const ${className}State()) {
     load();
   }
 
-  final Get${className}Data _getData;
+  final ${className}UseCase _useCase;
 
   Future<void> load() async {
     state = state.copyWith(loading: true, error: null);
-    final result = await _getData();
+    final result = await _useCase();
     result.fold(
       (failure) =>
           state = state.copyWith(loading: false, error: failure.message),
@@ -597,17 +598,4 @@ class ${className}Card extends StatelessWidget {
   }
 }
 ''';
-
-  static String _pascalCase(String input) {
-    final parts = input.split(RegExp(r'[\\\\/_\\-\\s]+'));
-    return parts.map((part) {
-      if (part.isEmpty) return '';
-      return part[0].toUpperCase() + part.substring(1);
-    }).join();
-  }
-
-  static String _camelCase(String input) {
-    if (input.isEmpty) return input;
-    return input[0].toLowerCase() + input.substring(1);
-  }
 }
