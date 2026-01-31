@@ -108,6 +108,7 @@ class AppRouter {
   static String _getxRouter() => '''
 import 'package:get/get.dart';
 
+import '../../features/demo/presentation/bindings/demo_binding.dart';
 import '../../features/demo/presentation/login_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/demo/presentation/user_list_screen.dart';
@@ -116,8 +117,16 @@ import 'app_routes.dart';
 
 class AppRouter {
   static final pages = <GetPage>[
-    GetPage(name: AppRoutes.login, page: () => const LoginScreen()),
-    GetPage(name: AppRoutes.users, page: () => UsersListScreen()),
+    GetPage(
+      name: AppRoutes.login,
+      page: () => const LoginScreen(),
+      binding: DemoBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.users,
+      page: () => UsersListScreen(),
+      binding: DemoBinding(),
+    ),
     GetPage(name: AppRoutes.settings, page: () => const SettingsScreen()),
     // arcle:feature_pages
   ];

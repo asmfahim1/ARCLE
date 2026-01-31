@@ -142,7 +142,7 @@ void main() {
     final repo = _FakeDemoRepository();
     Get.put(AppSettingsController(), permanent: true);
     Get.put(
-      AuthController(LoginUsecase(repo), LogoutUsecase(repo)),
+      AuthController(LoginUseCase(repo), LogoutUseCase(repo)),
       permanent: true,
     );
   });

@@ -41,6 +41,8 @@ class DemoTemplates {
               _getxAuthController(),
           'lib/features/demo/presentation/controller/users_controller.dart':
               _getxUsersController(),
+          'lib/features/demo/presentation/bindings/demo_binding.dart':
+              _getxBinding(),
           'lib/features/demo/presentation/login_screen.dart':
               _getxLoginScreen(),
           'lib/features/demo/presentation/user_list_screen.dart':
@@ -603,56 +605,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () =>
                       Navigator.pushNamed(context, AppRoutes.settings),
                 ),
-                SizedBox(height: dimensions.height(20)),
-                BlocBuilder<AppSettingsCubit, AppSettingsState>(
-                  builder: (context, settings) {
-                    return Card(
-                      margin: EdgeInsets.zero,
-                      child: Padding(
-                        padding: dimensions.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.tr('theme'),
-                              style:
-                                  Theme.of(context).textTheme.titleMedium,
-                            ),
-                            SizedBox(height: dimensions.height(8)),
-                            CommonCheckbox(
-                              value:
-                                  settings.themeMode == ThemeMode.dark,
-                              label: context.tr('dark_mode'),
-                              onChanged: (value) => context
-                                  .read<AppSettingsCubit>()
-                                  .toggleTheme(value ?? false),
-                            ),
-                            SizedBox(height: dimensions.height(12)),
-                            Text(
-                              context.tr('language'),
-                              style:
-                                  Theme.of(context).textTheme.titleMedium,
-                            ),
-                            SizedBox(height: dimensions.height(8)),
-                            CommonDropdown<Locale>(
-                              value: settings.locale,
-                              items: AppStrings.supportedLocales,
-                              itemLabel: (loc) =>
-                                  loc.languageCode.toUpperCase(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  context
-                                      .read<AppSettingsCubit>()
-                                      .changeLocale(value);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           );
@@ -794,10 +746,10 @@ import '../../domain/usecases/logout_usecase.dart';
 enum AuthStatus { initial, loading, success, failure }
 
 class AuthController extends GetxController {
-  AuthController(this._loginUsecase, this._logoutUsecase);
+  AuthController(this._loginUseCase, this._logoutUseCase);
 
-  final LoginUsecase _loginUsecase;
-  final LogoutUsecase _logoutUsecase;
+  final LoginUseCase _loginUseCase;
+  final LogoutUseCase _logoutUseCase;
 
   final status = AuthStatus.initial.obs;
   final error = RxnString();
@@ -806,7 +758,7 @@ class AuthController extends GetxController {
     if (status.value == AuthStatus.loading) return;
     status.value = AuthStatus.loading;
     error.value = null;
-    final result = await _loginUsecase(
+    final result = await _loginUseCase(
       email: email,
       password: password,
     );
@@ -820,7 +772,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
-    await _logoutUsecase();
+    await _logoutUseCase();
     status.value = AuthStatus.initial;
   }
 
@@ -838,9 +790,9 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 
 class UsersController extends GetxController {
-  UsersController(this._getUsersUsecase);
+  UsersController(this._getUsersUseCase);
 
-  final GetUsersUsecase _getUsersUsecase;
+  final GetUsersUseCase _getUsersUseCase;
 
   final users = <UserEntity>[].obs;
   final loading = false.obs;
@@ -855,12 +807,50 @@ class UsersController extends GetxController {
   Future<void> load() async {
     loading.value = true;
     error.value = null;
-    final result = await _getUsersUsecase();
+    final result = await _getUsersUseCase();
     result.fold(
       (failure) => error.value = failure.message,
       (list) => users.assignAll(list),
     );
     loading.value = false;
+  }
+}
+''';
+
+  static String _getxBinding() => '''
+import 'package:get/get.dart';
+
+import '../../../../core/api_client/api_service.dart';
+import '../../../../core/session_manager/session_manager.dart';
+import '../../data/repositories/demo_repository_impl.dart';
+import '../../data/sources/demo_remote_data_source.dart';
+import '../../domain/repositories/demo_repository.dart';
+import '../../domain/usecases/get_users_usecase.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../controller/auth_controller.dart';
+import '../controller/users_controller.dart';
+
+class DemoBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut(() => DemoRemoteDataSource(Get.find<ApiService>()));
+    Get.lazyPut<DemoRepository>(
+      () => DemoRepositoryImpl(
+        Get.find<DemoRemoteDataSource>(),
+        Get.find<SessionManager>(),
+      ),
+    );
+    Get.lazyPut(() => LoginUseCase(Get.find<DemoRepository>()));
+    Get.lazyPut(() => LogoutUseCase(Get.find<DemoRepository>()));
+    Get.lazyPut(() => GetUsersUseCase(Get.find<DemoRepository>()));
+    Get.lazyPut(
+      () => AuthController(
+        Get.find<LoginUseCase>(),
+        Get.find<LogoutUseCase>(),
+      ),
+    );
+    Get.lazyPut(() => UsersController(Get.find<GetUsersUseCase>()));
   }
 }
 ''';
@@ -1557,4 +1547,3 @@ class UsersListScreen extends ConsumerWidget {
 }
 ''';
 }
-

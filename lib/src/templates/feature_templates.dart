@@ -416,8 +416,8 @@ import '../../domain/usecase/${snake}_usecase.dart';
 import '../../domain/repository/${snake}_repository.dart';
 import '../../data/repository/${snake}_repository_impl.dart';
 import '../../data/source/${snake}_remote_source.dart';
-import '../../../core/api_client/api_service.dart';
-import '../../../core/session_manager/session_manager.dart';
+import '../../../../core/api_client/api_service.dart';
+import '../../../../core/session_manager/session_manager.dart';
 import '../controller/${snake}_controller.dart';
 
 class ${className}Binding extends Bindings {

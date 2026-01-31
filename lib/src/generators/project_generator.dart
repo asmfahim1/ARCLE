@@ -308,14 +308,19 @@ class ProjectGenerator {
       return;
     }
 
-    _updateSettingsGradle(androidDir);
-    _updateGradleWrapper(androidDir);
+    final versions = _resolveAndroidBuildVersions(androidDir);
+    _updateSettingsGradle(androidDir, versions);
+    _updateGradleWrapper(androidDir, versions);
     _updateAppBuildGradle(androidDir);
   }
 
-  void _updateSettingsGradle(Directory androidDir) {
-    const agpVersion = '8.3.2';
-    const kotlinVersion = '2.1.0';
+  void _updateSettingsGradle(
+    Directory androidDir,
+    _AndroidBuildVersions versions,
+  ) {
+    final agpVersion = versions.agpVersion;
+    final kotlinVersion = versions.kotlinVersion;
+    if (agpVersion == null && kotlinVersion == null) return;
     final files = [
       File('${androidDir.path}${Platform.pathSeparator}settings.gradle'),
       File('${androidDir.path}${Platform.pathSeparator}settings.gradle.kts'),
@@ -325,16 +330,20 @@ class ProjectGenerator {
       if (!file.existsSync()) continue;
       final content = file.readAsStringSync();
       var updated = content;
-      updated = _replacePluginVersion(
-        updated,
-        'com.android.application',
-        agpVersion,
-      );
-      updated = _replacePluginVersion(
-        updated,
-        'org.jetbrains.kotlin.android',
-        kotlinVersion,
-      );
+      if (agpVersion != null) {
+        updated = _replacePluginVersion(
+          updated,
+          'com.android.application',
+          agpVersion,
+        );
+      }
+      if (kotlinVersion != null) {
+        updated = _replacePluginVersion(
+          updated,
+          'org.jetbrains.kotlin.android',
+          kotlinVersion,
+        );
+      }
       if (updated == content) continue;
       file.writeAsStringSync(updated);
       ui.itemUpdated(
@@ -357,14 +366,189 @@ class ProjectGenerator {
     });
   }
 
-  void _updateGradleWrapper(Directory androidDir) {
+  _AndroidBuildVersions _resolveAndroidBuildVersions(Directory androidDir) {
+    final flutterRoot = _detectFlutterRoot();
+    final templateVersions =
+        flutterRoot == null ? null : _readFlutterTemplateVersions(flutterRoot);
+
+    final existingAgp = _readPluginVersionFromSettings(
+      androidDir,
+      'com.android.application',
+    );
+    final existingKotlin = _readPluginVersionFromSettings(
+      androidDir,
+      'org.jetbrains.kotlin.android',
+    );
+    final existingGradle = _readGradleWrapperVersion(androidDir);
+
+    return _AndroidBuildVersions(
+      agpVersion: templateVersions?.agpVersion ?? existingAgp,
+      kotlinVersion: templateVersions?.kotlinVersion ?? existingKotlin,
+      gradleVersion: templateVersions?.gradleVersion ?? existingGradle,
+    );
+  }
+
+  String? _detectFlutterRoot() {
+    final envRoot = Platform.environment['FLUTTER_ROOT'];
+    if (envRoot != null && envRoot.isNotEmpty) {
+      final dir = Directory(envRoot);
+      if (dir.existsSync()) return dir.path;
+    }
+
+    try {
+      final isWindows = Platform.isWindows;
+      final result = Process.runSync(
+        isWindows ? 'where' : 'which',
+        ['flutter'],
+        runInShell: true,
+      );
+      if (result.exitCode != 0) return null;
+      final output = result.stdout.toString().trim();
+      if (output.isEmpty) return null;
+      final firstLine = output.split(RegExp(r'\r?\n')).first.trim();
+      if (firstLine.isEmpty) return null;
+      final flutterFile = File(firstLine);
+      final binDir = flutterFile.parent;
+      final rootDir = binDir.parent;
+      if (rootDir.existsSync()) return rootDir.path;
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  _AndroidBuildVersions? _readFlutterTemplateVersions(String flutterRoot) {
+    final templatesDir =
+        Directory(_join(flutterRoot, 'packages/flutter_tools/templates'));
+    if (!templatesDir.existsSync()) return null;
+
+    final settingsFile = _findTemplateFile(
+      templatesDir,
+      [
+        'app/android.tmpl/settings.gradle',
+        'app/android.tmpl/settings.gradle.kts',
+        'app/android-kotlin.tmpl/settings.gradle',
+        'app/android-kotlin.tmpl/settings.gradle.kts',
+        'app/android-java.tmpl/settings.gradle',
+        'app/android-java.tmpl/settings.gradle.kts',
+      ],
+      {'settings.gradle', 'settings.gradle.kts'},
+    );
+
+    String? agpVersion;
+    String? kotlinVersion;
+    if (settingsFile != null) {
+      final content = settingsFile.readAsStringSync();
+      agpVersion =
+          _extractPluginVersion(content, 'com.android.application');
+      kotlinVersion =
+          _extractPluginVersion(content, 'org.jetbrains.kotlin.android');
+    }
+
+    final gradleWrapperFile = _findTemplateFile(
+      templatesDir,
+      [
+        'app/android.tmpl/gradle/wrapper/gradle-wrapper.properties',
+        'app/android-kotlin.tmpl/gradle/wrapper/gradle-wrapper.properties',
+        'app/android-java.tmpl/gradle/wrapper/gradle-wrapper.properties',
+      ],
+      {'gradle-wrapper.properties'},
+    );
+
+    String? gradleVersion;
+    if (gradleWrapperFile != null) {
+      final content = gradleWrapperFile.readAsStringSync();
+      gradleVersion = _extractGradleVersion(content);
+    }
+
+    if (agpVersion == null && kotlinVersion == null && gradleVersion == null) {
+      return null;
+    }
+    return _AndroidBuildVersions(
+      agpVersion: agpVersion,
+      kotlinVersion: kotlinVersion,
+      gradleVersion: gradleVersion,
+    );
+  }
+
+  File? _findTemplateFile(
+    Directory templatesDir,
+    List<String> relativePaths,
+    Set<String> fallbackNames,
+  ) {
+    for (final relativePath in relativePaths) {
+      final candidate = File(_join(templatesDir.path, relativePath));
+      if (candidate.existsSync()) return candidate;
+    }
+
+    try {
+      for (final entity in templatesDir.listSync(recursive: true)) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.last;
+        if (fallbackNames.contains(name)) {
+          return entity;
+        }
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  String? _extractPluginVersion(String content, String pluginId) {
+    final pattern = RegExp(
+      'id\\s+[\"\\\']$pluginId[\"\\\']\\s+version\\s+[\"\\\']([^\"\\\']+)[\"\\\']',
+    );
+    final match = pattern.firstMatch(content);
+    return match?.group(1);
+  }
+
+  String? _extractGradleVersion(String content) {
+    final distributionPattern = RegExp(r'distributionUrl=.*');
+    final distributionMatch = distributionPattern.firstMatch(content);
+    if (distributionMatch == null) return null;
+    final versionPattern = RegExp(r'gradle-([0-9.]+)-');
+    final versionMatch = versionPattern.firstMatch(distributionMatch.group(0)!);
+    return versionMatch?.group(1);
+  }
+
+  String? _readPluginVersionFromSettings(Directory androidDir, String pluginId) {
+    final files = [
+      File('${androidDir.path}${Platform.pathSeparator}settings.gradle'),
+      File('${androidDir.path}${Platform.pathSeparator}settings.gradle.kts'),
+    ];
+    for (final file in files) {
+      if (!file.existsSync()) continue;
+      final content = file.readAsStringSync();
+      final version = _extractPluginVersion(content, pluginId);
+      if (version != null) return version;
+    }
+    return null;
+  }
+
+  String? _readGradleWrapperVersion(Directory androidDir) {
+    final file = File(
+      '${androidDir.path}${Platform.pathSeparator}gradle'
+      '${Platform.pathSeparator}wrapper'
+      '${Platform.pathSeparator}gradle-wrapper.properties',
+    );
+    if (!file.existsSync()) return null;
+    final content = file.readAsStringSync();
+    return _extractGradleVersion(content);
+  }
+
+  void _updateGradleWrapper(
+    Directory androidDir,
+    _AndroidBuildVersions versions,
+  ) {
     final file = File(
       '${androidDir.path}${Platform.pathSeparator}gradle'
       '${Platform.pathSeparator}wrapper'
       '${Platform.pathSeparator}gradle-wrapper.properties',
     );
     if (!file.existsSync()) return;
-    const gradleVersion = '8.4';
+    final gradleVersion = versions.gradleVersion;
+    if (gradleVersion == null) return;
     final content = file.readAsStringSync();
     final pattern = RegExp(r'distributionUrl=.*');
     final replacement =
@@ -649,4 +833,16 @@ class _Dependency {
 
   final String name;
   final String version;
+}
+
+class _AndroidBuildVersions {
+  const _AndroidBuildVersions({
+    this.agpVersion,
+    this.kotlinVersion,
+    this.gradleVersion,
+  });
+
+  final String? agpVersion;
+  final String? kotlinVersion;
+  final String? gradleVersion;
 }
