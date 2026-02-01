@@ -21,8 +21,8 @@ class AutoGenDiCommand {
       ..addOption(
         'state',
         abbr: 's',
-        allowed: const ['riverpod'],
-        help: 'State management option (riverpod)',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
       )
       ..addOption(
         'path',
@@ -48,24 +48,35 @@ class AutoGenDiCommand {
     final targetDir = Directory(cmd['path'] as String);
     final config = ArcleConfig.readFrom(targetDir);
 
-    StateManagement? state = StatePicker(console).resolve(
-      cmd['state'] as String?,
-      interactive: cmd['interactive'] as bool,
-    );
-    state ??= config?.state;
+    final stateInput = cmd['state'] as String?;
+    final interactive = cmd['interactive'] as bool;
+
+    StateManagement? state;
+    if (stateInput != null && stateInput.trim().isNotEmpty) {
+      state = StatePicker(console).resolve(stateInput, interactive: false);
+    } else if (config?.state != null) {
+      state = config!.state;
+      ui.info(
+        'Detected state management from ${ArcleConfig.filename}: ${state.label}.',
+      );
+    } else {
+      state = StatePicker(console).resolve(null, interactive: interactive);
+    }
 
     if (state == null) {
       ui.error('No state management selected.');
-      ui.info('Run with --state riverpod to be explicit.');
+      ui.info('Run with --state bloc|getx|riverpod to be explicit.');
       return ExitCode.usage.code;
     }
 
-    if (state != StateManagement.riverpod) {
-      ui.error('Only Riverpod is supported in this release.');
-      ui.info(
-        'Recreate the project with Riverpod or update ${ArcleConfig.filename}.',
-      );
-      return ExitCode.usage.code;
+    // For GetX and Riverpod, show a friendly message - no code generation needed
+    if (state != StateManagement.bloc) {
+      ui.section('ℹ️  DI Regeneration Not Required');
+      ui.step('STATE   ', '${state.label} ${_stateIcon(state)}');
+      ui.success('${state.label} does not require code generation for DI.');
+      ui.info('Your providers are already set up and ready to use.');
+      ui.info('If you need to regenerate DI files, use: arcle gen-di');
+      return ExitCode.success.code;
     }
 
     final generator = ProjectGenerator(

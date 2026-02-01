@@ -618,7 +618,6 @@ class _LoginScreenState extends State<LoginScreen> {
   static String _blocUsersScreen() => '''
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:test_app/core/localization/app_strings.dart';
 
 import '../../../core/common_widgets/common_app_bar.dart';
 import '../../../core/common_widgets/common_button.dart';
@@ -627,6 +626,7 @@ import '../../../core/route_handler/app_routes.dart';
 import '../../../core/session_manager/session_manager.dart';
 import '../../../core/utils/dimensions.dart';
 import '../../../core/di/injection.dart';
+import '../../../core/localization/app_strings.dart';
 import '../domain/usecases/get_users_usecase.dart';
 import 'bloc/auth_bloc.dart';
 import 'bloc/auth_event.dart';
@@ -1020,7 +1020,6 @@ class _SettingsPanel extends StatelessWidget {
   static String _getxUsersScreen() => '''
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:test_app/core/localization/app_strings.dart';
 
 import '../../../core/common_widgets/common_app_bar.dart';
 import '../../../core/common_widgets/common_button.dart';
@@ -1177,23 +1176,32 @@ import '../domain/usecases/logout_usecase.dart';
 import '../data/repositories/demo_repository_impl.dart';
 import '../data/sources/demo_remote_data_source.dart';
 
+/// Remote data source provider for demo feature.
+final demoRemoteDataSourceProvider = Provider<DemoRemoteDataSource>((ref) {
+  return DemoRemoteDataSource(ref.watch(apiServiceProvider));
+});
+
+/// Repository provider for demo feature.
 final demoRepositoryProvider = Provider<DemoRepository>((ref) {
-  final api = ref.watch(apiServiceProvider);
-  final session = ref.watch(sessionManagerProvider);
-  final remote = DemoRemoteDataSource(api);
-  return DemoRepositoryImpl(remote, session);
+  return DemoRepositoryImpl(
+    ref.watch(demoRemoteDataSourceProvider),
+    ref.watch(sessionManagerProvider),
+  );
 });
 
-final loginUsecaseProvider = Provider<LoginUsecase>((ref) {
-  return LoginUsecase(ref.watch(demoRepositoryProvider));
+/// Login use case provider.
+final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
+  return LoginUseCase(ref.watch(demoRepositoryProvider));
 });
 
-final logoutUsecaseProvider = Provider<LogoutUsecase>((ref) {
-  return LogoutUsecase(ref.watch(demoRepositoryProvider));
+/// Logout use case provider.
+final logoutUseCaseProvider = Provider<LogoutUseCase>((ref) {
+  return LogoutUseCase(ref.watch(demoRepositoryProvider));
 });
 
-final getUsersUsecaseProvider = Provider<GetUsersUsecase>((ref) {
-  return GetUsersUsecase(ref.watch(demoRepositoryProvider));
+/// Get users use case provider.
+final getUsersUseCaseProvider = Provider<GetUsersUseCase>((ref) {
+  return GetUsersUseCase(ref.watch(demoRepositoryProvider));
 });
 ''';
 
@@ -1205,17 +1213,19 @@ import '../domain/usecases/logout_usecase.dart';
 import 'auth_state.dart';
 import 'demo_providers.dart';
 
+/// Auth state notifier for handling authentication logic.
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._loginUsecase, this._logoutUsecase)
+  AuthNotifier(this._loginUseCase, this._logoutUseCase)
       : super(const AuthState());
 
-  final LoginUsecase _loginUsecase;
-  final LogoutUsecase _logoutUsecase;
+  final LoginUseCase _loginUseCase;
+  final LogoutUseCase _logoutUseCase;
 
+  /// Attempt to login with email and password.
   Future<void> login(String email, String password) async {
     if (state.status == AuthStatus.loading) return;
     state = state.copyWith(status: AuthStatus.loading, message: null);
-    final result = await _loginUsecase(
+    final result = await _loginUseCase(
       email: email,
       password: password,
     );
@@ -1228,16 +1238,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
+  /// Logout and reset state.
   Future<void> logout() async {
-    await _logoutUsecase();
+    await _logoutUseCase();
     state = state.copyWith(status: AuthStatus.initial);
+  }
+
+  /// Reset state to initial (useful after handling errors).
+  void reset() {
+    state = const AuthState();
   }
 }
 
+/// Auth provider using StateNotifierProvider.
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(
-    ref.watch(loginUsecaseProvider),
-    ref.watch(logoutUsecaseProvider),
+    ref.watch(loginUseCaseProvider),
+    ref.watch(logoutUseCaseProvider),
   );
 });
 ''';
@@ -1249,6 +1266,7 @@ import '../domain/entities/user_entity.dart';
 import '../domain/usecases/get_users_usecase.dart';
 import 'demo_providers.dart';
 
+/// State class for users list.
 class UsersState {
   const UsersState({
     this.loading = false,
@@ -1259,6 +1277,9 @@ class UsersState {
   final bool loading;
   final List<UserEntity> users;
   final String? message;
+
+  bool get hasError => message != null;
+  bool get isEmpty => users.isEmpty && !loading && !hasError;
 
   UsersState copyWith({
     bool? loading,
@@ -1273,14 +1294,16 @@ class UsersState {
   }
 }
 
+/// Users state notifier for managing user list.
 class UsersNotifier extends StateNotifier<UsersState> {
-  UsersNotifier(this._getUsersUsecase) : super(const UsersState());
+  UsersNotifier(this._getUsersUseCase) : super(const UsersState());
 
-  final GetUsersUsecase _getUsersUsecase;
+  final GetUsersUseCase _getUsersUseCase;
 
+  /// Load users from the API.
   Future<void> load() async {
     state = state.copyWith(loading: true, message: null);
-    final result = await _getUsersUsecase();
+    final result = await _getUsersUseCase();
     result.fold(
       (failure) => state = state.copyWith(
         loading: false,
@@ -1292,10 +1315,19 @@ class UsersNotifier extends StateNotifier<UsersState> {
       ),
     );
   }
+
+  /// Refresh users (alias for load with visual feedback).
+  Future<void> refresh() async => load();
+
+  /// Clear the users list.
+  void clear() {
+    state = const UsersState();
+  }
 }
 
+/// Users provider using StateNotifierProvider.
 final usersProvider = StateNotifierProvider<UsersNotifier, UsersState>((ref) {
-  return UsersNotifier(ref.watch(getUsersUsecaseProvider));
+  return UsersNotifier(ref.watch(getUsersUseCaseProvider));
 });
 ''';
 
@@ -1455,7 +1487,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   static String _riverpodUsersScreen() => '''
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:test_app/core/localization/app_strings.dart';
 
 import '../../../core/common_widgets/common_app_bar.dart';
 import '../../../core/common_widgets/common_button.dart';
@@ -1463,6 +1494,7 @@ import '../../../core/common_widgets/common_loader.dart';
 import '../../../core/route_handler/app_routes.dart';
 import '../../../core/session_manager/session_manager.dart';
 import '../../../core/di/providers.dart';
+import '../../../core/localization/app_strings.dart';
 import 'auth_notifier.dart';
 import 'users_notifier.dart';
 

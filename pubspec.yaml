@@ -1,7 +1,25 @@
 name: arcle
-description: A Flutter clean-architecture CLI with Riverpod-first scaffolding.
+description: >-
+  A production-ready Flutter CLI that scaffolds Clean Architecture projects
+  with BLoC, GetX, or Riverpod state management. Generate features, DI wiring,
+  routing, and build APKs with ease.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+homepage: https://github.com/ArcleApp/arcle
+repository: https://github.com/ArcleApp/arcle
+issue_tracker: https://github.com/ArcleApp/arcle/issues
+documentation: https://github.com/ArcleApp/arcle#readme
+
+topics:
+  - cli
+  - flutter
+  - clean-architecture
+  - code-generator
+  - scaffolding
+
+# Uncomment and add screenshot when available:
+# screenshots:
+#   - description: 'ARCLE CLI creating a new Flutter project'
+#     path: screenshots/create.png
 
 environment:
   sdk: ^3.5.4
@@ -9,7 +27,7 @@ environment:
 # This is the MAGIC part.
 # It tells Dart: "When I type 'arcle', run bin/arcle.dart"
 executables:
-  arcle: main
+  arcle: arcle
 
 dependencies:
   args: ^2.4.0

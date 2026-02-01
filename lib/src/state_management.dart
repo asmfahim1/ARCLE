@@ -11,12 +11,21 @@ enum StateManagement {
 
   static StateManagement? fromId(String id) {
     final normalized = id.trim().toLowerCase();
-    return normalized == StateManagement.riverpod.id
-        ? StateManagement.riverpod
-        : null;
+    for (final state in StateManagement.values) {
+      if (state.id == normalized) return state;
+    }
+    return null;
   }
 
   static StateManagement? fromInput(String input) {
     return fromId(input);
+  }
+
+  static StateManagement? fromOption(int option) {
+    final index = option - 1;
+    if (index >= 0 && index < StateManagement.values.length) {
+      return StateManagement.values[index];
+    }
+    return null;
   }
 }

@@ -66,15 +66,23 @@ class AppSettingsController extends GetxController {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Immutable state class for app settings.
 class AppSettingsState {
-  AppSettingsState({
+  const AppSettingsState({
     this.themeMode = ThemeMode.light,
     this.locale = const Locale('en', 'US'),
   });
 
+  /// Current theme mode (light/dark/system).
   final ThemeMode themeMode;
+  
+  /// Current locale for localization.
   final Locale locale;
 
+  /// Whether dark mode is enabled.
+  bool get isDarkMode => themeMode == ThemeMode.dark;
+
+  /// Creates a copy with the given fields replaced.
   AppSettingsState copyWith({
     ThemeMode? themeMode,
     Locale? locale,
@@ -84,19 +92,45 @@ class AppSettingsState {
       locale: locale ?? this.locale,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AppSettingsState &&
+        other.themeMode == themeMode &&
+        other.locale == locale;
+  }
+
+  @override
+  int get hashCode => Object.hash(themeMode, locale);
 }
 
+/// State notifier for managing app-wide settings.
+/// 
+/// Manages theme mode and locale settings with optional persistence.
 class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
-  AppSettingsNotifier() : super(AppSettingsState());
+  AppSettingsNotifier() : super(const AppSettingsState());
 
+  /// Toggle between light and dark theme.
   void toggleTheme(bool dark) {
     state = state.copyWith(
       themeMode: dark ? ThemeMode.dark : ThemeMode.light,
     );
   }
 
+  /// Set the theme mode directly.
+  void setThemeMode(ThemeMode mode) {
+    state = state.copyWith(themeMode: mode);
+  }
+
+  /// Change the app locale.
   void changeLocale(Locale locale) {
     state = state.copyWith(locale: locale);
+  }
+
+  /// Reset settings to defaults.
+  void reset() {
+    state = const AppSettingsState();
   }
 }
 ''';

@@ -10,11 +10,13 @@ class DocsGenerator {
     required this.ui,
     required this.state,
     required this.force,
+    required this.format,
   });
 
   final CliUi ui;
   final StateManagement state;
   final bool force;
+  final String format; // 'word' or 'pdf'
 
   void generate(Directory base) {
     final writer = FileWriter(
@@ -37,7 +39,7 @@ class DocsGenerator {
         ),
       );
       ui.info('Document path: ${_join(base.path, relativePath)}');
-      ui.success('ðŸ“š Documentation generated successfully!');
+      ui.success('Documentation generated successfully!');
       return;
     }
 
@@ -46,8 +48,45 @@ class DocsGenerator {
     final version = _extractYamlValue(content, 'version') ?? '0.0.0';
     final safeName = _sanitizeFilePart(name);
     final safeVersion = _sanitizeFilePart(version.split('+').first);
-    final filename = 'documentation/${safeName}_v$safeVersion.tex';
 
+    if (format == 'word') {
+      _generateWordDoc(base, writer, name, version, safeName, safeVersion);
+    } else {
+      _generatePdfDoc(base, writer, name, version, safeName, safeVersion);
+    }
+  }
+
+  void _generateWordDoc(
+    Directory base,
+    FileWriter writer,
+    String name,
+    String version,
+    String safeName,
+    String safeVersion,
+  ) {
+    final filename = 'documentation/${safeName}_v$safeVersion.docx';
+    final docxContent = DocsTemplates.projectDocWord(
+      projectName: name,
+      version: version,
+      stateLabel: state.label,
+    );
+
+    // Write the Word XML content
+    writer.write(base, filename, docxContent);
+    ui.success('Word document generated: $filename');
+    ui.info('Document path: ${_join(base.path, filename)}');
+    ui.info('Open with Microsoft Word or compatible application.');
+  }
+
+  void _generatePdfDoc(
+    Directory base,
+    FileWriter writer,
+    String name,
+    String version,
+    String safeName,
+    String safeVersion,
+  ) {
+    final filename = 'documentation/${safeName}_v$safeVersion.tex';
     writer.write(
       base,
       filename,
@@ -57,9 +96,9 @@ class DocsGenerator {
         stateLabel: state.label,
       ),
     );
-    ui.success('ðŸ“š Documentation generated: $filename');
+    ui.success('LaTeX document generated: $filename');
     ui.info('Document path: ${_join(base.path, filename)}');
-    ui.info('Open the .tex file in a LaTeX editor or convert to PDF.');
+    ui.info('Convert to PDF using: pdflatex $filename');
   }
 
   String? _extractYamlValue(String content, String key) {

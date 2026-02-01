@@ -20,8 +20,8 @@ class InitCommand {
       ..addOption(
         'state',
         abbr: 's',
-        allowed: const ['riverpod'],
-        help: 'State management option (riverpod)',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
       )
       ..addOption(
         'path',
@@ -53,7 +53,7 @@ class InitCommand {
     );
     if (state == null) {
       ui.error('No state management selected.');
-      ui.info('Run with --state riverpod to be explicit.');
+      ui.info('Run with --state bloc|getx|riverpod to be explicit.');
       return ExitCode.usage.code;
     }
 

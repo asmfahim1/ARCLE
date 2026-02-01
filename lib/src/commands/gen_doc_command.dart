@@ -21,8 +21,14 @@ class GenDocCommand {
       ..addOption(
         'state',
         abbr: 's',
-        allowed: const ['riverpod'],
-        help: 'State management option (riverpod)',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
+      )
+      ..addOption(
+        'format',
+        abbr: 'F',
+        allowed: const ['word', 'pdf'],
+        help: 'Document format: word (.docx) or pdf (.tex for LaTeX)',
       )
       ..addOption(
         'path',
@@ -48,24 +54,33 @@ class GenDocCommand {
     final targetDir = Directory(cmd['path'] as String);
     final config = ArcleConfig.readFrom(targetDir);
 
-    StateManagement? state = StatePicker(console).resolve(
-      cmd['state'] as String?,
-      interactive: cmd['interactive'] as bool,
-    );
+    final stateInput = cmd['state'] as String?;
+    final interactive = cmd['interactive'] as bool;
 
-    state ??= config?.state;
+    StateManagement? state;
+    if (stateInput != null && stateInput.trim().isNotEmpty) {
+      state = StatePicker(console).resolve(stateInput, interactive: false);
+    } else if (config?.state != null) {
+      state = config!.state;
+      ui.info(
+        'Detected state management from ${ArcleConfig.filename}: ${state.label}.',
+      );
+    } else {
+      state = StatePicker(console).resolve(null, interactive: interactive);
+    }
 
     if (state == null) {
       ui.error('No state management selected.');
-      ui.info('Run with --state riverpod to be explicit.');
+      ui.info('Run with --state bloc|getx|riverpod to be explicit.');
       return ExitCode.usage.code;
     }
 
-    if (state != StateManagement.riverpod) {
-      ui.error('Only Riverpod is supported in this release.');
-      ui.info(
-        'Recreate the project with Riverpod or update ${ArcleConfig.filename}.',
-      );
+    // Determine document format
+    final formatInput = cmd['format'] as String?;
+    final docFormat = _resolveFormat(formatInput, interactive, ui);
+    if (docFormat == null) {
+      ui.error('No document format selected.');
+      ui.info('Run with --format word or --format pdf to be explicit.');
       return ExitCode.usage.code;
     }
 
@@ -73,12 +88,46 @@ class GenDocCommand {
       ui: ui,
       state: state,
       force: cmd['force'] as bool,
+      format: docFormat,
     );
     ui.section('📚 Generating Documentation');
     ui.step('PATH    ', targetDir.path);
     ui.step('STATE   ', '${state.label} ${_stateIcon(state)}');
+    ui.step(
+        'FORMAT  ', docFormat == 'word' ? '📄 Word (.docx)' : '📑 PDF (.tex)');
     generator.generate(targetDir);
     return ExitCode.success.code;
+  }
+
+  String? _resolveFormat(String? input, bool interactive, CliUi ui) {
+    if (input != null && input.trim().isNotEmpty) {
+      final normalized = input.trim().toLowerCase();
+      if (normalized == 'word' || normalized == 'pdf') {
+        return normalized;
+      }
+    }
+
+    if (!interactive) return null;
+
+    ui.section('📄 Select Document Format');
+    console.line('  1) 📄 Word  - Microsoft Word compatible (.docx XML)');
+    console.line('  2) 📑 PDF   - LaTeX format (.tex) - convert to PDF');
+    console.line('');
+
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final choice = console.prompt('  Select format (1/2) [1]: ')?.trim();
+      if (choice == null ||
+          choice.isEmpty ||
+          choice == '1' ||
+          choice.toLowerCase() == 'word') {
+        return 'word';
+      }
+      if (choice == '2' || choice.toLowerCase() == 'pdf') {
+        return 'pdf';
+      }
+      ui.warn('Invalid selection. Please choose 1, 2, word, or pdf.');
+    }
+    return null;
   }
 
   String _stateIcon(StateManagement state) {

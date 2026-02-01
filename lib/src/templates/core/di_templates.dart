@@ -111,30 +111,47 @@ import '../notifications/notification_service.dart';
 import '../permissions/permission_service.dart';
 import '../session_manager/pref_manager.dart';
 import '../session_manager/session_manager.dart';
+// arcle:feature_imports
 
+// ============================================================================
+// Core Providers - Overridden in AppDi.register()
+// ============================================================================
+
+/// Environment configuration provider.
+/// Overridden at startup with the current environment (local/stag/prod).
 final envProvider = Provider<Env>((ref) {
-  throw UnimplementedError('Env is not initialized');
+  throw UnimplementedError('Env is not initialized. Call AppDi.register() first.');
 });
 
+/// Session manager for handling authentication state and tokens.
 final sessionManagerProvider = Provider<SessionManager>((ref) {
-  throw UnimplementedError('SessionManager is not initialized');
+  throw UnimplementedError('SessionManager is not initialized. Call AppDi.register() first.');
 });
 
+/// Preference manager for persistent key-value storage.
 final prefManagerProvider = Provider<PrefManager>((ref) {
-  throw UnimplementedError('PrefManager is not initialized');
+  throw UnimplementedError('PrefManager is not initialized. Call AppDi.register() first.');
 });
 
+/// API service for making HTTP requests.
 final apiServiceProvider = Provider<ApiService>((ref) {
-  throw UnimplementedError('ApiService is not initialized');
+  throw UnimplementedError('ApiService is not initialized. Call AppDi.register() first.');
 });
 
+/// Permission service for handling runtime permissions.
 final permissionServiceProvider = Provider<PermissionService>((ref) {
-  throw UnimplementedError('PermissionService is not initialized');
+  throw UnimplementedError('PermissionService is not initialized. Call AppDi.register() first.');
 });
 
+/// Notification service for local and push notifications.
 final notificationServiceProvider = Provider<NotificationService>((ref) {
-  throw UnimplementedError('NotificationService is not initialized');
+  throw UnimplementedError('NotificationService is not initialized. Call AppDi.register() first.');
 });
+
+// ============================================================================
+// Feature Provider Exports
+// ============================================================================
+// arcle:feature_exports
 ''';
 
   static String blocInjection() => '''

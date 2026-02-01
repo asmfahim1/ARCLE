@@ -475,8 +475,13 @@ class ${className}Screen extends StatelessWidget {
 ''';
 
   static String _riverpodState(String snake, String className) => '''
+import 'package:flutter/foundation.dart';
 import '../../domain/entity/${snake}_entity.dart';
 
+/// State class for $className feature.
+/// 
+/// Immutable state that holds loading status, data, and error information.
+@immutable
 class ${className}State {
   const ${className}State({
     this.loading = false,
@@ -484,10 +489,25 @@ class ${className}State {
     this.error,
   });
 
+  /// Whether data is currently being loaded.
   final bool loading;
+  
+  /// List of $className entities.
   final List<${className}Entity> items;
+  
+  /// Error message if loading failed.
   final String? error;
 
+  /// Whether there is an error.
+  bool get hasError => error != null;
+  
+  /// Whether the list is empty and not loading.
+  bool get isEmpty => items.isEmpty && !loading && !hasError;
+  
+  /// Whether data has been loaded successfully.
+  bool get hasData => items.isNotEmpty;
+
+  /// Creates a copy of this state with the given fields replaced.
   ${className}State copyWith({
     bool? loading,
     List<${className}Entity>? items,
@@ -499,6 +519,21 @@ class ${className}State {
       error: error ?? this.error,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ${className}State &&
+        other.loading == loading &&
+        listEquals(other.items, items) &&
+        other.error == error;
+  }
+
+  @override
+  int get hashCode => Object.hash(loading, items, error);
+
+  @override
+  String toString() => '${className}State(loading: \$loading, items: \${items.length}, error: \$error)';
 }
 ''';
 
@@ -509,11 +544,14 @@ import '../../domain/repository/${snake}_repository.dart';
 import '../../domain/usecase/${snake}_usecase.dart';
 import '../../data/repository/${snake}_repository_impl.dart';
 import '../../data/source/${snake}_remote_source.dart';
-import '../../../core/api_client/api_service.dart';
-import '../../../core/di/providers.dart';
-import '../../../core/session_manager/session_manager.dart';
+import '../../../../core/di/providers.dart';
 import '../state/${snake}_state.dart';
 
+// ============================================================================
+// Data Layer Providers
+// ============================================================================
+
+/// Remote data source provider for $className feature.
 final ${snake}RemoteSourceProvider = Provider<${className}RemoteSource>((ref) {
   return ${className}RemoteSource(
     ref.watch(apiServiceProvider),
@@ -521,19 +559,33 @@ final ${snake}RemoteSourceProvider = Provider<${className}RemoteSource>((ref) {
   );
 });
 
+/// Repository provider for $className feature.
 final ${snake}RepositoryProvider = Provider<${className}Repository>((ref) {
   return ${className}RepositoryImpl(ref.watch(${snake}RemoteSourceProvider));
 });
 
+// ============================================================================
+// Domain Layer Providers
+// ============================================================================
+
+/// Use case provider for $className feature.
 final ${snake}UseCaseProvider = Provider<${className}UseCase>((ref) {
   return ${className}UseCase(ref.watch(${snake}RepositoryProvider));
 });
 
+// ============================================================================
+// Presentation Layer Providers
+// ============================================================================
+
+/// State notifier provider for $className feature.
 final ${snake}NotifierProvider =
     StateNotifierProvider<${className}Notifier, ${className}State>(
   (ref) => ${className}Notifier(ref.watch(${snake}UseCaseProvider)),
 );
 
+/// State notifier for $className feature.
+/// 
+/// Handles loading, error states, and data management for the feature.
 class ${className}Notifier extends StateNotifier<${className}State> {
   ${className}Notifier(this._useCase) : super(const ${className}State()) {
     load();
@@ -541,6 +593,7 @@ class ${className}Notifier extends StateNotifier<${className}State> {
 
   final ${className}UseCase _useCase;
 
+  /// Load data for this feature.
   Future<void> load() async {
     state = state.copyWith(loading: true, error: null);
     final result = await _useCase();
@@ -550,6 +603,14 @@ class ${className}Notifier extends StateNotifier<${className}State> {
       (data) => state = state.copyWith(loading: false, items: data),
     );
   }
+
+  /// Refresh data (alias for load with visual feedback).
+  Future<void> refresh() async => load();
+
+  /// Clear all data and reset to initial state.
+  void clear() {
+    state = const ${className}State();
+  }
 }
 ''';
 
@@ -557,27 +618,99 @@ class ${className}Notifier extends StateNotifier<${className}State> {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/localization/app_strings.dart';
+import '../../../../core/localization/app_strings.dart';
 import '../providers/${snake}_providers.dart';
 import '../widgets/${snake}_card.dart';
 
+/// Screen widget for $className feature.
+/// 
+/// Uses ConsumerWidget to automatically rebuild when state changes.
 class ${className}Screen extends ConsumerWidget {
   const ${className}Screen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(${snake}NotifierProvider);
+    final notifier = ref.read(${snake}NotifierProvider.notifier);
+    
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('${snake}_title'))),
-      body: state.loading
-          ? const Center(child: CircularProgressIndicator())
-          : state.error != null
-              ? Center(child: Text(state.error!))
-              : ListView.builder(
-                  itemCount: state.items.length,
-                  itemBuilder: (_, index) =>
-                      ${className}Card(entity: state.items[index]),
-                ),
+      appBar: AppBar(
+        title: Text(context.tr('${snake}_title')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: state.loading ? null : () => notifier.refresh(),
+          ),
+        ],
+      ),
+      body: _buildBody(context, ref, state, notifier),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    ${className}State state,
+    ${className}Notifier notifier,
+  ) {
+    if (state.loading && state.items.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.hasError && state.items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              state.error ?? 'An error occurred',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => notifier.load(),
+              icon: const Icon(Icons.refresh),
+              label: Text(context.tr('retry')),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (state.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.inbox_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.tr('no_data'),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => notifier.refresh(),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: state.items.length,
+        itemBuilder: (_, index) => ${className}Card(entity: state.items[index]),
+      ),
     );
   }
 }

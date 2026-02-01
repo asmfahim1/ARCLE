@@ -21,8 +21,8 @@ class FeatureCommand {
       ..addOption(
         'state',
         abbr: 's',
-        allowed: const ['riverpod'],
-        help: 'State management option (riverpod)',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
       )
       ..addOption(
         'path',
@@ -109,15 +109,7 @@ class FeatureCommand {
 
     if (state == null) {
       ui.error('No state management selected.');
-      ui.info('Run with --state riverpod to be explicit.');
-      return ExitCode.usage.code;
-    }
-
-    if (state != StateManagement.riverpod) {
-      ui.error('Only Riverpod is supported in this release.');
-      ui.info(
-        'Recreate the project with Riverpod or update ${ArcleConfig.filename}.',
-      );
+      ui.info('Run with --state bloc|getx|riverpod to be explicit.');
       return ExitCode.usage.code;
     }
 

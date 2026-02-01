@@ -8,6 +8,7 @@ import '../utils/file_writer.dart';
 import '../utils/localization_injector.dart';
 import '../utils/string_helpers.dart';
 import 'bloc_providers_updater.dart';
+import 'riverpod_providers_updater.dart';
 import 'route_updater.dart';
 
 class FeatureGenerator {
@@ -42,6 +43,11 @@ class FeatureGenerator {
     if (state == StateManagement.bloc) {
       BlocProvidersUpdater(stdout: ui.log, stderr: ui.logError)
           .addFeatureBlocProvider(base, safeName);
+    }
+
+    if (state == StateManagement.riverpod) {
+      RiverpodProvidersUpdater(stdout: ui.log, stderr: ui.logError)
+          .addFeatureProviders(base, safeName);
     }
 
     EndpointInjector.inject(base, safeName);
