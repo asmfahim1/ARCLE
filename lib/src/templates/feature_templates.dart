@@ -31,10 +31,13 @@ class FeatureTemplates {
     switch (state) {
       case StateManagement.bloc:
         files.addAll(_blocPresentation(snake, className));
+        break;
       case StateManagement.getx:
         files.addAll(_getxPresentation(snake, className));
+        break;
       case StateManagement.riverpod:
         files.addAll(_riverpodPresentation(snake, className));
+        break;
     }
 
     return files;

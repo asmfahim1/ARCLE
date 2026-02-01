@@ -11,18 +11,10 @@ class StatePicker {
     if (raw != null && raw.trim().isNotEmpty) {
       return StateManagement.fromInput(raw);
     }
-    if (!interactive) return null;
-
-    final ui = CliUi(console);
-    ui.showWelcome();
-    ui.showStateMenu();
-    final input = console.prompt(
-      console.color(
-        '  ➜ Enter choice (1-${StateManagement.values.length}): ',
-        ConsoleColor.green,
-      ),
-    );
-    if (input == null || input.trim().isEmpty) return null;
-    return StateManagement.fromInput(input);
+    if (interactive) {
+      final ui = CliUi(console);
+      ui.info('Riverpod is the only supported state management. Using Riverpod.');
+    }
+    return StateManagement.riverpod;
   }
 }

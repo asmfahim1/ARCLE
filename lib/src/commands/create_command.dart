@@ -19,8 +19,8 @@ class CreateCommand {
       ..addOption(
         'state',
         abbr: 's',
-        allowed: const ['1', '2', '3', 'bloc', 'getx', 'riverpod'],
-        help: 'State management option number (1/2/3) or name',
+        allowed: const ['riverpod'],
+        help: 'State management option (riverpod)',
       )
       ..addOption(
         'path',
@@ -65,7 +65,7 @@ class CreateCommand {
     );
     if (state == null) {
       ui.error('No state management selected.');
-      ui.info('Run interactively or use --state 1|2|3 (bloc/getx/riverpod)');
+      ui.info('Run with --state riverpod to be explicit.');
       return ExitCode.usage.code;
     }
 

@@ -682,10 +682,13 @@ class ProjectGenerator {
         deps.add(_Dependency('injectable', 'any'));
         deps.add(_Dependency('equatable', 'any'));
         deps.add(_Dependency('flutter_bloc', version));
+        break;
       case StateManagement.getx:
         deps.add(_Dependency('get', version));
+        break;
       case StateManagement.riverpod:
         deps.add(_Dependency('flutter_riverpod', version));
+        break;
     }
     return deps;
   }

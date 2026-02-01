@@ -38,24 +38,15 @@ class CliUi {
 
   void showStateMenu() {
     console.line(
-        console.bold('🎯 Select your preferred state management solution:'));
+        console.bold('🎯 State management (Riverpod-only):'));
     console.line('');
-    for (final item in StateManagement.values) {
-      final number = console.color(
-        item.option.toString().padLeft(2, ' '),
-        ConsoleColor.cyan,
-      );
-      final icon = _stateIcon(item);
-      final name = item.label.padRight(8);
-      if(item.option != 2) {
-        console.line('  $number. $icon $name │ ${_description(item)} abc');
-      } else {
-        console.line('  $number. $icon  $name │ ${_description(item)} def');
-      }
-    }
+    final item = StateManagement.riverpod;
+    final icon = _stateIcon(item);
+    final name = item.label.padRight(8);
+    console.line('  $icon $name │ ${_description(item)}');
     console.line('');
     console.line(console.color(
-        '  💡 Tip: Use --state 1|2|3 to skip this prompt in CI/CD',
+        '  💡 Riverpod is the only supported state management in this release.',
         ConsoleColor.yellow));
     console.line('');
   }

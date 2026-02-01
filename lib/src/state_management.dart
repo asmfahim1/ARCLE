@@ -10,18 +10,13 @@ enum StateManagement {
   int get option => index + 1;
 
   static StateManagement? fromId(String id) {
-    for (final value in values) {
-      if (value.id == id) return value;
-    }
-    return null;
+    final normalized = id.trim().toLowerCase();
+    return normalized == StateManagement.riverpod.id
+        ? StateManagement.riverpod
+        : null;
   }
 
   static StateManagement? fromInput(String input) {
-    final trimmed = input.trim().toLowerCase();
-    final asNumber = int.tryParse(trimmed);
-    if (asNumber != null && asNumber >= 1 && asNumber <= values.length) {
-      return values[asNumber - 1];
-    }
-    return fromId(trimmed);
+    return fromId(input);
   }
 }

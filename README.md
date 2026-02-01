@@ -29,8 +29,8 @@ Use it to scaffold architecture, generate features, and keep dependency injectio
 
 - Clean Architecture scaffolding for new or existing projects
 - Feature generation with data, domain, and presentation layers
-- DI generation for BLoC, GetX, and Riverpod
-- Automated build_runner flow for BLoC DI
+- Riverpod-first DI generation with ProviderContainer wiring
+- Automated dependency updates during scaffolding
 - APK builds in debug or release with smart renaming
 - Documentation generation for your project
 
@@ -67,7 +67,7 @@ arcle build --mode release
 - `arcle create <project_name>`: create a new Flutter project + clean architecture
 - `arcle init`: scaffold clean architecture in an existing project
 - `arcle feature <feature_name>`: generate a feature module
-- `arcle auto-gen-di`: regenerate DI and run build_runner for BLoC
+- `arcle auto-gen-di`: regenerate DI and refresh dependencies
 - `arcle gen-di`: regenerate DI only
 - `arcle build --mode release`: build APK (debug or release)
 - `arcle gen-doc`: generate project documentation
