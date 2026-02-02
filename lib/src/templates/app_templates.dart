@@ -81,22 +81,17 @@ Future<void> bootstrap() async {
     };
 
     final stateImports = switch (state) {
-      StateManagement.bloc =>
-        "import 'package:flutter_bloc/flutter_bloc.dart';\n"
-            "import '../core/di/bloc_providers.dart';\n"
-            "import '../features/settings/presentation/app_settings_cubit.dart';\n"
-            "import '../features/settings/presentation/app_settings_state.dart';\n",
-      StateManagement.getx =>
-        "import 'package:get/get.dart';\n"
-            "import '../features/settings/presentation/app_settings_controller.dart';\n"
-            "import '../core/localization/getx_localization.dart';\n",
+      StateManagement.bloc => "import '../core/di/injection.dart';\n"
+          "import '../features/settings/presentation/app_settings_cubit.dart';\n",
+      StateManagement.getx => "import 'package:get/get.dart';\n"
+          "import '../features/settings/presentation/app_settings_controller.dart';\n"
+          "import '../core/localization/getx_localization.dart';\n",
       StateManagement.riverpod =>
         "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
             "import '../features/settings/presentation/app_settings_provider.dart';\n",
     };
 
-    final routeImports =
-        "import '../core/route_handler/app_router.dart';\n"
+    final routeImports = "import '../core/route_handler/app_router.dart';\n"
         "import '../core/route_handler/app_routes.dart';\n";
 
     return '''
@@ -170,56 +165,41 @@ $localizationDelegates
   static String _blocAppBody(String appClass) {
     final material = _sharedMaterialApp(
       appClass,
-      themeMode: 'settings.themeMode',
-      locale: 'settings.locale',
+      themeMode: 'getIt<AppSettingsCubit>().state.themeMode',
+      locale: 'getIt<AppSettingsCubit>().state.locale',
     );
     return '''
-MultiBlocProvider(
-      providers: AppBlocProviders.providers,
-      child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
-        builder: (context, settings) {
-          return $material;
-        },
-      ),
-    )''';
+$material''';
   }
 
   static String _getxAppBody(String appClass) {
     return '''
-GetBuilder<AppSettingsController>(
-      init: Get.find<AppSettingsController>(),
-      builder: (controller) {
-        return Obx(() {
-          final settings = controller;
-          return $appClass(
-            title: 'Arcle Demo',
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
-            themeMode: settings.themeMode.value,
-            locale: settings.locale.value,
-            supportedLocales: AppStrings.supportedLocales,
-            translations: Language(),
-            fallbackLocale: const Locale('en', 'US'),
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            builder: (context, child) {
-              final media = MediaQuery.of(context);
-              return MediaQuery(
-                data: media.copyWith(
-                  textScaler: const TextScaler.linear(1.0),
-                ),
-                child: child ?? const SizedBox.shrink(),
-              );
-            },
-            navigatorObservers: [appRouteObserver],
-            initialRoute: AppRoutes.initialRoute,
-            getPages: AppRouter.pages,
-          );
-        });
+$appClass(
+      title: 'Arcle Demo',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: Get.find<AppSettingsController>().themeMode.value,
+      locale: Get.find<AppSettingsController>().locale.value,
+      supportedLocales: AppStrings.supportedLocales,
+      translations: Language(),
+      fallbackLocale: const Locale('en', 'US'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
       },
+      navigatorObservers: [appRouteObserver],
+      initialRoute: AppRoutes.initialRoute,
+      getPages: AppRouter.pages,
     )''';
   }
 
@@ -230,11 +210,10 @@ GetBuilder<AppSettingsController>(
       locale: 'settings.locale',
     );
     return '''
-Consumer(
-      builder: (context, ref, _) {
-        final settings = ref.watch(appSettingsProvider);
-        return $material;
-      },
-    )''';
+(() {
+      final settings = ProviderScope.containerOf(context, listen: false)
+          .read(appSettingsProvider);
+      return $material;
+    })()''';
   }
 }

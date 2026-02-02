@@ -303,20 +303,38 @@ class DemoRepositoryImpl implements DemoRepository {
   }
 
   static String _authEvent() => '''
-import 'package:equatable/equatable.dart';
-
-abstract class AuthEvent extends Equatable {
-  const AuthEvent();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class LoginSubmitted extends AuthEvent {
-  const LoginSubmitted(this.email, this.password);
-
-  final String email;
-  final String password;
+  import 'package:equatable/equatable.dart';
+  
+  abstract class AuthEvent extends Equatable {
+    const AuthEvent();
+  
+    @override
+    List<Object?> get props => [];
+  }
+  
+  class EmailChanged extends AuthEvent {
+    const EmailChanged(this.email);
+  
+    final String email;
+  
+    @override
+    List<Object?> get props => [email];
+  }
+  
+  class PasswordChanged extends AuthEvent {
+    const PasswordChanged(this.password);
+  
+    final String password;
+  
+    @override
+    List<Object?> get props => [password];
+  }
+  
+  class LoginSubmitted extends AuthEvent {
+    const LoginSubmitted(this.email, this.password);
+  
+    final String email;
+    final String password;
 
   @override
   List<Object?> get props => [email, password];
@@ -328,33 +346,41 @@ class LogoutRequested extends AuthEvent {
 ''';
 
   static String _authState() => '''
-import 'package:equatable/equatable.dart';
-
-enum AuthStatus { initial, loading, success, failure }
-
-class AuthState extends Equatable {
-  const AuthState({
-    this.status = AuthStatus.initial,
-    this.message,
-  });
-
-  final AuthStatus status;
-  final String? message;
-
-  AuthState copyWith({
-    AuthStatus? status,
-    String? message,
-  }) {
-    return AuthState(
-      status: status ?? this.status,
-      message: message ?? this.message,
-    );
+  import 'package:equatable/equatable.dart';
+  
+  enum AuthStatus { initial, loading, success, failure }
+  
+  class AuthState extends Equatable {
+    const AuthState({
+      this.email = '',
+      this.password = '',
+      this.status = AuthStatus.initial,
+      this.message,
+    });
+  
+    final String email;
+    final String password;
+    final AuthStatus status;
+    final String? message;
+  
+    AuthState copyWith({
+      String? email,
+      String? password,
+      AuthStatus? status,
+      String? message,
+    }) {
+      return AuthState(
+        email: email ?? this.email,
+        password: password ?? this.password,
+        status: status ?? this.status,
+        message: message ?? this.message,
+      );
+    }
+  
+    @override
+    List<Object?> get props => [email, password, status, message];
   }
-
-  @override
-  List<Object?> get props => [status, message];
-}
-''';
+  ''';
 
   static String _authBloc() => '''
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -364,20 +390,36 @@ import '../../domain/usecases/logout_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
-class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(this._loginUseCase, this._logoutUseCase)
-      : super(const AuthState()) {
-    on<LoginSubmitted>(_onLogin);
-    on<LogoutRequested>(_onLogout);
-  }
-
-  final LoginUseCase _loginUseCase;
-  final LogoutUseCase _logoutUseCase;
-
-  Future<void> _onLogin(
-    LoginSubmitted event,
-    Emitter<AuthState> emit,
-  ) async {
+  class AuthBloc extends Bloc<AuthEvent, AuthState> {
+    AuthBloc(this._loginUseCase, this._logoutUseCase)
+        : super(const AuthState()) {
+      on<EmailChanged>(_onEmailChanged);
+      on<PasswordChanged>(_onPasswordChanged);
+      on<LoginSubmitted>(_onLogin);
+      on<LogoutRequested>(_onLogout);
+    }
+  
+    final LoginUseCase _loginUseCase;
+    final LogoutUseCase _logoutUseCase;
+  
+    void _onEmailChanged(
+      EmailChanged event,
+      Emitter<AuthState> emit,
+    ) {
+      emit(state.copyWith(email: event.email));
+    }
+  
+    void _onPasswordChanged(
+      PasswordChanged event,
+      Emitter<AuthState> emit,
+    ) {
+      emit(state.copyWith(password: event.password));
+    }
+  
+    Future<void> _onLogin(
+      LoginSubmitted event,
+      Emitter<AuthState> emit,
+    ) async {
     emit(state.copyWith(status: AuthStatus.loading, message: null));
     final result = await _loginUseCase(
       email: event.email,
@@ -511,109 +553,96 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/common_widgets/common_app_bar.dart';
 import '../../../core/common_widgets/common_button.dart';
-import '../../../core/common_widgets/common_checkbox.dart';
-import '../../../core/common_widgets/common_dropdown.dart';
-import '../../../core/common_widgets/common_snackbar.dart';
-import '../../../core/common_widgets/common_text_field.dart';
-import '../../../core/localization/app_strings.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/utils/dimensions.dart';
-import '../../settings/presentation/app_settings_cubit.dart';
-import '../../settings/presentation/app_settings_state.dart';
-import 'bloc/auth_bloc.dart';
-import 'bloc/auth_event.dart';
-import 'bloc/auth_state.dart';
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(text: 'demo@arcle.dev');
-  final _passwordController = TextEditingController(text: 'password123');
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _submit(BuildContext context) {
-    context.read<AuthBloc>().add(
-          LoginSubmitted(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
+  import '../../../core/common_widgets/common_snackbar.dart';
+  import '../../../core/common_widgets/common_text_field.dart';
+  import '../../../core/route_handler/app_routes.dart';
+  import '../../../core/utils/dimensions.dart';
+  import '../../../core/localization/app_strings.dart';
+  import '../../../core/di/injection.dart';
+  import '../../domain/usecases/login_usecase.dart';
+  import '../../domain/usecases/logout_usecase.dart';
+  import 'bloc/auth_bloc.dart';
+  import 'bloc/auth_event.dart';
+  import 'bloc/auth_state.dart';
+  
+  class LoginScreen extends StatelessWidget {
+    const LoginScreen({super.key});
+  
+    @override
+    Widget build(BuildContext context) {
+      final dimensions = Dimensions(context);
+      return BlocProvider(
+        create: (_) => AuthBloc(
+          getIt<LoginUseCase>(),
+          getIt<LogoutUseCase>(),
+        ),
+        child: Scaffold(
+          appBar: CommonAppBar(
+            title: context.tr('login_title'),
+            showBackButton: false,
           ),
-        );
+          body: BlocConsumer<AuthBloc, AuthState>(
+            listener: (context, state) {
+              if (state.status == AuthStatus.failure) {
+                CommonSnackbar.error(
+                  context,
+                  message: state.message ?? 'Login failed',
+                );
+              }
+              if (state.status == AuthStatus.success) {
+                Navigator.pushReplacementNamed(context, AppRoutes.users);
+              }
+            },
+            builder: (context, state) {
+              return SingleChildScrollView(
+                padding: dimensions.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      context.tr('login_hint'),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    SizedBox(height: dimensions.height(16)),
+                    CommonTextField(
+                      labelText: context.tr('email'),
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (value) => context
+                          .read<AuthBloc>()
+                          .add(EmailChanged(value.trim())),
+                    ),
+                    SizedBox(height: dimensions.height(12)),
+                    CommonTextField(
+                      labelText: context.tr('password'),
+                      obscureText: true,
+                      onChanged: (value) => context
+                          .read<AuthBloc>()
+                          .add(PasswordChanged(value.trim())),
+                    ),
+                    SizedBox(height: dimensions.height(20)),
+                    CommonButton(
+                      label: context.tr('login'),
+                      isLoading: state.status == AuthStatus.loading,
+                      onPressed: () => context.read<AuthBloc>().add(
+                            LoginSubmitted(state.email, state.password),
+                          ),
+                    ),
+                    SizedBox(height: dimensions.height(12)),
+                    CommonButton(
+                      label: context.tr('settings'),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, AppRoutes.settings),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final dimensions = Dimensions(context);
-    return Scaffold(
-      appBar: CommonAppBar(
-        title: context.tr('login_title'),
-        showBackButton: false,
-      ),
-      body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state.status == AuthStatus.failure) {
-            CommonSnackbar.error(
-              context,
-              message: state.message ?? 'Login failed',
-            );
-          }
-          if (state.status == AuthStatus.success) {
-            Navigator.pushReplacementNamed(context, AppRoutes.users);
-          }
-        },
-        builder: (context, state) {
-          return SingleChildScrollView(
-            padding: dimensions.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  context.tr('login_hint'),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                SizedBox(height: dimensions.height(16)),
-                CommonTextField(
-                  controller: _emailController,
-                  labelText: context.tr('email'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                SizedBox(height: dimensions.height(12)),
-                CommonTextField(
-                  controller: _passwordController,
-                  labelText: context.tr('password'),
-                  obscureText: true,
-                ),
-                SizedBox(height: dimensions.height(20)),
-                CommonButton(
-                  label: context.tr('login'),
-                  isLoading: state.status == AuthStatus.loading,
-                  onPressed: () => _submit(context),
-                ),
-                SizedBox(height: dimensions.height(12)),
-                CommonButton(
-                  label: context.tr('settings'),
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.settings),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-''';
+  ''';
 
   static String _blocUsersScreen() => '''
 import 'package:flutter/material.dart';
@@ -627,25 +656,38 @@ import '../../../core/session_manager/session_manager.dart';
 import '../../../core/utils/dimensions.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/localization/app_strings.dart';
-import '../domain/usecases/get_users_usecase.dart';
-import 'bloc/auth_bloc.dart';
-import 'bloc/auth_event.dart';
-import 'bloc/users_bloc.dart';
-import 'bloc/users_event.dart';
-import 'bloc/users_state.dart';
+  import '../../../core/di/injection.dart';
+  import '../domain/usecases/get_users_usecase.dart';
+  import '../domain/usecases/login_usecase.dart';
+  import '../domain/usecases/logout_usecase.dart';
+  import 'bloc/auth_bloc.dart';
+  import 'bloc/auth_event.dart';
+  import 'bloc/users_bloc.dart';
+  import 'bloc/users_event.dart';
+  import 'bloc/users_state.dart';
 
 class UsersListScreen extends StatelessWidget {
-  const UsersListScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => UsersBloc(getIt<GetUsersUseCase>())
-        ..add(const LoadUsers()),
-      child: const UsersListView(),
-    );
+    const UsersListScreen({super.key});
+  
+    @override
+    Widget build(BuildContext context) {
+      return MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>(
+            create: (_) => AuthBloc(
+              getIt<LoginUseCase>(),
+              getIt<LogoutUseCase>(),
+            ),
+          ),
+          BlocProvider<UsersBloc>(
+            create: (_) => UsersBloc(getIt<GetUsersUseCase>())
+              ..add(const LoadUsers()),
+          ),
+        ],
+        child: const UsersListView(),
+      );
+    }
   }
-}
 
 class UsersListView extends StatelessWidget {
   const UsersListView({super.key});
@@ -745,19 +787,25 @@ import '../../domain/usecases/logout_usecase.dart';
 
 enum AuthStatus { initial, loading, success, failure }
 
-class AuthController extends GetxController {
-  AuthController(this._loginUseCase, this._logoutUseCase);
-
-  final LoginUseCase _loginUseCase;
-  final LogoutUseCase _logoutUseCase;
-
-  final status = AuthStatus.initial.obs;
-  final error = RxnString();
-
-  Future<void> login(String email, String password) async {
-    if (status.value == AuthStatus.loading) return;
-    status.value = AuthStatus.loading;
-    error.value = null;
+  class AuthController extends GetxController {
+    AuthController(this._loginUseCase, this._logoutUseCase);
+  
+    final LoginUseCase _loginUseCase;
+    final LogoutUseCase _logoutUseCase;
+  
+    final email = ''.obs;
+    final password = ''.obs;
+    final status = AuthStatus.initial.obs;
+    final error = RxnString();
+  
+    void setEmail(String value) => email.value = value;
+  
+    void setPassword(String value) => password.value = value;
+  
+    Future<void> login(String email, String password) async {
+      if (status.value == AuthStatus.loading) return;
+      status.value = AuthStatus.loading;
+      error.value = null;
     final result = await _loginUseCase(
       email: email,
       password: password,
@@ -857,49 +905,23 @@ class DemoBinding extends Bindings {
 
   static String _getxLoginScreen() => '''
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+  import 'package:get/get.dart';
+  
+  import '../../../core/common_widgets/common_app_bar.dart';
+  import '../../../core/common_widgets/common_button.dart';
+  import '../../../core/common_widgets/common_snackbar.dart';
+  import '../../../core/common_widgets/common_text_field.dart';
+  import '../../../core/route_handler/app_routes.dart';
+  import '../../../core/utils/dimensions.dart';
+  import 'controller/auth_controller.dart';
 
-import '../../../core/common_widgets/common_app_bar.dart';
-import '../../../core/common_widgets/common_button.dart';
-import '../../../core/common_widgets/common_checkbox.dart';
-import '../../../core/common_widgets/common_dropdown.dart';
-import '../../../core/common_widgets/common_snackbar.dart';
-import '../../../core/common_widgets/common_text_field.dart';
-import '../../../core/localization/app_strings.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/utils/dimensions.dart';
-import '../../settings/presentation/app_settings_controller.dart';
-import 'controller/auth_controller.dart';
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(text: 'demo@arcle.dev');
-  final _passwordController = TextEditingController(text: 'password123');
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _submit(AuthController controller) {
-    controller.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<AuthController>();
-    return Scaffold(
+  class LoginScreen extends StatelessWidget {
+    const LoginScreen({super.key});
+  
+    @override
+    Widget build(BuildContext context) {
+      final controller = Get.find<AuthController>();
+      return Scaffold(
       // Localization: 'key'.tr pulls from GetX translations.
       appBar: CommonAppBar(
         title: 'login_title'.tr,
@@ -935,103 +957,51 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(height: Dimensions.height(16)),
-              CommonTextField(
-                controller: _emailController,
-                labelText: 'email'.tr,
-                keyboardType: TextInputType.emailAddress,
-              ),
+                CommonTextField(
+                  labelText: 'email'.tr,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) => controller.setEmail(value.trim()),
+                ),
+                SizedBox(height: Dimensions.height(12)),
+                CommonTextField(
+                  labelText: 'password'.tr,
+                  obscureText: true,
+                  onChanged: (value) => controller.setPassword(value.trim()),
+                ),
+                SizedBox(height: Dimensions.height(20)),
+                CommonButton(
+                  label: 'login'.tr,
+                  isLoading: controller.status.value == AuthStatus.loading,
+                  onPressed: () => controller.login(
+                    controller.email.value,
+                    controller.password.value,
+                  ),
+                ),
               SizedBox(height: Dimensions.height(12)),
-              CommonTextField(
-                controller: _passwordController,
-                labelText: 'password'.tr,
-                obscureText: true,
-              ),
-              SizedBox(height: Dimensions.height(20)),
-              CommonButton(
-                label: 'login'.tr,
-                isLoading: controller.status.value == AuthStatus.loading,
-                onPressed: () => _submit(controller),
-              ),
-              SizedBox(height: Dimensions.height(12)),
-              CommonButton(
-                label: 'settings'.tr,
-                onPressed: () => Get.toNamed(AppRoutes.settings),
-              ),
-              SizedBox(height: Dimensions.height(20)),
-              _SettingsPanel(),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-}
-
-class _SettingsPanel extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final settings = Get.find<AppSettingsController>();
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: Dimensions.allPadding(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'theme'.tr,
-              style: Theme.of(context).textTheme.titleMedium,
+                CommonButton(
+                  label: 'settings'.tr,
+                  onPressed: () => Get.toNamed(AppRoutes.settings),
+                ),
+              ],
             ),
-            SizedBox(height: Dimensions.height(8)),
-            Obx(() {
-              return CommonCheckbox(
-                value: settings.themeMode.value == ThemeMode.dark,
-                label: 'dark_mode'.tr,
-                onChanged: (value) =>
-                    settings.toggleTheme(value ?? false),
-              );
-            }),
-            SizedBox(height: Dimensions.height(12)),
-            Text(
-              'language'.tr,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            SizedBox(height: Dimensions.height(8)),
-            Obx(() {
-              return CommonDropdown<Locale>(
-                value: settings.locale.value,
-                items: AppStrings.supportedLocales,
-                itemLabel: (loc) => loc.languageCode.toUpperCase(),
-                onChanged: (value) {
-                  if (value != null) {
-                    settings.changeLocale(value);
-                  }
-                },
-              );
-            }),
-          ],
-        ),
-      ),
-    );
+          );
+        }),
+      );
+    }
   }
-}
-''';
+  ''';
 
   static String _getxUsersScreen() => '''
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_widgets/common_app_bar.dart';
-import '../../../core/common_widgets/common_button.dart';
-import '../../../core/common_widgets/common_loader.dart';
-import '../../../core/common_widgets/common_checkbox.dart';
-import '../../../core/common_widgets/common_dropdown.dart';
-import '../../../core/localization/app_strings.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/session_manager/session_manager.dart';
-import '../../settings/presentation/app_settings_controller.dart';
-import 'controller/auth_controller.dart';
-import 'controller/users_controller.dart';
+  import '../../../core/common_widgets/common_app_bar.dart';
+  import '../../../core/common_widgets/common_button.dart';
+  import '../../../core/common_widgets/common_loader.dart';
+  import '../../../core/route_handler/app_routes.dart';
+  import '../../../core/session_manager/session_manager.dart';
+  import 'controller/auth_controller.dart';
+  import 'controller/users_controller.dart';
 
 class UsersListScreen extends StatelessWidget {
   UsersListScreen({super.key});
@@ -1078,63 +1048,17 @@ class UsersListScreen extends StatelessWidget {
             ),
           );
         }
-        return ListView.separated(
-          // Dimensions keeps spacing consistent across devices.
-          padding: const EdgeInsets.all(16),
-          itemCount: usersController.users.length + 1,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, index) {
-            if (index == 0) {
-              final settings = Get.find<AppSettingsController>();
-              return Card(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'theme'.tr,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Obx(() {
-                        return CommonCheckbox(
-                          value: settings.themeMode.value == ThemeMode.dark,
-                          label: 'dark_mode'.tr,
-                          onChanged: (value) =>
-                              settings.toggleTheme(value ?? false),
-                        );
-                      }),
-                      const SizedBox(height: 12),
-                      Text(
-                        'language'.tr,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Obx(() {
-                        return CommonDropdown<Locale>(
-                          value: settings.locale.value,
-                          items: AppStrings.supportedLocales,
-                          itemLabel: (loc) =>
-                              loc.languageCode.toUpperCase(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              settings.changeLocale(value);
-                            }
-                          },
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              );
-            }
-            final user = usersController.users[index - 1];
-            return ListTile(
-              title: Text(user.name),
-              subtitle: Text(user.email),
-              leading: CircleAvatar(child: Text(user.name[0])),
+          return ListView.separated(
+            // Dimensions keeps spacing consistent across devices.
+            padding: const EdgeInsets.all(16),
+            itemCount: usersController.users.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, index) {
+              final user = usersController.users[index];
+              return ListTile(
+                title: Text(user.name),
+                subtitle: Text(user.email),
+                leading: CircleAvatar(child: Text(user.name[0])),
             );
           },
         );
@@ -1214,21 +1138,29 @@ import 'auth_state.dart';
 import 'demo_providers.dart';
 
 /// Auth state notifier for handling authentication logic.
-class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this._loginUseCase, this._logoutUseCase)
-      : super(const AuthState());
-
-  final LoginUseCase _loginUseCase;
-  final LogoutUseCase _logoutUseCase;
-
-  /// Attempt to login with email and password.
-  Future<void> login(String email, String password) async {
-    if (state.status == AuthStatus.loading) return;
-    state = state.copyWith(status: AuthStatus.loading, message: null);
-    final result = await _loginUseCase(
-      email: email,
-      password: password,
-    );
+  class AuthNotifier extends StateNotifier<AuthState> {
+    AuthNotifier(this._loginUseCase, this._logoutUseCase)
+        : super(const AuthState());
+  
+    final LoginUseCase _loginUseCase;
+    final LogoutUseCase _logoutUseCase;
+  
+    void updateEmail(String value) {
+      state = state.copyWith(email: value);
+    }
+  
+    void updatePassword(String value) {
+      state = state.copyWith(password: value);
+    }
+  
+    /// Attempt to login with email and password.
+    Future<void> login() async {
+      if (state.status == AuthStatus.loading) return;
+      state = state.copyWith(status: AuthStatus.loading, message: null);
+      final result = await _loginUseCase(
+        email: state.email,
+        password: state.password,
+      );
     result.fold(
       (failure) => state = state.copyWith(
         status: AuthStatus.failure,
@@ -1337,69 +1269,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/common_widgets/common_app_bar.dart';
 import '../../../core/common_widgets/common_button.dart';
-import '../../../core/common_widgets/common_checkbox.dart';
-import '../../../core/common_widgets/common_dropdown.dart';
-import '../../../core/common_widgets/common_snackbar.dart';
-import '../../../core/common_widgets/common_text_field.dart';
-import '../../../core/localization/app_strings.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/utils/dimensions.dart';
-import '../../settings/presentation/app_settings_provider.dart';
-import 'auth_notifier.dart';
-import 'auth_state.dart';
-
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController(text: 'demo@arcle.dev');
-  final _passwordController = TextEditingController(text: 'password123');
-
-  @override
-  void initState() {
-    super.initState();
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next.status == AuthStatus.failure && next.message != null) {
-        CommonSnackbar.error(
-          context,
-          message: next.message ?? 'Login failed',
-        );
-      }
-      if (next.status == AuthStatus.success) {
-        Navigator.pushReplacementNamed(context, AppRoutes.users);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _submit(AuthNotifier notifier) {
-    notifier.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = ref.watch(authProvider);
-    final notifier = ref.read(authProvider.notifier);
-    final settings = ref.watch(appSettingsProvider);
-    final settingsNotifier = ref.read(appSettingsProvider.notifier);
-    // Dimensions keeps spacing consistent across devices.
-    final dimensions = Dimensions(context);
-    return Scaffold(
-      // Localization: context.tr(...) reads from AppLocalizations.
-      appBar: CommonAppBar(
+  import '../../../core/common_widgets/common_snackbar.dart';
+  import '../../../core/common_widgets/common_text_field.dart';
+  import '../../../core/route_handler/app_routes.dart';
+  import '../../../core/utils/dimensions.dart';
+  import 'auth_notifier.dart';
+  import 'auth_state.dart';
+  
+  class LoginScreen extends ConsumerWidget {
+    const LoginScreen({super.key});
+  
+    @override
+    Widget build(BuildContext context) {
+      final auth = ref.watch(authProvider);
+      final notifier = ref.read(authProvider.notifier);
+      ref.listen<AuthState>(authProvider, (previous, next) {
+        if (next.status == AuthStatus.failure && next.message != null) {
+          CommonSnackbar.error(
+            context,
+            message: next.message ?? 'Login failed',
+          );
+        }
+        if (next.status == AuthStatus.success) {
+          Navigator.pushReplacementNamed(context, AppRoutes.users);
+        }
+      });
+      // Dimensions keeps spacing consistent across devices.
+      final dimensions = Dimensions(context);
+      return Scaffold(
+        // Localization: context.tr(...) reads from AppLocalizations.
+        appBar: CommonAppBar(
         title: context.tr('login_title'),
         showBackButton: false,
       ),
@@ -1413,73 +1312,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             SizedBox(height: dimensions.height(16)),
-            CommonTextField(
-              controller: _emailController,
-              labelText: context.tr('email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            SizedBox(height: dimensions.height(12)),
-            CommonTextField(
-              controller: _passwordController,
-              labelText: context.tr('password'),
-              obscureText: true,
-            ),
-            SizedBox(height: dimensions.height(20)),
-            CommonButton(
-              label: context.tr('login'),
-              isLoading: auth.status == AuthStatus.loading,
-              onPressed: () => _submit(notifier),
-            ),
-            SizedBox(height: dimensions.height(12)),
-            CommonButton(
-              label: context.tr('settings'),
-              onPressed: () =>
-                  Navigator.pushNamed(context, AppRoutes.settings),
-            ),
-            SizedBox(height: dimensions.height(20)),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: dimensions.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.tr('theme'),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    SizedBox(height: dimensions.height(8)),
-                    CommonCheckbox(
-                      value: settings.themeMode == ThemeMode.dark,
-                      label: context.tr('dark_mode'),
-                      onChanged: (value) =>
-                          settingsNotifier.toggleTheme(value ?? false),
-                    ),
-                    SizedBox(height: dimensions.height(12)),
-                    Text(
-                      context.tr('language'),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    SizedBox(height: dimensions.height(8)),
-                    CommonDropdown<Locale>(
-                      value: settings.locale,
-                      items: AppStrings.supportedLocales,
-                      itemLabel: (loc) =>
-                          loc.languageCode.toUpperCase(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          settingsNotifier.changeLocale(value);
-                        }
-                      },
-                    ),
-                  ],
-                ),
+              CommonTextField(
+                labelText: context.tr('email'),
+                keyboardType: TextInputType.emailAddress,
+                onChanged: (value) => notifier.updateEmail(value.trim()),
               ),
-            ),
-          ],
+              SizedBox(height: dimensions.height(12)),
+              CommonTextField(
+                labelText: context.tr('password'),
+                obscureText: true,
+                onChanged: (value) => notifier.updatePassword(value.trim()),
+              ),
+              SizedBox(height: dimensions.height(20)),
+              CommonButton(
+                label: context.tr('login'),
+                isLoading: auth.status == AuthStatus.loading,
+                onPressed: notifier.login,
+              ),
+            SizedBox(height: dimensions.height(12)),
+              CommonButton(
+                label: context.tr('settings'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.settings),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
   }
 }
 ''';

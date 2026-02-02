@@ -62,45 +62,38 @@ void main() {
 
   static String _blocLoginScreenTest() => '''
 import 'package:dartz/dartz.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_test/flutter_test.dart';
+  import 'package:flutter/material.dart';
+  import 'package:flutter_test/flutter_test.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+  
+  import '../../../lib/core/common_widgets/common_button.dart';
+  import '../../../lib/core/common_widgets/common_text_field.dart';
+  import '../../../lib/core/di/injection.dart';
+  import '../../../lib/core/utils/result.dart';
+  import '../../../lib/features/demo/domain/entities/user_entity.dart';
+  import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
+  import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
+  import '../../../lib/features/demo/domain/usecases/logout_usecase.dart';
+  import '../../../lib/features/demo/presentation/login_screen.dart';
 
-import '../../../lib/core/common_widgets/common_button.dart';
-import '../../../lib/core/common_widgets/common_text_field.dart';
-import '../../../lib/core/utils/result.dart';
-import '../../../lib/features/demo/domain/entities/user_entity.dart';
-import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
-import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
-import '../../../lib/features/demo/domain/usecases/logout_usecase.dart';
-import '../../../lib/features/demo/presentation/bloc/auth_bloc.dart';
-import '../../../lib/features/demo/presentation/login_screen.dart';
-import '../../../lib/features/settings/presentation/app_settings_cubit.dart';
-
-void main() {
-  testWidgets('Login screen renders', (tester) async {
-    final repo = _FakeDemoRepository();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (_) => AppSettingsCubit()),
-            BlocProvider(
-              create: (_) => AuthBloc(
-                LoginUseCase(repo),
-                LogoutUseCase(repo),
-              ),
-            ),
-          ],
-          child: const LoginScreen(),
+  void main() {
+    testWidgets('Login screen renders', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final repo = _FakeDemoRepository();
+      await getIt.reset();
+      getIt
+        ..registerLazySingleton<LoginUseCase>(() => LoginUseCase(repo))
+        ..registerLazySingleton<LogoutUseCase>(() => LogoutUseCase(repo));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: const LoginScreen(),
+          locale: const Locale('en'),
         ),
-        locale: const Locale('en'),
-      ),
-    );
-    expect(find.byType(CommonTextField), findsNWidgets(2));
-    expect(find.byType(CommonButton), findsNWidgets(2));
-  });
-}
+      );
+      expect(find.byType(CommonTextField), findsNWidgets(2));
+      expect(find.byType(CommonButton), findsNWidgets(2));
+    });
+  }
 
 class _FakeDemoRepository implements DemoRepository {
   @override
@@ -121,15 +114,17 @@ class _FakeDemoRepository implements DemoRepository {
 ''';
 
   static String _getxLoginScreenTest() => '''
-import 'package:dartz/dartz.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
-
-import '../../../lib/core/common_widgets/common_button.dart';
-import '../../../lib/core/common_widgets/common_text_field.dart';
-import '../../../lib/core/utils/result.dart';
-import '../../../lib/features/demo/domain/entities/user_entity.dart';
+  import 'package:dartz/dartz.dart';
+  import 'package:flutter/material.dart';
+  import 'package:flutter_test/flutter_test.dart';
+  import 'package:get/get.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+  
+  import '../../../lib/core/common_widgets/common_button.dart';
+  import '../../../lib/core/common_widgets/common_text_field.dart';
+  import '../../../lib/core/utils/result.dart';
+  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/features/demo/domain/entities/user_entity.dart';
 import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
 import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
 import '../../../lib/features/demo/domain/usecases/logout_usecase.dart';
@@ -137,11 +132,14 @@ import '../../../lib/features/demo/presentation/controller/auth_controller.dart'
 import '../../../lib/features/demo/presentation/login_screen.dart';
 import '../../../lib/features/settings/presentation/app_settings_controller.dart';
 
-void main() {
-  setUp(() async {
-    final repo = _FakeDemoRepository();
-    Get.put(AppSettingsController(), permanent: true);
-    Get.put(
+  void main() {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      Get.put(PrefManager(prefs), permanent: true);
+      final repo = _FakeDemoRepository();
+      Get.put(AppSettingsController(), permanent: true);
+      Get.put(
       AuthController(LoginUseCase(repo), LogoutUseCase(repo)),
       permanent: true,
     );
@@ -256,20 +254,25 @@ void main() {
       case StateManagement.bloc:
         return '''
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-import '../../../lib/features/settings/presentation/app_settings_cubit.dart';
-import '../../../lib/features/settings/presentation/settings_screen.dart';
-
-void main() {
-  testWidgets('Settings screen renders', (tester) async {
-    await tester.pumpWidget(
-      BlocProvider(
-        create: (_) => AppSettingsCubit(),
-        child: const MaterialApp(
-          home: SettingsScreen(),
-          locale: Locale('en'),
+  import 'package:flutter_bloc/flutter_bloc.dart';
+  import 'package:flutter_test/flutter_test.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+  
+  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/features/settings/presentation/app_settings_cubit.dart';
+  import '../../../lib/features/settings/presentation/settings_screen.dart';
+  
+  void main() {
+    testWidgets('Settings screen renders', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final prefManager = PrefManager(prefs);
+      await tester.pumpWidget(
+        BlocProvider(
+          create: (_) => AppSettingsCubit(prefManager),
+          child: const MaterialApp(
+            home: SettingsScreen(),
+            locale: Locale('en'),
         ),
       ),
     );
@@ -279,18 +282,23 @@ void main() {
 ''';
       case StateManagement.getx:
         return '''
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
-
-import '../../../lib/features/settings/presentation/app_settings_controller.dart';
-import '../../../lib/features/settings/presentation/settings_screen.dart';
-
-void main() {
-  testWidgets('Settings screen renders', (tester) async {
-    Get.put(AppSettingsController(), permanent: true);
-    await tester.pumpWidget(
-      const MaterialApp(
+  import 'package:flutter/material.dart';
+  import 'package:flutter_test/flutter_test.dart';
+  import 'package:get/get.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+  
+  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/features/settings/presentation/app_settings_controller.dart';
+  import '../../../lib/features/settings/presentation/settings_screen.dart';
+  
+  void main() {
+    testWidgets('Settings screen renders', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      Get.put(PrefManager(prefs), permanent: true);
+      Get.put(AppSettingsController(), permanent: true);
+      await tester.pumpWidget(
+        const MaterialApp(
         home: SettingsScreen(),
         locale: Locale('en'),
       ),
@@ -301,19 +309,27 @@ void main() {
 ''';
       case StateManagement.riverpod:
         return '''
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-import '../../../lib/features/settings/presentation/settings_screen.dart';
-
-void main() {
-  testWidgets('Settings screen renders', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
-          home: SettingsScreen(),
-          locale: Locale('en'),
+  import 'package:flutter/material.dart';
+  import 'package:flutter_riverpod/flutter_riverpod.dart';
+  import 'package:flutter_test/flutter_test.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
+  
+  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/core/di/providers.dart';
+  import '../../../lib/features/settings/presentation/settings_screen.dart';
+  
+  void main() {
+    testWidgets('Settings screen renders', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefManager = PrefManager();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            prefManagerProvider.overrideWithValue(prefManager),
+          ],
+          child: MaterialApp(
+            home: SettingsScreen(),
+            locale: Locale('en'),
         ),
       ),
     );

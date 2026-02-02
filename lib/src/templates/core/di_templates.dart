@@ -22,11 +22,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../api_client/api_service.dart';
 import '../api_client/dio_client.dart';
 import '../env/env.dart';
-import '../notifications/notification_service.dart';
-import '../permissions/permission_service.dart';
-import '../session_manager/pref_manager.dart';
-import '../session_manager/session_manager.dart';
-import '../../features/settings/presentation/app_settings_controller.dart';
+  import '../notifications/notification_service.dart';
+  import '../permissions/permission_service.dart';
+  import '../session_manager/pref_manager.dart';
+  import '../session_manager/session_manager.dart';
+  import '../../features/settings/presentation/app_settings_controller.dart';
 
 class AppDi {
   Future<void> register(Env env) async {
@@ -56,11 +56,12 @@ class AppDi {
     await notifications.init();
     Get.put(notifications, permanent: true);
 
-    // App-wide settings controller (theme/locale) used by App widget.
-    Get.put(AppSettingsController(), permanent: true);
+      // App-wide settings controller (theme/locale) used by App widget.
+      Get.put(AppSettingsController(), permanent: true);
+      await Get.find<AppSettingsController>().loadFromPrefs();
+    }
   }
-}
-''';
+  ''';
       case StateManagement.riverpod:
         return '''
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,11 +70,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../api_client/api_service.dart';
 import '../api_client/dio_client.dart';
 import '../env/env.dart';
-import '../notifications/notification_service.dart';
-import '../permissions/permission_service.dart';
-import '../session_manager/session_manager.dart';
-import '../session_manager/pref_manager.dart';
-import 'providers.dart';
+  import '../notifications/notification_service.dart';
+  import '../permissions/permission_service.dart';
+  import '../session_manager/session_manager.dart';
+  import '../session_manager/pref_manager.dart';
+  import '../../features/settings/presentation/app_settings_provider.dart';
+  import 'providers.dart';
 
 class AppDi {
   Future<ProviderContainer> register(Env env) async {
@@ -82,23 +84,26 @@ class AppDi {
     final dioClient = DioClient(sessionManager);
     final apiService = ApiService(dioClient);
     final permissionService = PermissionService();
-    final notifications =
-        NotificationService(FlutterLocalNotificationsPlugin());
-    await notifications.init();
+      final notifications =
+          NotificationService(FlutterLocalNotificationsPlugin());
+      await notifications.init();
 
-    return ProviderContainer(
-      overrides: [
-        envProvider.overrideWithValue(env),
-        prefManagerProvider.overrideWithValue(prefManager),
-        sessionManagerProvider.overrideWithValue(sessionManager),
-        apiServiceProvider.overrideWithValue(apiService),
-        permissionServiceProvider.overrideWithValue(permissionService),
-        notificationServiceProvider.overrideWithValue(notifications),
-      ],
-    );
+      final container = ProviderContainer(
+        overrides: [
+          envProvider.overrideWithValue(env),
+          prefManagerProvider.overrideWithValue(prefManager),
+          sessionManagerProvider.overrideWithValue(sessionManager),
+          apiServiceProvider.overrideWithValue(apiService),
+          permissionServiceProvider.overrideWithValue(permissionService),
+          notificationServiceProvider.overrideWithValue(notifications),
+        ],
+      );
+  
+      await container.read(appSettingsProvider.notifier).loadFromPrefs();
+      return container;
+    }
   }
-}
-''';
+  ''';
     }
   }
 
@@ -192,13 +197,14 @@ abstract class AppModule {
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../api_client/api_service.dart';
-import '../api_client/dio_client.dart';
-import '../notifications/notification_service.dart';
-import '../permissions/permission_service.dart';
-import '../session_manager/pref_manager.dart';
-import '../session_manager/session_manager.dart';
-import 'injectable_module.dart';
+  import '../api_client/api_service.dart';
+  import '../api_client/dio_client.dart';
+  import '../notifications/notification_service.dart';
+  import '../permissions/permission_service.dart';
+  import '../session_manager/pref_manager.dart';
+  import '../session_manager/session_manager.dart';
+  import '../../features/settings/presentation/app_settings_cubit.dart';
+  import 'injectable_module.dart';
 
 GetIt init(GetIt getIt) {
   final module = AppModule();
@@ -208,9 +214,12 @@ GetIt init(GetIt getIt) {
   getIt.registerLazySingleton<PrefManager>(
     () => PrefManager(getIt<SharedPreferences>()),
   );
-  getIt.registerLazySingleton<SessionManager>(
-    () => SessionManager(getIt<PrefManager>()),
-  );
+    getIt.registerLazySingleton<SessionManager>(
+      () => SessionManager(getIt<PrefManager>()),
+    );
+    getIt.registerLazySingleton<AppSettingsCubit>(
+      () => AppSettingsCubit(getIt<PrefManager>()),
+    );
   getIt.registerLazySingleton<ApiService>(
     () => ApiService(getIt<DioClient>()),
   );

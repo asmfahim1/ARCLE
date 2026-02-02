@@ -26,48 +26,127 @@ class AppSettingsState {
 ''';
 
   static String blocCubit() => '''
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'app_settings_state.dart';
-
-class AppSettingsCubit extends Cubit<AppSettingsState> {
-  AppSettingsCubit() : super(AppSettingsState());
-
-  void toggleTheme(bool dark) {
-    emit(state.copyWith(themeMode: dark ? ThemeMode.dark : ThemeMode.light));
+  import 'package:flutter/material.dart';
+  import 'package:flutter_bloc/flutter_bloc.dart';
+  
+  import '../../../core/localization/app_strings.dart';
+  import '../../../core/session_manager/pref_manager.dart';
+  import 'app_settings_state.dart';
+  
+  class AppSettingsCubit extends Cubit<AppSettingsState> {
+    AppSettingsCubit(this._prefManager)
+        : super(_initialState(_prefManager));
+  
+    final PrefManager _prefManager;
+  
+    static AppSettingsState _initialState(PrefManager prefManager) {
+      try {
+        final savedTheme = prefManager.getString(PrefKeys.themeMode);
+        final savedLang = prefManager.getString(PrefKeys.languageCode);
+  
+        final themeMode =
+            savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
+        var locale = const Locale('en', 'US');
+  
+        if (savedLang != null &&
+            AppStrings.supportedLocales
+                .any((loc) => loc.languageCode == savedLang)) {
+          locale = Locale(savedLang);
+        }
+  
+        return AppSettingsState(themeMode: themeMode, locale: locale);
+      } catch (_) {
+        return AppSettingsState();
+      }
+    }
+  
+    void toggleTheme(bool dark) {
+      emit(state.copyWith(themeMode: dark ? ThemeMode.dark : ThemeMode.light));
+      _prefManager.saveString(
+        PrefKeys.themeMode,
+        dark ? 'dark' : 'light',
+      );
+    }
+  
+    void changeLocale(Locale locale) {
+      emit(state.copyWith(locale: locale));
+      _prefManager.saveString(
+        PrefKeys.languageCode,
+        locale.languageCode,
+      );
+    }
   }
-
-  void changeLocale(Locale locale) {
-    emit(state.copyWith(locale: locale));
-  }
-}
-''';
+  ''';
 
   static String getxController() => '''
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-class AppSettingsController extends GetxController {
-  final themeMode = ThemeMode.light.obs;
-  final locale = const Locale('en', 'US').obs;
-
-  void toggleTheme(bool dark) {
-    themeMode.value = dark ? ThemeMode.dark : ThemeMode.light;
+  import 'package:flutter/material.dart';
+  import 'package:get/get.dart';
+  import '../../../core/localization/app_strings.dart';
+  import '../../../core/session_manager/pref_manager.dart';
+  
+  class AppSettingsController extends GetxController {
+    final PrefManager _prefManager = Get.find<PrefManager>();
+    final themeMode = ThemeMode.light.obs;
+    final locale = const Locale('en', 'US').obs;
+  
+    @override
+    void onInit() {
+      super.onInit();
+      loadFromPrefs();
+    }
+  
+    Future<void> loadFromPrefs() async {
+      try {
+        final savedTheme = await _prefManager.getString(PrefKeys.themeMode);
+        final savedLang = await _prefManager.getString(PrefKeys.languageCode);
+  
+        if (savedTheme != null) {
+          themeMode.value =
+              savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
+          Get.changeThemeMode(themeMode.value);
+        }
+  
+        if (savedLang != null &&
+            AppStrings.supportedLocales
+                .any((loc) => loc.languageCode == savedLang)) {
+          final newLocale = Locale(savedLang);
+          locale.value = newLocale;
+          Get.updateLocale(newLocale);
+        }
+      } catch (_) {
+        // Use defaults if preferences are unavailable.
+      }
+    }
+  
+    void toggleTheme(bool dark) {
+      themeMode.value = dark ? ThemeMode.dark : ThemeMode.light;
+      Get.changeThemeMode(themeMode.value);
+      _prefManager.saveString(
+        PrefKeys.themeMode,
+        dark ? 'dark' : 'light',
+      );
+    }
+  
+    void changeLocale(Locale value) {
+      locale.value = value;
+      Get.updateLocale(value);
+      _prefManager.saveString(
+        PrefKeys.languageCode,
+        value.languageCode,
+      );
+    }
   }
-
-  void changeLocale(Locale value) {
-    locale.value = value;
-  }
-}
-''';
+  ''';
 
   static String riverpodNotifier() => '''
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-/// Immutable state class for app settings.
-class AppSettingsState {
+  import 'package:flutter/material.dart';
+  import 'package:flutter_riverpod/flutter_riverpod.dart';
+  
+  import '../../../core/localization/app_strings.dart';
+  import '../../../core/session_manager/pref_manager.dart';
+  
+  /// Immutable state class for app settings.
+  class AppSettingsState {
   const AppSettingsState({
     this.themeMode = ThemeMode.light,
     this.locale = const Locale('en', 'US'),
@@ -105,28 +184,59 @@ class AppSettingsState {
   int get hashCode => Object.hash(themeMode, locale);
 }
 
-/// State notifier for managing app-wide settings.
-/// 
-/// Manages theme mode and locale settings with optional persistence.
-class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
-  AppSettingsNotifier() : super(const AppSettingsState());
-
-  /// Toggle between light and dark theme.
-  void toggleTheme(bool dark) {
-    state = state.copyWith(
-      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-    );
-  }
+  /// State notifier for managing app-wide settings.
+  /// 
+  /// Manages theme mode and locale settings with optional persistence.
+  class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
+    AppSettingsNotifier(this._prefManager) : super(const AppSettingsState());
+  
+    final PrefManager _prefManager;
+  
+    Future<void> loadFromPrefs() async {
+      try {
+        final savedTheme = await _prefManager.getString(PrefKeys.themeMode);
+        final savedLang = await _prefManager.getString(PrefKeys.languageCode);
+  
+        final themeMode =
+            savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
+        var locale = const Locale('en', 'US');
+  
+        if (savedLang != null &&
+            AppStrings.supportedLocales
+                .any((loc) => loc.languageCode == savedLang)) {
+          locale = Locale(savedLang);
+        }
+  
+        state = state.copyWith(themeMode: themeMode, locale: locale);
+      } catch (_) {
+        // Defaults already set; ignore persistence errors.
+      }
+    }
+  
+    /// Toggle between light and dark theme.
+    void toggleTheme(bool dark) {
+      state = state.copyWith(
+        themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+      );
+      _prefManager.saveString(
+        PrefKeys.themeMode,
+        dark ? 'dark' : 'light',
+      );
+    }
 
   /// Set the theme mode directly.
   void setThemeMode(ThemeMode mode) {
     state = state.copyWith(themeMode: mode);
   }
 
-  /// Change the app locale.
-  void changeLocale(Locale locale) {
-    state = state.copyWith(locale: locale);
-  }
+    /// Change the app locale.
+    void changeLocale(Locale locale) {
+      state = state.copyWith(locale: locale);
+      _prefManager.saveString(
+        PrefKeys.languageCode,
+        locale.languageCode,
+      );
+    }
 
   /// Reset settings to defaults.
   void reset() {
@@ -136,25 +246,27 @@ class AppSettingsNotifier extends StateNotifier<AppSettingsState> {
 ''';
 
   static String riverpodProvider() => '''
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'app_settings_notifier.dart';
-
-final appSettingsProvider =
-    StateNotifierProvider<AppSettingsNotifier, AppSettingsState>((ref) {
-  return AppSettingsNotifier();
-});
-''';
+  import 'package:flutter_riverpod/flutter_riverpod.dart';
+  
+  import 'app_settings_notifier.dart';
+  import '../../../core/di/providers.dart';
+  
+  final appSettingsProvider =
+      StateNotifierProvider<AppSettingsNotifier, AppSettingsState>((ref) {
+    return AppSettingsNotifier(ref.watch(prefManagerProvider));
+  });
+  ''';
 
   static String settingsScreen(StateManagement state) {
-    final stateImport = switch (state) {
-      StateManagement.bloc => "import 'app_settings_cubit.dart';\n"
-          "import 'app_settings_state.dart';\n"
-          "import 'package:flutter_bloc/flutter_bloc.dart';\n",
-      StateManagement.getx => "import 'app_settings_controller.dart';\n"
-          "import 'package:get/get.dart';\n",
-      StateManagement.riverpod =>
-        "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
+      final stateImport = switch (state) {
+        StateManagement.bloc => "import 'app_settings_cubit.dart';\n"
+            "import 'app_settings_state.dart';\n"
+            "import 'package:flutter_bloc/flutter_bloc.dart';\n"
+            "import '../../../core/di/injection.dart';\n",
+        StateManagement.getx => "import 'app_settings_controller.dart';\n"
+            "import 'package:get/get.dart';\n",
+        StateManagement.riverpod =>
+          "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
             "import 'app_settings_provider.dart';\n",
     };
 
@@ -187,19 +299,22 @@ class SettingsScreen extends StatelessWidget {
 ''';
   }
 
-  static String _blocSettingsBody() => '''
-BlocBuilder<AppSettingsCubit, AppSettingsState>(
-        builder: (context, state) {
-          return SettingsBody(
-            themeMode: state.themeMode,
-            locale: state.locale,
-            onThemeChanged: (value) =>
-                context.read<AppSettingsCubit>().toggleTheme(value),
-            onLocaleChanged: (value) =>
-                context.read<AppSettingsCubit>().changeLocale(value),
-          );
-        },
-      )''';
+    static String _blocSettingsBody() => '''
+  BlocProvider<AppSettingsCubit>.value(
+          value: getIt<AppSettingsCubit>(),
+          child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
+            builder: (context, state) {
+              return SettingsBody(
+                themeMode: state.themeMode,
+                locale: state.locale,
+                onThemeChanged: (value) =>
+                    context.read<AppSettingsCubit>().toggleTheme(value),
+                onLocaleChanged: (value) =>
+                    context.read<AppSettingsCubit>().changeLocale(value),
+              );
+            },
+          ),
+        )''';
 
   static String _getxSettingsBody() => '''
 GetBuilder<AppSettingsController>(
