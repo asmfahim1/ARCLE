@@ -7,10 +7,11 @@ import 'package:flutter/material.dart';
 class AppRoutes {
   static final navigatorKey = GlobalKey<NavigatorState>();
 
+  static const splash = '/splash';
   static const login = '/';
   static const users = '/users';
   static const settings = '/settings';
-  static String initialRoute = login;
+  static String initialRoute = splash;
   // arcle:feature_routes
 }
 ''';
@@ -78,6 +79,7 @@ final appRouteObserver = AppRouteObserver();
   static String _defaultRouter() => '''
 import 'package:flutter/material.dart';
 
+import '../../features/demo/presentation/splash_screen.dart';
 import '../../features/demo/presentation/login_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/demo/presentation/user_list_screen.dart';
@@ -87,6 +89,8 @@ import 'app_routes.dart';
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case AppRoutes.splash:
+        return MaterialPageRoute(builder: (_) => const SplashScreen());
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case AppRoutes.users:
@@ -109,6 +113,7 @@ class AppRouter {
 import 'package:get/get.dart';
 
 import '../../features/demo/presentation/bindings/demo_binding.dart';
+import '../../features/demo/presentation/splash_screen.dart';
 import '../../features/demo/presentation/login_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/demo/presentation/user_list_screen.dart';
@@ -117,6 +122,7 @@ import 'app_routes.dart';
 
 class AppRouter {
   static final pages = <GetPage>[
+    GetPage(name: AppRoutes.splash, page: () => const SplashScreen()),
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginScreen(),

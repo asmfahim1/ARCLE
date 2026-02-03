@@ -51,7 +51,9 @@ class ProviderLogger extends ProviderObserver {
     ProviderContainer container,
   ) {
     if (kDebugMode) {
-      Logger.d('Provider added: \${provider.name ?? provider.runtimeType}');
+      AppLogger.debug(
+        'Provider added: \${provider.name ?? provider.runtimeType}',
+      );
     }
   }
 
@@ -63,7 +65,9 @@ class ProviderLogger extends ProviderObserver {
     ProviderContainer container,
   ) {
     if (kDebugMode) {
-      Logger.d('Provider updated: \${provider.name ?? provider.runtimeType}');
+      AppLogger.debug(
+        'Provider updated: \${provider.name ?? provider.runtimeType}',
+      );
     }
   }
 
@@ -73,7 +77,9 @@ class ProviderLogger extends ProviderObserver {
     ProviderContainer container,
   ) {
     if (kDebugMode) {
-      Logger.d('Provider disposed: \${provider.name ?? provider.runtimeType}');
+      AppLogger.debug(
+        'Provider disposed: \${provider.name ?? provider.runtimeType}',
+      );
     }
   }
 
@@ -84,7 +90,11 @@ class ProviderLogger extends ProviderObserver {
     StackTrace stackTrace,
     ProviderContainer container,
   ) {
-    Logger.e('Provider failed: \${provider.name ?? provider.runtimeType}', error, stackTrace);
+    AppLogger.error(
+      'Provider failed: \${provider.name ?? provider.runtimeType}',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 }
 ''';

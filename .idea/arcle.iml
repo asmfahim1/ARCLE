@@ -141,6 +141,15 @@
       <excludeFolder url="file://$MODULE_DIR$/example/test_app/PROJECT_TEST/getx_app/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/example/test_app/PROJECT_TEST/getx_app/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/example/test_app/PROJECT_TEST/getx_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_bloc_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_bloc_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_bloc_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_getx_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_getx_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_getx_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_riverpod_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_riverpod_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/arcle_riverpod_app/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
