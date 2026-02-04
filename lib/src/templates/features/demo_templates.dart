@@ -3,6 +3,7 @@ import '../../state_management.dart';
 class DemoTemplates {
   static Map<String, String> files(StateManagement state) {
     final files = <String, String>{
+      // Shared README and domain layer files
       'lib/features/demo/README.md': _readme(),
       'lib/features/demo/domain/entities/user_entity.dart': _userEntity(),
       'lib/features/demo/domain/repositories/demo_repository.dart':
@@ -13,60 +14,74 @@ class DemoTemplates {
           _getUsersUsecase(state),
       'lib/features/demo/domain/usecases/logout_usecase.dart':
           _logoutUsecase(state),
+      // Data layer files
       'lib/features/demo/data/models/login_request.dart': _loginRequest(),
       'lib/features/demo/data/models/user_model.dart': _userModel(),
       'lib/features/demo/data/sources/demo_remote_data_source.dart':
           _remoteDataSource(state),
       'lib/features/demo/data/repositories/demo_repository_impl.dart':
           _demoRepositoryImpl(state),
+      // Shared widgets
+      'lib/features/demo/presentation/widgets/user_card.dart': _userCard(),
+      'lib/features/demo/presentation/widgets/login_form.dart':
+          _loginFormWidget(state),
     };
 
     switch (state) {
       case StateManagement.bloc:
         files.addAll({
-          'lib/features/demo/presentation/splash_screen.dart':
+          // Pages folder
+          'lib/features/demo/presentation/pages/splash_screen.dart':
               _blocSplashScreen(),
+          'lib/features/demo/presentation/pages/login_screen.dart':
+              _blocLoginScreen(),
+          'lib/features/demo/presentation/pages/user_list_screen.dart':
+              _blocUsersScreen(),
+          // BLoC files
           'lib/features/demo/presentation/bloc/auth_event.dart': _authEvent(),
-          'lib/features/demo/presentation/bloc/auth_state.dart': _authState(),
+          'lib/features/demo/presentation/bloc/auth_state.dart':
+              _blocAuthState(),
           'lib/features/demo/presentation/bloc/auth_bloc.dart': _authBloc(),
           'lib/features/demo/presentation/bloc/users_event.dart': _usersEvent(),
           'lib/features/demo/presentation/bloc/users_state.dart': _usersState(),
           'lib/features/demo/presentation/bloc/users_bloc.dart': _usersBloc(),
-          'lib/features/demo/presentation/login_screen.dart':
-              _blocLoginScreen(),
-          'lib/features/demo/presentation/user_list_screen.dart':
-              _blocUsersScreen(),
         });
       case StateManagement.getx:
         files.addAll({
-          'lib/features/demo/presentation/splash_screen.dart':
+          // Pages folder
+          'lib/features/demo/presentation/pages/splash_screen.dart':
               _getxSplashScreen(),
+          'lib/features/demo/presentation/pages/login_screen.dart':
+              _getxLoginScreen(),
+          'lib/features/demo/presentation/pages/user_list_screen.dart':
+              _getxUsersScreen(),
+          // Controller files
           'lib/features/demo/presentation/controller/auth_controller.dart':
               _getxAuthController(),
           'lib/features/demo/presentation/controller/users_controller.dart':
               _getxUsersController(),
+          // Bindings
           'lib/features/demo/presentation/bindings/demo_binding.dart':
               _getxBinding(),
-          'lib/features/demo/presentation/login_screen.dart':
-              _getxLoginScreen(),
-          'lib/features/demo/presentation/user_list_screen.dart':
-              _getxUsersScreen(),
         });
       case StateManagement.riverpod:
         files.addAll({
-          'lib/features/demo/presentation/splash_screen.dart':
+          // Pages folder
+          'lib/features/demo/presentation/pages/splash_screen.dart':
               _riverpodSplashScreen(),
-          'lib/features/demo/presentation/auth_state.dart': _authState(),
-          'lib/features/demo/presentation/auth_notifier.dart':
-              _riverpodAuthNotifier(),
-          'lib/features/demo/presentation/users_notifier.dart':
-              _riverpodUsersNotifier(),
-          'lib/features/demo/presentation/demo_providers.dart':
-              _riverpodProviders(),
-          'lib/features/demo/presentation/login_screen.dart':
+          'lib/features/demo/presentation/pages/login_screen.dart':
               _riverpodLoginScreen(),
-          'lib/features/demo/presentation/user_list_screen.dart':
+          'lib/features/demo/presentation/pages/user_list_screen.dart':
               _riverpodUsersScreen(),
+          // State and notifier files
+          'lib/features/demo/presentation/state/auth_state.dart':
+              _riverpodAuthState(),
+          'lib/features/demo/presentation/notifiers/auth_notifier.dart':
+              _riverpodAuthNotifier(),
+          'lib/features/demo/presentation/notifiers/users_notifier.dart':
+              _riverpodUsersNotifier(),
+          'lib/features/demo/presentation/providers/demo_providers.dart':
+              _riverpodProviders(),
         });
     }
 
@@ -78,10 +93,215 @@ class DemoTemplates {
 
 This demo shows how to structure a feature using Clean Architecture:
 
-- data: remote data sources and repository implementations
-- domain: entities + repository contracts + use cases
-- presentation: UI + state management
+- **data**: Remote data sources and repository implementations
+- **domain**: Entities, repository contracts, and use cases
+- **presentation**: UI screens, widgets, and state management
+  - **pages**: Screen widgets (StatelessWidget)
+  - **widgets**: Reusable UI components
+  - **bloc/controller/notifiers**: State management classes
 ''';
+
+  // ==========================================================================
+  // Shared Widget Templates
+  // ==========================================================================
+
+  static String _userCard() => '''
+import 'package:flutter/material.dart';
+import '../../domain/entities/user_entity.dart';
+
+/// A reusable card widget for displaying user information.
+class UserCard extends StatelessWidget {
+  const UserCard({super.key, required this.user});
+
+  final UserEntity user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          child: Text(
+            user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(user.name),
+        subtitle: Text(user.email),
+      ),
+    );
+  }
+}
+''';
+
+  static String _loginFormWidget(StateManagement state) {
+    switch (state) {
+      case StateManagement.bloc:
+        return '''
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_text_field.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
+
+/// Login form widget for BLoC state management.
+class LoginForm extends StatelessWidget {
+  const LoginForm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dimensions = Dimensions(context);
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              context.tr('login_hint'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            SizedBox(height: dimensions.height(16)),
+            CommonTextField(
+              labelText: context.tr('email'),
+              keyboardType: TextInputType.emailAddress,
+              onChanged: (value) =>
+                  context.read<AuthBloc>().add(EmailChanged(value.trim())),
+            ),
+            SizedBox(height: dimensions.height(12)),
+            CommonTextField(
+              labelText: context.tr('password'),
+              obscureText: true,
+              onChanged: (value) =>
+                  context.read<AuthBloc>().add(PasswordChanged(value.trim())),
+            ),
+            SizedBox(height: dimensions.height(20)),
+            CommonButton(
+              label: context.tr('login'),
+              isLoading: state.status == AuthStatus.loading,
+              onPressed: () => context
+                  .read<AuthBloc>()
+                  .add(LoginSubmitted(state.email, state.password)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+''';
+      case StateManagement.getx:
+        return '''
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_text_field.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../controller/auth_controller.dart';
+
+/// Login form widget for GetX state management.
+class LoginForm extends StatelessWidget {
+  const LoginForm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<AuthController>();
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'login_hint'.tr,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            SizedBox(height: Dimensions.height(16)),
+            CommonTextField(
+              labelText: 'email'.tr,
+              keyboardType: TextInputType.emailAddress,
+              onChanged: controller.setEmail,
+            ),
+            SizedBox(height: Dimensions.height(12)),
+            CommonTextField(
+              labelText: 'password'.tr,
+              obscureText: true,
+              onChanged: controller.setPassword,
+            ),
+            SizedBox(height: Dimensions.height(20)),
+            CommonButton(
+              label: 'login'.tr,
+              isLoading: controller.status.value == AuthStatus.loading,
+              onPressed: () => controller.login(
+                controller.email.value,
+                controller.password.value,
+              ),
+            ),
+          ],
+        ));
+  }
+}
+''';
+      case StateManagement.riverpod:
+        return '''
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_text_field.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../notifiers/auth_notifier.dart';
+import '../state/auth_state.dart';
+
+/// Login form widget for Riverpod state management.
+class LoginForm extends ConsumerWidget {
+  const LoginForm({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+    final notifier = ref.read(authProvider.notifier);
+    final dimensions = Dimensions(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          context.tr('login_hint'),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        SizedBox(height: dimensions.height(16)),
+        CommonTextField(
+          labelText: context.tr('email'),
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (value) => notifier.updateEmail(value.trim()),
+        ),
+        SizedBox(height: dimensions.height(12)),
+        CommonTextField(
+          labelText: context.tr('password'),
+          obscureText: true,
+          onChanged: (value) => notifier.updatePassword(value.trim()),
+        ),
+        SizedBox(height: dimensions.height(20)),
+        CommonButton(
+          label: context.tr('login'),
+          isLoading: auth.status == AuthStatus.loading,
+          onPressed: notifier.login,
+        ),
+      ],
+    );
+  }
+}
+''';
+    }
+  }
 
   static String _userEntity() => '''
 class UserEntity {
@@ -351,42 +571,42 @@ class LogoutRequested extends AuthEvent {
 }
 ''';
 
-  static String _authState() => '''
-  import 'package:equatable/equatable.dart';
-  
-  enum AuthStatus { initial, loading, success, failure }
-  
-  class AuthState extends Equatable {
-    const AuthState({
-      this.email = '',
-      this.password = '',
-      this.status = AuthStatus.initial,
-      this.message,
-    });
-  
-    final String email;
-    final String password;
-    final AuthStatus status;
-    final String? message;
-  
-    AuthState copyWith({
-      String? email,
-      String? password,
-      AuthStatus? status,
-      String? message,
-    }) {
-      return AuthState(
-        email: email ?? this.email,
-        password: password ?? this.password,
-        status: status ?? this.status,
-        message: message ?? this.message,
-      );
-    }
-  
-    @override
-    List<Object?> get props => [email, password, status, message];
+  static String _blocAuthState() => '''
+import 'package:equatable/equatable.dart';
+
+enum AuthStatus { initial, loading, success, failure }
+
+class AuthState extends Equatable {
+  const AuthState({
+    this.email = '',
+    this.password = '',
+    this.status = AuthStatus.initial,
+    this.message,
+  });
+
+  final String email;
+  final String password;
+  final AuthStatus status;
+  final String? message;
+
+  AuthState copyWith({
+    String? email,
+    String? password,
+    AuthStatus? status,
+    String? message,
+  }) {
+    return AuthState(
+      email: email ?? this.email,
+      password: password ?? this.password,
+      status: status ?? this.status,
+      message: message ?? this.message,
+    );
   }
-  ''';
+
+  @override
+  List<Object?> get props => [email, password, status, message];
+}
+''';
 
   static String _authBloc() => '''
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -396,18 +616,18 @@ import '../../domain/usecases/logout_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
-  class AuthBloc extends Bloc<AuthEvent, AuthState> {
-    AuthBloc(this._loginUseCase, this._logoutUseCase)
-        : super(const AuthState()) {
-      on<EmailChanged>(_onEmailChanged);
-      on<PasswordChanged>(_onPasswordChanged);
-      on<LoginSubmitted>(_onLogin);
-      on<LogoutRequested>(_onLogout);
-    }
-  
-    final LoginUseCase _loginUseCase;
-    final LogoutUseCase _logoutUseCase;
-  
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  AuthBloc(this._loginUseCase, this._logoutUseCase)
+      : super(const AuthState()) {
+    on<EmailChanged>(_onEmailChanged);
+    on<PasswordChanged>(_onPasswordChanged);
+    on<LoginSubmitted>(_onLogin);
+    on<LogoutRequested>(_onLogout);
+  }
+
+  final LoginUseCase _loginUseCase;
+  final LogoutUseCase _logoutUseCase;
+
     void _onEmailChanged(
       EmailChanged event,
       Emitter<AuthState> emit,
@@ -557,146 +777,87 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/common_widgets/common_app_bar.dart';
-import '../../../core/common_widgets/common_button.dart';
-  import '../../../core/common_widgets/common_snackbar.dart';
-  import '../../../core/common_widgets/common_text_field.dart';
-  import '../../../core/route_handler/app_routes.dart';
-  import '../../../core/utils/dimensions.dart';
-  import '../../../core/localization/app_strings.dart';
-  import '../../../core/di/injection.dart';
-  import '../../domain/usecases/login_usecase.dart';
-  import '../../domain/usecases/logout_usecase.dart';
-  import 'bloc/auth_bloc.dart';
-  import 'bloc/auth_event.dart';
-  import 'bloc/auth_state.dart';
-  
-  class LoginScreen extends StatelessWidget {
-    const LoginScreen({super.key});
-  
-    @override
-    Widget build(BuildContext context) {
-      final dimensions = Dimensions(context);
-      return BlocProvider(
-        create: (_) => AuthBloc(
-          getIt<LoginUseCase>(),
-          getIt<LogoutUseCase>(),
-        ),
-        child: Scaffold(
-          appBar: CommonAppBar(
-            title: context.tr('login_title'),
-            showBackButton: false,
-          ),
-          body: BlocConsumer<AuthBloc, AuthState>(
-            listener: (context, state) {
-              if (state.status == AuthStatus.failure) {
-                CommonSnackbar.error(
-                  context,
-                  message: state.message ?? 'Login failed',
-                );
-              }
-              if (state.status == AuthStatus.success) {
-                Navigator.pushReplacementNamed(context, AppRoutes.users);
-              }
-            },
-            builder: (context, state) {
-              return SingleChildScrollView(
-                padding: dimensions.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      context.tr('login_hint'),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    SizedBox(height: dimensions.height(16)),
-                    CommonTextField(
-                      labelText: context.tr('email'),
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: (value) => context
-                          .read<AuthBloc>()
-                          .add(EmailChanged(value.trim())),
-                    ),
-                    SizedBox(height: dimensions.height(12)),
-                    CommonTextField(
-                      labelText: context.tr('password'),
-                      obscureText: true,
-                      onChanged: (value) => context
-                          .read<AuthBloc>()
-                          .add(PasswordChanged(value.trim())),
-                    ),
-                    SizedBox(height: dimensions.height(20)),
-                    CommonButton(
-                      label: context.tr('login'),
-                      isLoading: state.status == AuthStatus.loading,
-                      onPressed: () => context.read<AuthBloc>().add(
-                            LoginSubmitted(state.email, state.password),
-                          ),
-                    ),
-                    SizedBox(height: dimensions.height(12)),
-                    CommonButton(
-                      label: context.tr('settings'),
-                      onPressed: () =>
-                          Navigator.pushNamed(context, AppRoutes.settings),
-                    ),
-                  ],
-                ),
-              );
-            },
+import '../../../../core/common_widgets/common_app_bar.dart';
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_snackbar.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_state.dart';
+import '../widgets/login_form.dart';
+
+/// Login screen for BLoC state management.
+/// 
+/// This screen is a StatelessWidget that consumes the AuthBloc
+/// provided by MultiProvider at the app level.
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dimensions = Dimensions(context);
+    return Scaffold(
+      appBar: CommonAppBar(
+        title: context.tr('login_title'),
+        showBackButton: false,
+      ),
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state.status == AuthStatus.failure) {
+            CommonSnackbar.error(
+              context,
+              message: state.message ?? 'Login failed',
+            );
+          }
+          if (state.status == AuthStatus.success) {
+            Navigator.pushReplacementNamed(context, AppRoutes.users);
+          }
+        },
+        child: SingleChildScrollView(
+          padding: dimensions.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const LoginForm(),
+              SizedBox(height: dimensions.height(12)),
+              CommonButton(
+                label: context.tr('settings'),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.settings),
+              ),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
   }
-  ''';
+}
+''';
 
   static String _blocUsersScreen() => '''
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/common_widgets/common_app_bar.dart';
-import '../../../core/common_widgets/common_button.dart';
-import '../../../core/common_widgets/common_loader.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/session_manager/session_manager.dart';
-import '../../../core/utils/dimensions.dart';
-import '../../../core/di/injection.dart';
-import '../../../core/localization/app_strings.dart';
-  import '../../../core/di/injection.dart';
-  import '../domain/usecases/get_users_usecase.dart';
-  import '../domain/usecases/login_usecase.dart';
-  import '../domain/usecases/logout_usecase.dart';
-  import 'bloc/auth_bloc.dart';
-  import 'bloc/auth_event.dart';
-  import 'bloc/users_bloc.dart';
-  import 'bloc/users_event.dart';
-  import 'bloc/users_state.dart';
+import '../../../../core/common_widgets/common_app_bar.dart';
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_loader.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/users_bloc.dart';
+import '../bloc/users_event.dart';
+import '../bloc/users_state.dart';
+import '../widgets/user_card.dart';
 
+/// Users list screen for BLoC state management.
+/// 
+/// This screen is a StatelessWidget that consumes the UsersBloc
+/// provided by MultiProvider at the app level.
 class UsersListScreen extends StatelessWidget {
-    const UsersListScreen({super.key});
-  
-    @override
-    Widget build(BuildContext context) {
-      return MultiBlocProvider(
-        providers: [
-          BlocProvider<AuthBloc>(
-            create: (_) => AuthBloc(
-              getIt<LoginUseCase>(),
-              getIt<LogoutUseCase>(),
-            ),
-          ),
-          BlocProvider<UsersBloc>(
-            create: (_) => UsersBloc(getIt<GetUsersUseCase>())
-              ..add(const LoadUsers()),
-          ),
-        ],
-        child: const UsersListView(),
-      );
-    }
-  }
-
-class UsersListView extends StatelessWidget {
-  const UsersListView({super.key});
+  const UsersListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -734,51 +895,22 @@ class UsersListView extends StatelessWidget {
                     SizedBox(height: dimensions.height(12)),
                     CommonButton(
                       label: context.tr('retry'),
-                      onPressed: () => context
-                          .read<UsersBloc>()
-                          .add(const LoadUsers()),
+                      onPressed: () =>
+                          context.read<UsersBloc>().add(const LoadUsers()),
                     ),
                   ],
                 ),
               );
             case UsersStatus.success:
-              return ListView.separated(
+              return ListView.builder(
                 padding: dimensions.all(16),
                 itemCount: state.users.length,
-                separatorBuilder: (_, __) =>
-                    SizedBox(height: dimensions.height(8)),
-                itemBuilder: (_, index) {
-                  final user = state.users[index];
-                  return ListTile(
-                    title: Text(user.name),
-                    subtitle: Text(user.email),
-                    leading: CircleAvatar(child: Text(user.name[0])),
-                  );
-                },
+                itemBuilder: (_, index) => UserCard(user: state.users[index]),
               );
             case UsersStatus.initial:
               return const SizedBox.shrink();
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final token = getIt<SessionManager>().getToken();
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Session Info'),
-              content: Text('Token: \$token'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
-          );
-        },
-        child: const Icon(Icons.info_outline),
       ),
     );
   }
@@ -911,40 +1043,49 @@ class DemoBinding extends Bindings {
 
   static String _getxLoginScreen() => '''
 import 'package:flutter/material.dart';
-  import 'package:get/get.dart';
-  
-  import '../../../core/common_widgets/common_app_bar.dart';
-  import '../../../core/common_widgets/common_button.dart';
-  import '../../../core/common_widgets/common_snackbar.dart';
-  import '../../../core/common_widgets/common_text_field.dart';
-  import '../../../core/route_handler/app_routes.dart';
-  import '../../../core/utils/dimensions.dart';
-  import 'controller/auth_controller.dart';
+import 'package:get/get.dart';
 
-  class LoginScreen extends StatelessWidget {
-    const LoginScreen({super.key});
-  
-    @override
-    Widget build(BuildContext context) {
-      final controller = Get.find<AuthController>();
-      return Scaffold(
-      // Localization: 'key'.tr pulls from GetX translations.
+import '../../../../core/common_widgets/common_app_bar.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../controller/auth_controller.dart';
+import '../widgets/login_form.dart';
+
+/// Login screen for GetX state management.
+/// 
+/// Uses GetX for navigation, dialogs, snackbars, and reactive state.
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<AuthController>();
+    
+    return Scaffold(
       appBar: CommonAppBar(
         title: 'login_title'.tr,
         showBackButton: false,
       ),
       body: Obx(() {
+        // Handle error state with GetX snackbar
         if (controller.status.value == AuthStatus.failure &&
             controller.error.value != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            CommonSnackbar.error(
-              context,
-              message: controller.error.value ?? 'Login failed',
+            Get.snackbar(
+              'error'.tr,
+              controller.error.value ?? 'Login failed',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red.shade100,
+              colorText: Colors.red.shade900,
+              margin: const EdgeInsets.all(16),
+              borderRadius: 8,
+              duration: const Duration(seconds: 3),
             );
             controller.reset();
           });
         }
 
+        // Handle success - navigate using GetX
         if (controller.status.value == AuthStatus.success) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             controller.reset();
@@ -953,72 +1094,51 @@ import 'package:flutter/material.dart';
         }
 
         return SingleChildScrollView(
-          // Dimensions keeps spacing consistent across devices.
           padding: Dimensions.allPadding(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'login_hint'.tr,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              SizedBox(height: Dimensions.height(16)),
-                CommonTextField(
-                  labelText: 'email'.tr,
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (value) => controller.setEmail(value.trim()),
-                ),
-                SizedBox(height: Dimensions.height(12)),
-                CommonTextField(
-                  labelText: 'password'.tr,
-                  obscureText: true,
-                  onChanged: (value) => controller.setPassword(value.trim()),
-                ),
-                SizedBox(height: Dimensions.height(20)),
-                CommonButton(
-                  label: 'login'.tr,
-                  isLoading: controller.status.value == AuthStatus.loading,
-                  onPressed: () => controller.login(
-                    controller.email.value,
-                    controller.password.value,
-                  ),
-                ),
+              const LoginForm(),
               SizedBox(height: Dimensions.height(12)),
-                CommonButton(
-                  label: 'settings'.tr,
-                  onPressed: () => Get.toNamed(AppRoutes.settings),
-                ),
-              ],
-            ),
-          );
-        }),
-      );
-    }
+              OutlinedButton(
+                onPressed: () => Get.toNamed(AppRoutes.settings),
+                child: Text('settings'.tr),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
   }
-  ''';
+}
+''';
 
   static String _getxUsersScreen() => '''
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-  import '../../../core/common_widgets/common_app_bar.dart';
-  import '../../../core/common_widgets/common_button.dart';
-  import '../../../core/common_widgets/common_loader.dart';
-  import '../../../core/route_handler/app_routes.dart';
-  import '../../../core/session_manager/session_manager.dart';
-  import 'controller/auth_controller.dart';
-  import 'controller/users_controller.dart';
+import '../../../../core/common_widgets/common_app_bar.dart';
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_loader.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../../../../core/session_manager/session_manager.dart';
+import '../controller/auth_controller.dart';
+import '../controller/users_controller.dart';
+import '../widgets/user_card.dart';
 
+/// Users list screen for GetX state management.
+/// 
+/// Uses GetX for navigation, dialogs, bottom sheets, and reactive state.
 class UsersListScreen extends StatelessWidget {
-  UsersListScreen({super.key});
-
-  final UsersController usersController = Get.find<UsersController>();
-  final AuthController authController = Get.find<AuthController>();
+  const UsersListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final usersController = Get.find<UsersController>();
+    final authController = Get.find<AuthController>();
+    
     return Scaffold(
-      // Localization: 'key'.tr reads translated strings.
       appBar: CommonAppBar(
         title: 'user_list'.tr,
         actions: [
@@ -1028,10 +1148,7 @@ class UsersListScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authController.logout();
-              Get.offAllNamed(AppRoutes.login);
-            },
+            onPressed: () => _showLogoutConfirmation(authController),
           ),
         ],
       ),
@@ -1039,13 +1156,20 @@ class UsersListScreen extends StatelessWidget {
         if (usersController.loading.value) {
           return const CommonLoader();
         }
+        
         if (usersController.error.value != null) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Get.theme.colorScheme.error,
+                ),
+                SizedBox(height: Dimensions.height(16)),
                 Text(usersController.error.value ?? 'Error'),
-                const SizedBox(height: 12),
+                SizedBox(height: Dimensions.height(12)),
                 CommonButton(
                   label: 'retry'.tr,
                   onPressed: usersController.load,
@@ -1054,42 +1178,106 @@ class UsersListScreen extends StatelessWidget {
             ),
           );
         }
-          return ListView.separated(
-            // Dimensions keeps spacing consistent across devices.
-            padding: const EdgeInsets.all(16),
-            itemCount: usersController.users.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, index) {
-              final user = usersController.users[index];
-              return ListTile(
-                title: Text(user.name),
-                subtitle: Text(user.email),
-                leading: CircleAvatar(child: Text(user.name[0])),
-            );
-          },
+        
+        return ListView.builder(
+          padding: Dimensions.allPadding(16),
+          itemCount: usersController.users.length,
+          itemBuilder: (_, index) => UserCard(user: usersController.users[index]),
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final session = Get.find<SessionManager>();
-          // Token is stored after login via SessionManager.
-          final token = await session.getToken() ?? 'No token';
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Session Info'),
-              content: Text('Token: \$token'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
-          );
-        },
+        onPressed: _showSessionInfo,
         child: const Icon(Icons.info_outline),
       ),
+    );
+  }
+
+  /// Shows logout confirmation using GetX dialog.
+  void _showLogoutConfirmation(AuthController authController) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('logout'.tr),
+        content: Text('logout_confirm'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('cancel'.tr),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Get.back();
+              await authController.logout();
+              Get.offAllNamed(AppRoutes.login);
+            },
+            child: Text('logout'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows session info using GetX bottom sheet.
+  void _showSessionInfo() async {
+    final session = Get.find<SessionManager>();
+    final token = await session.getToken() ?? 'No token';
+    
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Get.theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Get.theme.colorScheme.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'session_info'.tr,
+              style: Get.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Token:',
+              style: Get.textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Get.theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(
+                token,
+                style: Get.textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Get.back(),
+                child: Text('close'.tr),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 }
@@ -1098,13 +1286,13 @@ class UsersListScreen extends StatelessWidget {
   static String _riverpodProviders() => '''
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/di/providers.dart';
-import '../domain/repositories/demo_repository.dart';
-import '../domain/usecases/get_users_usecase.dart';
-import '../domain/usecases/login_usecase.dart';
-import '../domain/usecases/logout_usecase.dart';
-import '../data/repositories/demo_repository_impl.dart';
-import '../data/sources/demo_remote_data_source.dart';
+import '../../../../core/di/providers.dart';
+import '../../domain/repositories/demo_repository.dart';
+import '../../domain/usecases/get_users_usecase.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../../data/repositories/demo_repository_impl.dart';
+import '../../data/sources/demo_remote_data_source.dart';
 
 /// Remote data source provider for demo feature.
 final demoRemoteDataSourceProvider = Provider<DemoRemoteDataSource>((ref) {
@@ -1135,38 +1323,91 @@ final getUsersUseCaseProvider = Provider<GetUsersUseCase>((ref) {
 });
 ''';
 
-  static String _riverpodAuthNotifier() => '''
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+  static String _riverpodAuthState() => '''
+import 'package:flutter/foundation.dart';
 
-import '../domain/usecases/login_usecase.dart';
-import '../domain/usecases/logout_usecase.dart';
-import 'auth_state.dart';
-import 'demo_providers.dart';
+enum AuthStatus { initial, loading, success, failure }
+
+/// Immutable auth state for Riverpod state management.
+@immutable
+class AuthState {
+  const AuthState({
+    this.email = '',
+    this.password = '',
+    this.status = AuthStatus.initial,
+    this.message,
+  });
+
+  final String email;
+  final String password;
+  final AuthStatus status;
+  final String? message;
+
+  bool get isLoading => status == AuthStatus.loading;
+  bool get isSuccess => status == AuthStatus.success;
+  bool get isFailure => status == AuthStatus.failure;
+
+  AuthState copyWith({
+    String? email,
+    String? password,
+    AuthStatus? status,
+    String? message,
+  }) {
+    return AuthState(
+      email: email ?? this.email,
+      password: password ?? this.password,
+      status: status ?? this.status,
+      message: message ?? this.message,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AuthState &&
+        other.email == email &&
+        other.password == password &&
+        other.status == status &&
+        other.message == message;
+  }
+
+  @override
+  int get hashCode => Object.hash(email, password, status, message);
+}
+''';
+
+  static String _riverpodAuthNotifier() => '''
+import 'package:flutter_riverpod/legacy.dart';
+
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../state/auth_state.dart';
+import '../providers/demo_providers.dart';
 
 /// Auth state notifier for handling authentication logic.
-  class AuthNotifier extends StateNotifier<AuthState> {
-    AuthNotifier(this._loginUseCase, this._logoutUseCase)
-        : super(const AuthState());
-  
-    final LoginUseCase _loginUseCase;
-    final LogoutUseCase _logoutUseCase;
-  
-    void updateEmail(String value) {
-      state = state.copyWith(email: value);
-    }
-  
-    void updatePassword(String value) {
-      state = state.copyWith(password: value);
-    }
-  
-    /// Attempt to login with email and password.
-    Future<void> login() async {
-      if (state.status == AuthStatus.loading) return;
-      state = state.copyWith(status: AuthStatus.loading, message: null);
-      final result = await _loginUseCase(
-        email: state.email,
-        password: state.password,
-      );
+class AuthNotifier extends StateNotifier<AuthState> {
+  AuthNotifier(this._loginUseCase, this._logoutUseCase)
+      : super(const AuthState());
+
+  final LoginUseCase _loginUseCase;
+  final LogoutUseCase _logoutUseCase;
+
+  void updateEmail(String value) {
+    state = state.copyWith(email: value);
+  }
+
+  void updatePassword(String value) {
+    state = state.copyWith(password: value);
+  }
+
+  /// Attempt to login with email and password.
+  Future<void> login() async {
+    if (state.status == AuthStatus.loading) return;
+    state = state.copyWith(status: AuthStatus.loading, message: null);
+    final result = await _loginUseCase(
+      email: state.email,
+      password: state.password,
+    );
     result.fold(
       (failure) => state = state.copyWith(
         status: AuthStatus.failure,
@@ -1198,11 +1439,11 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 ''';
 
   static String _riverpodUsersNotifier() => '''
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-import '../domain/entities/user_entity.dart';
-import '../domain/usecases/get_users_usecase.dart';
-import 'demo_providers.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/get_users_usecase.dart';
+import '../providers/demo_providers.dart';
 
 /// State class for users list.
 class UsersState {
@@ -1273,38 +1514,43 @@ final usersProvider = StateNotifierProvider<UsersNotifier, UsersState>((ref) {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/common_widgets/common_app_bar.dart';
-import '../../../core/common_widgets/common_button.dart';
-  import '../../../core/common_widgets/common_snackbar.dart';
-  import '../../../core/common_widgets/common_text_field.dart';
-  import '../../../core/route_handler/app_routes.dart';
-  import '../../../core/utils/dimensions.dart';
-  import 'auth_notifier.dart';
-  import 'auth_state.dart';
-  
-  class LoginScreen extends ConsumerWidget {
-    const LoginScreen({super.key});
-  
-    @override
-    Widget build(BuildContext context) {
-      final auth = ref.watch(authProvider);
-      final notifier = ref.read(authProvider.notifier);
-      ref.listen<AuthState>(authProvider, (previous, next) {
-        if (next.status == AuthStatus.failure && next.message != null) {
-          CommonSnackbar.error(
-            context,
-            message: next.message ?? 'Login failed',
-          );
-        }
-        if (next.status == AuthStatus.success) {
-          Navigator.pushReplacementNamed(context, AppRoutes.users);
-        }
-      });
-      // Dimensions keeps spacing consistent across devices.
-      final dimensions = Dimensions(context);
-      return Scaffold(
-        // Localization: context.tr(...) reads from AppLocalizations.
-        appBar: CommonAppBar(
+import '../../../../core/common_widgets/common_app_bar.dart';
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_snackbar.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dimensions.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../notifiers/auth_notifier.dart';
+import '../state/auth_state.dart';
+import '../widgets/login_form.dart';
+
+/// Login screen for Riverpod state management.
+/// 
+/// Uses ConsumerWidget to automatically rebuild when state changes.
+class LoginScreen extends ConsumerWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+    final notifier = ref.read(authProvider.notifier);
+    final dimensions = Dimensions(context);
+
+    // Listen for state changes to show snackbars and navigate
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next.status == AuthStatus.failure && next.message != null) {
+        CommonSnackbar.error(
+          context,
+          message: next.message ?? 'Login failed',
+        );
+      }
+      if (next.status == AuthStatus.success) {
+        Navigator.pushReplacementNamed(context, AppRoutes.users);
+      }
+    });
+
+    return Scaffold(
+      appBar: CommonAppBar(
         title: context.tr('login_title'),
         showBackButton: false,
       ),
@@ -1313,38 +1559,16 @@ import '../../../core/common_widgets/common_button.dart';
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              context.tr('login_hint'),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            SizedBox(height: dimensions.height(16)),
-              CommonTextField(
-                labelText: context.tr('email'),
-                keyboardType: TextInputType.emailAddress,
-                onChanged: (value) => notifier.updateEmail(value.trim()),
-              ),
-              SizedBox(height: dimensions.height(12)),
-              CommonTextField(
-                labelText: context.tr('password'),
-                obscureText: true,
-                onChanged: (value) => notifier.updatePassword(value.trim()),
-              ),
-              SizedBox(height: dimensions.height(20)),
-              CommonButton(
-                label: context.tr('login'),
-                isLoading: auth.status == AuthStatus.loading,
-                onPressed: notifier.login,
-              ),
+            const LoginForm(),
             SizedBox(height: dimensions.height(12)),
-              CommonButton(
-                label: context.tr('settings'),
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.settings),
-              ),
-            ],
-          ),
+            CommonButton(
+              label: context.tr('settings'),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 }
 ''';
@@ -1353,26 +1577,43 @@ import '../../../core/common_widgets/common_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/common_widgets/common_app_bar.dart';
-import '../../../core/common_widgets/common_button.dart';
-import '../../../core/common_widgets/common_loader.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/session_manager/session_manager.dart';
-import '../../../core/di/providers.dart';
-import '../../../core/localization/app_strings.dart';
-import 'auth_notifier.dart';
-import 'users_notifier.dart';
+import '../../../../core/common_widgets/common_app_bar.dart';
+import '../../../../core/common_widgets/common_button.dart';
+import '../../../../core/common_widgets/common_loader.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/di/providers.dart';
+import '../../../../core/localization/app_strings.dart';
+import '../notifiers/auth_notifier.dart';
+import '../notifiers/users_notifier.dart';
+import '../widgets/user_card.dart';
 
-class UsersListScreen extends ConsumerWidget {
+/// Users list screen for Riverpod state management.
+/// 
+/// Uses ConsumerWidget to automatically rebuild when state changes.
+class UsersListScreen extends ConsumerStatefulWidget {
   const UsersListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UsersListScreen> createState() => _UsersListScreenState();
+}
+
+class _UsersListScreenState extends ConsumerState<UsersListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load users when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(usersProvider.notifier).load();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final usersState = ref.watch(usersProvider);
     final usersNotifier = ref.read(usersProvider.notifier);
     final authNotifier = ref.read(authProvider.notifier);
+
     return Scaffold(
-      // Localization: context.tr(...) reads from AppLocalizations.
       appBar: CommonAppBar(
         title: context.tr('user_list'),
         actions: [
@@ -1384,60 +1625,80 @@ class UsersListScreen extends ConsumerWidget {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await authNotifier.logout();
-              Navigator.pushReplacementNamed(context, AppRoutes.login);
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, AppRoutes.login);
+              }
             },
           ),
         ],
       ),
-      body: usersState.loading
-          ? const CommonLoader()
-          : usersState.message != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(usersState.message ?? 'Error'),
-                      const SizedBox(height: 12),
-                      CommonButton(
-                        label: context.tr('retry'),
-                        onPressed: usersNotifier.load,
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: usersState.users.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, index) {
-                    final user = usersState.users[index];
-                    return ListTile(
-                      title: Text(user.name),
-                      subtitle: Text(user.email),
-                      leading: CircleAvatar(child: Text(user.name[0])),
-                    );
-                  },
-                ),
+      body: _buildBody(context, usersState, usersNotifier),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final session = ref.read(sessionManagerProvider);
-          // Token is stored after login via SessionManager.
-          final token = await session.getToken() ?? 'No token';
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Session Info'),
-              content: Text('Token: \$token'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-              ],
-            ),
-          );
-        },
+        onPressed: () => _showSessionInfo(context),
         child: const Icon(Icons.info_outline),
+      ),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    UsersState usersState,
+    UsersNotifier usersNotifier,
+  ) {
+    if (usersState.loading && usersState.users.isEmpty) {
+      return const CommonLoader();
+    }
+
+    if (usersState.hasError && usersState.users.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(usersState.message ?? 'Error'),
+            const SizedBox(height: 12),
+            CommonButton(
+              label: context.tr('retry'),
+              onPressed: usersNotifier.load,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: usersNotifier.refresh,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: usersState.users.length,
+        itemBuilder: (_, index) => UserCard(user: usersState.users[index]),
+      ),
+    );
+  }
+
+  void _showSessionInfo(BuildContext context) async {
+    final session = ref.read(sessionManagerProvider);
+    final token = await session.getToken() ?? 'No token';
+    
+    if (!context.mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(context.tr('session_info')),
+        content: SelectableText('Token: \$token'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.tr('close')),
+          ),
+        ],
       ),
     );
   }
@@ -1447,10 +1708,11 @@ class UsersListScreen extends ConsumerWidget {
   static String _blocSplashScreen() => '''
 import 'package:flutter/material.dart';
 
-import '../../../core/di/injection.dart';
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/session_manager/session_manager.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/session_manager/session_manager.dart';
 
+/// Splash screen for BLoC state management.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -1458,7 +1720,9 @@ class SplashScreen extends StatelessWidget {
     final session = getIt<SessionManager>();
     final isLoggedIn = session.isAuthenticated;
     final target = isLoggedIn ? AppRoutes.users : AppRoutes.login;
-    Navigator.pushReplacementNamed(context, target);
+    if (context.mounted) {
+      Navigator.pushReplacementNamed(context, target);
+    }
   }
 
   @override
@@ -1482,7 +1746,7 @@ class SplashScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white24),
                   ),
@@ -1506,7 +1770,7 @@ class SplashScreen extends StatelessWidget {
                 Text(
                   'Preparing your workspace...',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                 ),
@@ -1533,22 +1797,26 @@ class SplashScreen extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/route_handler/app_routes.dart';
-import '../../../core/session_manager/session_manager.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/session_manager/session_manager.dart';
 
+/// Splash screen for GetX state management.
+/// 
+/// Uses GetX navigation (Get.offNamed) for routing.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
-  Future<void> _route(BuildContext context) async {
+  Future<void> _route() async {
     final session = Get.find<SessionManager>();
     final isLoggedIn = await session.isAuthenticated;
     final target = isLoggedIn ? AppRoutes.users : AppRoutes.login;
-    Navigator.pushReplacementNamed(context, target);
+    // Use GetX navigation instead of Navigator
+    Get.offNamed(target);
   }
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _route(context));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _route());
 
     return Scaffold(
       body: Container(
@@ -1567,7 +1835,7 @@ class SplashScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white24),
                   ),
@@ -1590,7 +1858,7 @@ class SplashScreen extends StatelessWidget {
                 Text(
                   'Loading your session...',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                 ),
@@ -1617,9 +1885,10 @@ class SplashScreen extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/di/providers.dart';
-import '../../../core/route_handler/app_routes.dart';
+import '../../../../core/di/providers.dart';
+import '../../../../core/route_handler/app_routes.dart';
 
+/// Splash screen for Riverpod state management.
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
 
@@ -1627,7 +1896,9 @@ class SplashScreen extends ConsumerWidget {
     final session = ref.read(sessionManagerProvider);
     final isLoggedIn = await session.isAuthenticated;
     final target = isLoggedIn ? AppRoutes.users : AppRoutes.login;
-    Navigator.pushReplacementNamed(context, target);
+    if (context.mounted) {
+      Navigator.pushReplacementNamed(context, target);
+    }
   }
 
   @override
@@ -1651,7 +1922,7 @@ class SplashScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white24),
                   ),
@@ -1674,7 +1945,7 @@ class SplashScreen extends ConsumerWidget {
                 Text(
                   'Finalizing setup...',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                 ),

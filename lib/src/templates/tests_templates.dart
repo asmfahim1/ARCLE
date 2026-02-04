@@ -74,8 +74,8 @@ import 'package:dartz/dartz.dart';
   import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
   import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
   import '../../../lib/features/demo/domain/usecases/logout_usecase.dart';
-  import '../../../lib/features/demo/presentation/login_screen.dart';
-
+  import '../../../lib/features/demo/presentation/pages/login_screen.dart';
+  
   void main() {
     testWidgets('Login screen renders', (tester) async {
       SharedPreferences.setMockInitialValues({});
@@ -129,14 +129,13 @@ import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
 import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
 import '../../../lib/features/demo/domain/usecases/logout_usecase.dart';
 import '../../../lib/features/demo/presentation/controller/auth_controller.dart';
-import '../../../lib/features/demo/presentation/login_screen.dart';
+import '../../../lib/features/demo/presentation/pages/login_screen.dart';
 import '../../../lib/features/settings/presentation/app_settings_controller.dart';
 
   void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      Get.put(PrefManager(prefs), permanent: true);
+      Get.put(PrefManager(), permanent: true);
       final repo = _FakeDemoRepository();
       Get.put(AppSettingsController(), permanent: true);
       Get.put(
@@ -190,8 +189,8 @@ import '../../../lib/core/common_widgets/common_text_field.dart';
 import '../../../lib/core/utils/result.dart';
 import '../../../lib/features/demo/domain/entities/user_entity.dart';
 import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
-import '../../../lib/features/demo/presentation/demo_providers.dart';
-import '../../../lib/features/demo/presentation/login_screen.dart';
+import '../../../lib/features/demo/presentation/providers/demo_providers.dart';
+import '../../../lib/features/demo/presentation/pages/login_screen.dart';
 
 void main() {
   testWidgets('Login screen renders', (tester) async {
@@ -294,8 +293,7 @@ import 'package:flutter/material.dart';
   void main() {
     testWidgets('Settings screen renders', (tester) async {
       SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      Get.put(PrefManager(prefs), permanent: true);
+      Get.put(PrefManager(), permanent: true);
       Get.put(AppSettingsController(), permanent: true);
       await tester.pumpWidget(
         const MaterialApp(

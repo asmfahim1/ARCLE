@@ -140,7 +140,7 @@ class AppSettingsState {
 
   static String riverpodNotifier() => '''
   import 'package:flutter/material.dart';
-  import 'package:flutter_riverpod/flutter_riverpod.dart';
+  import 'package:flutter_riverpod/legacy.dart';
   
   import '../../../core/localization/app_strings.dart';
   import '../../../core/session_manager/pref_manager.dart';
@@ -246,7 +246,7 @@ class AppSettingsState {
 ''';
 
   static String riverpodProvider() => '''
-  import 'package:flutter_riverpod/flutter_riverpod.dart';
+  import 'package:flutter_riverpod/legacy.dart';
   
   import 'app_settings_notifier.dart';
   import '../../../core/di/providers.dart';
@@ -258,15 +258,15 @@ class AppSettingsState {
   ''';
 
   static String settingsScreen(StateManagement state) {
-      final stateImport = switch (state) {
-        StateManagement.bloc => "import 'app_settings_cubit.dart';\n"
-            "import 'app_settings_state.dart';\n"
-            "import 'package:flutter_bloc/flutter_bloc.dart';\n"
-            "import '../../../core/di/injection.dart';\n",
-        StateManagement.getx => "import 'app_settings_controller.dart';\n"
-            "import 'package:get/get.dart';\n",
-        StateManagement.riverpod =>
-          "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
+    final stateImport = switch (state) {
+      StateManagement.bloc => "import 'app_settings_cubit.dart';\n"
+          "import 'app_settings_state.dart';\n"
+          "import 'package:flutter_bloc/flutter_bloc.dart';\n"
+          "import '../../../core/di/injection.dart';\n",
+      StateManagement.getx => "import 'app_settings_controller.dart';\n"
+          "import 'package:get/get.dart';\n",
+      StateManagement.riverpod =>
+        "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
             "import 'app_settings_provider.dart';\n",
     };
 
@@ -299,7 +299,7 @@ class SettingsScreen extends StatelessWidget {
 ''';
   }
 
-    static String _blocSettingsBody() => '''
+  static String _blocSettingsBody() => '''
   BlocProvider<AppSettingsCubit>.value(
           value: getIt<AppSettingsCubit>(),
           child: BlocBuilder<AppSettingsCubit, AppSettingsState>(

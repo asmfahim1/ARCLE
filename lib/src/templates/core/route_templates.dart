@@ -79,10 +79,10 @@ final appRouteObserver = AppRouteObserver();
   static String _defaultRouter() => '''
 import 'package:flutter/material.dart';
 
-import '../../features/demo/presentation/splash_screen.dart';
-import '../../features/demo/presentation/login_screen.dart';
+import '../../features/demo/presentation/pages/splash_screen.dart';
+import '../../features/demo/presentation/pages/login_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
-import '../../features/demo/presentation/user_list_screen.dart';
+import '../../features/demo/presentation/pages/user_list_screen.dart';
 import 'app_routes.dart';
 // arcle:feature_imports
 
@@ -113,10 +113,10 @@ class AppRouter {
 import 'package:get/get.dart';
 
 import '../../features/demo/presentation/bindings/demo_binding.dart';
-import '../../features/demo/presentation/splash_screen.dart';
-import '../../features/demo/presentation/login_screen.dart';
+import '../../features/demo/presentation/pages/splash_screen.dart';
+import '../../features/demo/presentation/pages/login_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
-import '../../features/demo/presentation/user_list_screen.dart';
+import '../../features/demo/presentation/pages/user_list_screen.dart';
 import 'app_routes.dart';
 // arcle:feature_imports
 
@@ -130,7 +130,7 @@ class AppRouter {
     ),
     GetPage(
       name: AppRoutes.users,
-      page: () => UsersListScreen(),
+      page: () => const UsersListScreen(),
       binding: DemoBinding(),
     ),
     GetPage(name: AppRoutes.settings, page: () => const SettingsScreen()),

@@ -55,13 +55,14 @@ class Cli {
         return GenDocCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
-        final suggestion = CommandSuggester()
-            .suggest(cmd.name!, _commandNames());
+        final suggestion =
+            CommandSuggester().suggest(cmd.name!, _commandNames());
         if (suggestion != null) {
           ui.info('Did you mean: ${console.bold('arcle $suggestion')}?');
         }
         console.line('');
-        ui.info('Run ${console.bold('arcle --help')} to see available commands.');
+        ui.info(
+            'Run ${console.bold('arcle --help')} to see available commands.');
         return ExitCode.usage.code;
     }
   }
@@ -96,7 +97,7 @@ class Cli {
     return [
       '',
       '  \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557',
-      '  \u2551   \ud83d\ude80 ARCLE - Flutter Clean Architecture CLI              \u2551',
+      '  \u2551   \ud83d\ude80  ARCLE - Flutter Clean Architecture CLI              \u2551',
       '  \u2551    Build production-ready Flutter apps with ease         \u2551',
       '  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d',
       '',
@@ -104,26 +105,28 @@ class Cli {
       '    arcle <command> [options]',
       '',
       '  COMMANDS',
-      '    \ud83d\udce6 create <name>    Create a new Flutter project + clean architecture',
+      '    \ud83d\udce6  create <name>    Create a new Flutter project + clean architecture',
       '    \ud83d\udee0\ufe0f  init             Scaffold clean architecture in existing project',
-      '    \u2728 feature <name>   Generate a feature (data/domain/presentation)',
-      '    \ud83d\udd04 auto-gen-di      Regenerate DI + run build_runner',
-      '    \ud83d\udd27 gen-di           Regenerate core DI files only',
-      '    \ud83d\udd28 build            Build APK (debug or release)',
-      '    \ud83d\udcda gen-doc          Generate architecture documentation',
+      '    \u2728  feature <name>   Generate a feature (data/domain/presentation)',
+      '    \ud83d\udd04  auto-gen-di      Regenerate DI + run build_runner',
+      '    \ud83d\udd27  gen-di           Regenerate core DI files only',
+      '    \ud83d\udd28  build            Build APK (debug or release)',
+      '    \ud83d\udcda  gen-doc          Generate architecture documentation',
       '',
       '  STATE MANAGEMENT OPTIONS',
-      '    \ud83c\udf0a Riverpod  Type-safe, no context needed',
+      '    🧱  BLoC       Business Logic Component, predictable state',
+      '    ⚡  GetX       Lightweight, reactive, no boilerplate',
+      '    🌊  Riverpod   Type-safe, no context needed',
       '',
       '  GLOBAL OPTIONS',
       parser.usage,
       '',
       '  EXAMPLES',
-      '    arcle create my_app --state riverpod # Create with Riverpod',
-      '    arcle feature payments --state riverpod',
+      '    arcle create my_app --state BLoc/Getx/Riverpod',
+      '    arcle feature payments --state BLoc/Getx/Riverpod',
       '    arcle build --mode release           # Build release APK',
       '',
-      '  \ud83d\udca1 TIP: Use --state riverpod in CI/CD for explicit configuration',
+      '  \ud83d\udca1 TIP: Use --state BLoc/Getx/Riverpod in CI/CD for explicit configuration',
       '',
     ].join('\n');
   }

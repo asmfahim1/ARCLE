@@ -792,6 +792,7 @@ class ProjectGenerator {
         break;
       case StateManagement.riverpod:
         deps.add(_Dependency('flutter_riverpod', version));
+        deps.add(_Dependency('equatable', 'any'));
         break;
     }
     return deps;

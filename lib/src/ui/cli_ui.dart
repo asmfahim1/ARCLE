@@ -8,7 +8,7 @@ class CliUi {
 
   void showWelcome() {
     _banner(
-      title: ' 🚀 ARCLE - Flutter Clean Architecture CLI',
+      title: '   🚀 ARCLE - Flutter Clean Architecture CLI',
       subtitle: 'Build scalable, production-ready apps with ease.',
       compact: true,
     );
@@ -17,7 +17,7 @@ class CliUi {
 
   void showFirstRunGreeting() {
     _banner(
-      title: ' 🚀 ARCLE - Flutter Clean Architecture CLI',
+      title: '   🚀 ARCLE - Flutter Clean Architecture CLI',
       subtitle: 'Your companion for clean, scalable Flutter apps.',
       compact: false,
     );
@@ -37,8 +37,7 @@ class CliUi {
   }
 
   void showStateMenu() {
-    console.line(
-        console.bold('🎯 State management (Riverpod-only):'));
+    console.line(console.bold('🎯 State management (Riverpod-only):'));
     console.line('');
     final item = StateManagement.riverpod;
     final icon = _stateIcon(item);

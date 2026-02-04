@@ -68,21 +68,12 @@ Future<void> bootstrap() async {
   }
 
   static String app(StateManagement state) {
-    final appClass = switch (state) {
-      StateManagement.bloc => 'MaterialApp',
-      StateManagement.getx => 'GetMaterialApp',
-      StateManagement.riverpod => 'MaterialApp',
-    };
-
-    final appBody = switch (state) {
-      StateManagement.bloc => _blocAppBody(appClass),
-      StateManagement.getx => _getxAppBody(appClass),
-      StateManagement.riverpod => _riverpodAppBody(appClass),
-    };
-
     final stateImports = switch (state) {
-      StateManagement.bloc => "import '../core/di/injection.dart';\n"
-          "import '../features/settings/presentation/app_settings_cubit.dart';\n",
+      StateManagement.bloc => "import 'package:flutter_bloc/flutter_bloc.dart';\n"
+          "import '../core/di/injection.dart';\n"
+          "import '../core/di/bloc_providers.dart';\n"
+          "import '../features/settings/presentation/app_settings_cubit.dart';\n"
+          "import '../features/settings/presentation/app_settings_state.dart';\n",
       StateManagement.getx => "import 'package:get/get.dart';\n"
           "import '../features/settings/presentation/app_settings_controller.dart';\n"
           "import '../core/localization/getx_localization.dart';\n",
@@ -93,6 +84,12 @@ Future<void> bootstrap() async {
 
     final routeImports = "import '../core/route_handler/app_router.dart';\n"
         "import '../core/route_handler/app_routes.dart';\n";
+
+    final appBody = switch (state) {
+      StateManagement.bloc => _blocAppBody(),
+      StateManagement.getx => _getxAppBody(),
+      StateManagement.riverpod => _riverpodAppBody(),
+    };
 
     return '''
 import 'package:flutter/material.dart';
@@ -124,28 +121,99 @@ Future<void> main() async {
 ''';
   }
 
-  static String _sharedMaterialApp(
-    String appClass, {
-    required String themeMode,
-    required String locale,
-  }) {
-    const localizationDelegates = '''
+  static String _blocAppBody() {
+    return '''
+MultiBlocProvider(
+      providers: AppBlocProviders.providers,
+      child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
+        bloc: getIt<AppSettingsCubit>(),
+        builder: (context, settings) {
+          return MaterialApp(
+            title: 'Arcle Demo',
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: settings.themeMode,
+            locale: settings.locale,
+            supportedLocales: AppStrings.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            builder: (context, child) {
+              final media = MediaQuery.of(context);
+              return MediaQuery(
+                data: media.copyWith(
+                  textScaler: const TextScaler.linear(1.0),
+                ),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+            navigatorObservers: [appRouteObserver],
+            navigatorKey: AppRoutes.navigatorKey,
+            initialRoute: AppRoutes.initialRoute,
+            onGenerateRoute: AppRouter.onGenerateRoute,
+          );
+        },
+      ),
+    )''';
+  }
+
+  static String _getxAppBody() {
+    return '''
+GetBuilder<AppSettingsController>(
+      init: Get.find<AppSettingsController>(),
+      builder: (controller) {
+        return GetMaterialApp(
+          title: 'Arcle Demo',
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: controller.themeMode.value,
+          locale: controller.locale.value,
+          supportedLocales: AppStrings.supportedLocales,
+          translations: Language(),
+          fallbackLocale: const Locale('en', 'US'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          builder: (context, child) {
+            final media = MediaQuery.of(context);
+            return MediaQuery(
+              data: media.copyWith(
+                textScaler: const TextScaler.linear(1.0),
+              ),
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
+          navigatorObservers: [appRouteObserver],
+          initialRoute: AppRoutes.initialRoute,
+          getPages: AppRouter.pages,
+        );
+      },
+    )''';
+  }
+
+  static String _riverpodAppBody() {
+    return '''
+Consumer(
+      builder: (context, ref, child) {
+        final settings = ref.watch(appSettingsProvider);
+        return MaterialApp(
+          title: 'Arcle Demo',
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: settings.themeMode,
+          locale: settings.locale,
+          supportedLocales: AppStrings.supportedLocales,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-''';
-    return '''
-$appClass(
-          title: 'Arcle Demo',
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: $themeMode,
-          locale: $locale,
-          supportedLocales: AppStrings.supportedLocales,
-$localizationDelegates
           builder: (context, child) {
             final media = MediaQuery.of(context);
             return MediaQuery(
@@ -159,61 +227,8 @@ $localizationDelegates
           navigatorKey: AppRoutes.navigatorKey,
           initialRoute: AppRoutes.initialRoute,
           onGenerateRoute: AppRouter.onGenerateRoute,
-        )''';
-  }
-
-  static String _blocAppBody(String appClass) {
-    final material = _sharedMaterialApp(
-      appClass,
-      themeMode: 'getIt<AppSettingsCubit>().state.themeMode',
-      locale: 'getIt<AppSettingsCubit>().state.locale',
-    );
-    return '''
-$material''';
-  }
-
-  static String _getxAppBody(String appClass) {
-    return '''
-$appClass(
-      title: 'Arcle Demo',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: Get.find<AppSettingsController>().themeMode.value,
-      locale: Get.find<AppSettingsController>().locale.value,
-      supportedLocales: AppStrings.supportedLocales,
-      translations: Language(),
-      fallbackLocale: const Locale('en', 'US'),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      builder: (context, child) {
-        final media = MediaQuery.of(context);
-        return MediaQuery(
-          data: media.copyWith(
-            textScaler: const TextScaler.linear(1.0),
-          ),
-          child: child ?? const SizedBox.shrink(),
         );
       },
-      navigatorObservers: [appRouteObserver],
-      initialRoute: AppRoutes.initialRoute,
-      getPages: AppRouter.pages,
     )''';
-  }
-
-  static String _riverpodAppBody(String appClass) {
-    final material = _sharedMaterialApp(
-      appClass,
-      themeMode: 'settings.themeMode',
-      locale: 'settings.locale',
-    );
-    return '''
-(() {
-      final settings = ProviderScope.containerOf(context, listen: false)
-          .read(appSettingsProvider);
-      return $material;
-    })()''';
   }
 }
