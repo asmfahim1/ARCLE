@@ -50,6 +50,11 @@ import '../api_client/base_response.dart';
 /// );
 /// ```
 class ResponseHandler {
+  static bool _isSuccessStatus(int? statusCode) {
+    if (statusCode == null) return false;
+    return statusCode >= 200 && statusCode < 300;
+  }
+
   /// Handle a single object response
   static Future<Result<T>> handle<T>({
     required Future<Response> Function() request,
@@ -58,6 +63,9 @@ class ResponseHandler {
   }) async {
     try {
       final response = await request();
+      if (!_isSuccessStatus(response.statusCode)) {
+        return Results.failure(AppFailure.fromResponse(response));
+      }
       final data = response.data;
       
       AppLogger.network(
@@ -73,13 +81,11 @@ class ResponseHandler {
       // Handle BaseResponse wrapper if present
       if (data is Map<String, dynamic>) {
         if (data.containsKey('success') && data['success'] == false) {
-          return Results.failure(
-            ServerFailure(data['message'] ?? 'Request failed'),
-          );
+          return Results.failure(AppFailure.fromResponse(response));
         }
         
         // Extract nested data if present
-        final payload = data['data'] ?? data;
+        final payload = data['data'] ?? data['result'] ?? data['payload'] ?? data;
         if (payload is Map<String, dynamic>) {
           return Results.success(fromJson(payload));
         }
@@ -103,6 +109,9 @@ class ResponseHandler {
   }) async {
     try {
       final response = await request();
+      if (!_isSuccessStatus(response.statusCode)) {
+        return Results.failure(AppFailure.fromResponse(response));
+      }
       final data = response.data;
       
       AppLogger.network(
@@ -121,11 +130,17 @@ class ResponseHandler {
       } else if (data is Map<String, dynamic>) {
         // Handle BaseResponse wrapper
         if (data.containsKey('success') && data['success'] == false) {
-          return Results.failure(
-            ServerFailure(data['message'] ?? 'Request failed'),
-          );
+          return Results.failure(AppFailure.fromResponse(response));
         }
-        items = data['data'] ?? data['items'] ?? data['results'] ?? [];
+        final payload = data['data'] ?? data['result'] ?? data['payload'] ?? data;
+        if (payload is List) {
+          items = payload;
+        } else if (payload is Map<String, dynamic>) {
+          items =
+              payload['items'] ?? payload['results'] ?? payload['data'] ?? [];
+        } else {
+          items = [];
+        }
       } else {
         return Results.success([]);
       }
@@ -150,6 +165,9 @@ class ResponseHandler {
   }) async {
     try {
       final response = await request();
+      if (!_isSuccessStatus(response.statusCode)) {
+        return Results.failure(AppFailure.fromResponse(response));
+      }
       final data = response.data;
       
       if (data == null || data is! Map<String, dynamic>) {
@@ -157,9 +175,7 @@ class ResponseHandler {
       }
       
       if (data.containsKey('success') && data['success'] == false) {
-        return Results.failure(
-          ServerFailure(data['message'] ?? 'Request failed'),
-        );
+        return Results.failure(AppFailure.fromResponse(response));
       }
       
       return Results.success(PaginatedResponse.fromJson(data, fromJson));
@@ -177,13 +193,14 @@ class ResponseHandler {
   }) async {
     try {
       final response = await request();
+      if (!_isSuccessStatus(response.statusCode)) {
+        return Results.failure(AppFailure.fromResponse(response));
+      }
       final data = response.data;
       
       if (data is Map<String, dynamic>) {
         if (data.containsKey('success') && data['success'] == false) {
-          return Results.failure(
-            ServerFailure(data['message'] ?? 'Request failed'),
-          );
+          return Results.failure(AppFailure.fromResponse(response));
         }
       }
       
@@ -359,13 +376,16 @@ class ErrorHandler {
   
   /// Convert failure to user-friendly message
   static String _getUserMessage(AppFailure failure) {
+    if (failure is ValidationFailure) {
+      return failure.displayMessage;
+    }
     return failure.when(
       network: (msg) => 'No internet connection. Please check your network and try again.',
       server: (msg, code) => msg.isNotEmpty ? msg : 'Server error occurred. Please try again later.',
       timeout: (msg) => 'Request timed out. Please check your connection and try again.',
       unauthorized: (msg) => 'Session expired. Please login again.',
       notFound: (msg) => msg.isNotEmpty ? msg : 'The requested resource was not found.',
-      validation: (msg) => msg,
+      validation: (msg) => msg.isNotEmpty ? msg : 'Please correct the highlighted fields.',
       cache: (msg) => 'Unable to load cached data.',
       unknown: (msg, error) => kDebugMode ? msg : 'Something went wrong. Please try again.',
     );

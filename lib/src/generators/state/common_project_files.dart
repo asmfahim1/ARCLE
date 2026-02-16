@@ -1,5 +1,6 @@
 import '../../state_management.dart';
 import '../../templates/app_templates.dart';
+import '../../templates/core/analysis_templates.dart';
 import '../../templates/core/api_templates.dart';
 import '../../templates/core/constants_templates.dart';
 import '../../templates/core/core_templates.dart';
@@ -20,6 +21,7 @@ import '../../templates/tests_templates.dart';
 
 Map<String, String> buildCommonProjectFiles(StateManagement state) {
   final files = <String, String>{
+    'analysis_options.yaml': AnalysisTemplates.analysisOptions(),
     'lib/bootstrap.dart': AppTemplates.bootstrap(state),
     'lib/app/app.dart': AppTemplates.app(state),
     'lib/main.dart': AppTemplates.mainEntry(),
