@@ -20,6 +20,7 @@ class ProjectGenerator {
     required this.force,
     this.overwriteMain = false,
     this.overwriteWidgetTest = false,
+    this.overwriteAnalysisOptions = false,
   });
 
   final CliUi ui;
@@ -28,6 +29,7 @@ class ProjectGenerator {
   final bool force;
   final bool overwriteMain;
   final bool overwriteWidgetTest;
+  final bool overwriteAnalysisOptions;
 
   Console get console => ui.console;
 
@@ -172,6 +174,13 @@ class ProjectGenerator {
         continue;
       }
       if (overwriteWidgetTest && entry.key == 'test/widget_test.dart') {
+        final file = File(_join(targetDir.path, entry.key));
+        file.parent.createSync(recursive: true);
+        file.writeAsStringSync(entry.value);
+        ui.itemCreated(entry.key);
+        continue;
+      }
+      if (overwriteAnalysisOptions && entry.key == 'analysis_options.yaml') {
         final file = File(_join(targetDir.path, entry.key));
         file.parent.createSync(recursive: true);
         file.writeAsStringSync(entry.value);

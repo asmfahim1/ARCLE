@@ -10,7 +10,6 @@ class ApiTemplates {
     return '''
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 $injectableImport
 import '../env/env_factory.dart';
 import '../session_manager/session_manager.dart';
@@ -59,14 +58,13 @@ class DioClient {
         
         final url = options.uri.toString();
         AppLogger.network(
-          '\u2192 \${options.method} \$url',
+          'HTTP Request',
           tag: 'HTTP',
-          data: kDebugMode
-              ? {
-                  'query': options.queryParameters,
-                  'body': options.data,
-                }
-              : null,
+          data: {
+            'method': options.method,
+            'url': url,
+            'requestBody': options.data,
+          },
         );
         
         return handler.next(options);
@@ -74,29 +72,28 @@ class DioClient {
       onResponse: (response, handler) {
         final url = response.requestOptions.uri.toString();
         AppLogger.network(
-          '\u2190 \${response.statusCode} \${response.requestOptions.method} \$url',
+          'HTTP Response',
           tag: 'HTTP',
-          data: kDebugMode ? response.data : null,
+          data: {
+            'method': response.requestOptions.method,
+            'url': url,
+            'response': response.data,
+          },
         );
         return handler.next(response);
       },
       onError: (DioException e, handler) async {
         final url = e.requestOptions.uri.toString();
-        AppLogger.error(
-          '\u2717 \${e.response?.statusCode ?? 'ERR'} \${e.requestOptions.method} \$url',
+        AppLogger.network(
+          'HTTP Error',
           tag: 'HTTP',
-          error: e.message,
+          data: {
+            'method': e.requestOptions.method,
+            'url': url,
+            'requestBody': e.requestOptions.data,
+            'response': e.response?.data,
+          },
         );
-        if (kDebugMode) {
-          AppLogger.debug(
-            'Request/response details',
-            tag: 'HTTP',
-            data: {
-              'request_body': e.requestOptions.data,
-              'response_body': e.response?.data,
-            },
-          );
-        }
         
         if (e.response?.statusCode == 401) {
           // Attempt token refresh
@@ -118,14 +115,6 @@ class DioClient {
       },
     ));
 
-    // Logging interceptor (debug only)
-    if (kDebugMode) {
-      _dio.interceptors.add(LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (obj) => AppLogger.debug(obj.toString(), tag: 'DIO'),
-      ));
-    }
   }
   
   Future<bool> _attemptTokenRefresh() async {
@@ -204,15 +193,25 @@ class BaseResponse<T> {
     Map<String, dynamic> json,
     T Function(dynamic)? fromJsonT,
   ) {
-    final isSuccess = json['success'] ?? 
-                      (json['status'] == 'success') ?? 
-                      (json['code'] == 200);
+    final rawSuccess = json['success'];
+    final isSuccess = rawSuccess is bool
+        ? rawSuccess
+        : (json['status']?.toString().toLowerCase() == 'success' ||
+            _asInt(json['code']) == 200);
+    final rawErrors = json['errors'];
+    final parsedErrors = rawErrors is Map<String, dynamic>
+        ? rawErrors
+        : rawErrors is Map
+            ? rawErrors.map(
+                (key, value) => MapEntry(key.toString(), value),
+              )
+            : null;
     
     return BaseResponse(
       success: isSuccess,
-      message: json['message'] ?? json['msg'] ?? '',
-      statusCode: json['code'] ?? json['status_code'],
-      errors: json['errors'],
+      message: _asString(json['message']) ?? _asString(json['msg']) ?? '',
+      statusCode: _asInt(json['code']) ?? _asInt(json['status_code']),
+      errors: parsedErrors,
       data: (json['data'] != null && fromJsonT != null)
           ? fromJsonT(json['data'])
           : null,
@@ -240,6 +239,19 @@ class BaseResponse<T> {
       return firstField.first.toString();
     }
     return firstField.toString();
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static String? _asString(dynamic value) {
+    if (value is String) return value;
+    if (value is num || value is bool) return value.toString();
+    return null;
   }
 }
 ''';

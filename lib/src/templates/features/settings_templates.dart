@@ -140,7 +140,7 @@ class AppSettingsState {
 
   static String riverpodNotifier() => '''
   import 'package:flutter/material.dart';
-  import 'package:flutter_riverpod/legacy.dart';
+  import 'package:flutter_riverpod/flutter_riverpod.dart';
   
   import '../../../core/localization/app_strings.dart';
   import '../../../core/session_manager/pref_manager.dart';
@@ -246,7 +246,7 @@ class AppSettingsState {
 ''';
 
   static String riverpodProvider() => '''
-  import 'package:flutter_riverpod/legacy.dart';
+  import 'package:flutter_riverpod/flutter_riverpod.dart';
   
   import 'app_settings_notifier.dart';
   import '../../../core/di/providers.dart';

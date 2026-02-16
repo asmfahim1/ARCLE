@@ -85,7 +85,7 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
     'lib/core/permissions/permission_service.dart':
         ServicesTemplates.permissionService(state),
     'lib/core/utils/logger.dart': UtilsTemplates.utilsLogger(),
-    'lib/core/utils/app_failure.dart': UtilsTemplates.utilsFailure(),
+    'lib/core/response_handler/api_failure.dart': UtilsTemplates.utilsFailure(),
     'lib/core/utils/result.dart': UtilsTemplates.utilsResult(),
     'lib/core/utils/app_validators.dart': UtilsTemplates.appValidators(),
     'lib/core/utils/validators.dart': UtilsTemplates.utilsValidators(),

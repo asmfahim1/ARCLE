@@ -28,10 +28,8 @@ This folder is shared across all features.
   static String responseHandler() => '''
 import 'package:dio/dio.dart';
 
-import '../utils/app_failure.dart';
+import '../response_handler/api_failure.dart';
 import '../utils/result.dart';
-import '../utils/logger.dart';
-import '../api_client/base_response.dart';
 
 /// Centralized response handler for API calls.
 /// 
@@ -50,6 +48,21 @@ import '../api_client/base_response.dart';
 /// );
 /// ```
 class ResponseHandler {
+  static Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key.toString(), val));
+    }
+    return null;
+  }
+
+  static List<Map<String, dynamic>> _toMapList(List<dynamic> source) {
+    return source
+        .map(_asMap)
+        .whereType<Map<String, dynamic>>()
+        .toList();
+  }
+
   static bool _isSuccessStatus(int? statusCode) {
     if (statusCode == null) return false;
     return statusCode >= 200 && statusCode < 300;
@@ -57,7 +70,7 @@ class ResponseHandler {
 
   /// Handle a single object response
   static Future<Result<T>> handle<T>({
-    required Future<Response> Function() request,
+    required Future<Response<dynamic>> Function() request,
     required T Function(Map<String, dynamic>) fromJson,
     String? tag,
   }) async {
@@ -68,42 +81,32 @@ class ResponseHandler {
       }
       final data = response.data;
       
-      AppLogger.network(
-        'Response: \${response.statusCode}',
-        tag: tag ?? 'API',
-        data: data,
-      );
-      
       if (data == null) {
         return Results.failure(const ServerFailure('Empty response'));
       }
-      
-      // Handle BaseResponse wrapper if present
-      if (data is Map<String, dynamic>) {
-        if (data.containsKey('success') && data['success'] == false) {
-          return Results.failure(AppFailure.fromResponse(response));
-        }
-        
-        // Extract nested data if present
-        final payload = data['data'] ?? data['result'] ?? data['payload'] ?? data;
-        if (payload is Map<String, dynamic>) {
-          return Results.success(fromJson(payload));
-        }
+
+      final mapData = _asMap(data);
+      if (mapData == null) {
+        return Results.failure(const ServerFailure('Invalid response format'));
       }
-      
-      return Results.success(fromJson(data));
+
+      if (mapData.containsKey('success') && mapData['success'] == false) {
+        return Results.failure(AppFailure.fromResponse(response));
+      }
+
+      final payload = mapData['data'] ?? mapData['result'] ?? mapData['payload'];
+      final payloadMap = _asMap(payload) ?? mapData;
+      return Results.success(fromJson(payloadMap));
     } on DioException catch (e) {
-      AppLogger.error('DioException', tag: tag ?? 'API', error: e);
       return Results.failure(AppFailure.fromDioException(e));
     } catch (e, stack) {
-      AppLogger.error('Unexpected error', tag: tag ?? 'API', error: e, stackTrace: stack);
       return Results.failure(AppFailure.fromException(e, stack));
     }
   }
   
   /// Handle a list response
   static Future<Result<List<T>>> handleList<T>({
-    required Future<Response> Function() request,
+    required Future<Response<dynamic>> Function() request,
     required T Function(Map<String, dynamic>) fromJson,
     String? tag,
   }) async {
@@ -114,19 +117,14 @@ class ResponseHandler {
       }
       final data = response.data;
       
-      AppLogger.network(
-        'Response: \${response.statusCode}',
-        tag: tag ?? 'API',
-      );
-      
       if (data == null) {
         return Results.success([]);
       }
       
-      List<dynamic> items;
+      List<Map<String, dynamic>> items;
       
       if (data is List) {
-        items = data;
+        items = _toMapList(data);
       } else if (data is Map<String, dynamic>) {
         // Handle BaseResponse wrapper
         if (data.containsKey('success') && data['success'] == false) {
@@ -134,10 +132,11 @@ class ResponseHandler {
         }
         final payload = data['data'] ?? data['result'] ?? data['payload'] ?? data;
         if (payload is List) {
-          items = payload;
+          items = _toMapList(payload);
         } else if (payload is Map<String, dynamic>) {
-          items =
-              payload['items'] ?? payload['results'] ?? payload['data'] ?? [];
+          final nestedList =
+              payload['items'] ?? payload['results'] ?? payload['data'];
+          items = nestedList is List ? _toMapList(nestedList) : [];
         } else {
           items = [];
         }
@@ -146,20 +145,18 @@ class ResponseHandler {
       }
       
       return Results.success(
-        items.map((e) => fromJson(e as Map<String, dynamic>)).toList(),
+        items.map(fromJson).toList(),
       );
     } on DioException catch (e) {
-      AppLogger.error('DioException', tag: tag ?? 'API', error: e);
       return Results.failure(AppFailure.fromDioException(e));
     } catch (e, stack) {
-      AppLogger.error('Unexpected error', tag: tag ?? 'API', error: e, stackTrace: stack);
       return Results.failure(AppFailure.fromException(e, stack));
     }
   }
   
   /// Handle paginated response
   static Future<Result<PaginatedResponse<T>>> handlePaginated<T>({
-    required Future<Response> Function() request,
+    required Future<Response<dynamic>> Function() request,
     required T Function(Map<String, dynamic>) fromJson,
     String? tag,
   }) async {
@@ -188,7 +185,7 @@ class ResponseHandler {
   
   /// Handle void response (no data expected)
   static Future<Result<void>> handleVoid({
-    required Future<Response> Function() request,
+    required Future<Response<dynamic>> Function() request,
     String? tag,
   }) async {
     try {
@@ -241,21 +238,43 @@ class PaginatedResponse<T> {
     Map<String, dynamic> json,
     T Function(Map<String, dynamic>) fromJson,
   ) {
-    final data = json['data'] ?? json;
-    final List<dynamic> rawItems = data['items'] ?? data['results'] ?? data['data'] ?? [];
-    final meta = json['meta'] ?? json['pagination'] ?? json;
-    
-    final page = meta['page'] ?? meta['current_page'] ?? 1;
-    final totalPages = meta['total_pages'] ?? meta['last_page'] ?? 1;
-    final totalItems = meta['total'] ?? meta['total_items'] ?? rawItems.length;
+    final data = _asMap(json['data']) ?? json;
+    final rawItemsDynamic = data['items'] ?? data['results'] ?? data['data'];
+    final rawItems = rawItemsDynamic is List ? rawItemsDynamic : <dynamic>[];
+    final meta = _asMap(json['meta']) ?? _asMap(json['pagination']) ?? json;
+
+    final page = _asInt(meta['page']) ?? _asInt(meta['current_page']) ?? 1;
+    final totalPages =
+        _asInt(meta['total_pages']) ?? _asInt(meta['last_page']) ?? 1;
+    final totalItems =
+        _asInt(meta['total']) ?? _asInt(meta['total_items']) ?? rawItems.length;
     
     return PaginatedResponse(
-      items: rawItems.map((e) => fromJson(e as Map<String, dynamic>)).toList(),
+      items: rawItems
+          .map(_asMap)
+          .whereType<Map<String, dynamic>>()
+          .map(fromJson)
+          .toList(),
       page: page,
       totalPages: totalPages,
       totalItems: totalItems,
       hasMore: page < totalPages,
     );
+  }
+
+  static Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key.toString(), val));
+    }
+    return null;
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 }
 ''';
@@ -264,7 +283,7 @@ class PaginatedResponse<T> {
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-import '../utils/app_failure.dart';
+import '../response_handler/api_failure.dart';
 import '../utils/logger.dart';
 
 /// Centralized error handler for the application.
@@ -641,7 +660,7 @@ class AppFailure {
   static String utilsResult() => '''
 import 'package:dartz/dartz.dart';
 
-import 'app_failure.dart';
+import '../response_handler/api_failure.dart';
 
 typedef Result<T> = Either<AppFailure, T>;
 ''';

@@ -153,6 +153,21 @@
       <excludeFolder url="file://$MODULE_DIR$/example/test_app/PROJECT_TEST/riverpod_app/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/example/test_app/PROJECT_TEST/riverpod_app/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/example/test_app/PROJECT_TEST/riverpod_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/bloc_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/bloc_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/bloc_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/getx_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/getx_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/getx_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/riverpod_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/riverpod_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/PROJECT/riverpod_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/example_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/example_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/example_app/bloc_app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/example/example_app/bloc_app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/example/example_app/bloc_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/example/example_app/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

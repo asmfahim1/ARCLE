@@ -84,6 +84,7 @@ class CreateCommand {
       force: cmd['force'] as bool,
       overwriteMain: true,
       overwriteWidgetTest: true,
+      overwriteAnalysisOptions: true,
     );
 
     if (cmd['no-flutter-create'] == true) {

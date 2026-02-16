@@ -612,7 +612,7 @@ class _ParsedErrorPayload {
   static String utilsResult() => '''
 import 'package:dartz/dartz.dart';
 
-import 'app_failure.dart';
+import '../response_handler/api_failure.dart';
 
 /// Type alias for Either-based result handling.
 /// 

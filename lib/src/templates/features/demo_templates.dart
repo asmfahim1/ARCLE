@@ -148,6 +148,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_text_field.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dialogs.dart';
 import '../../../../core/utils/dimensions.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -189,7 +191,17 @@ class LoginForm extends StatelessWidget {
               isLoading: state.status == AuthStatus.loading,
               onPressed: () => context
                   .read<AuthBloc>()
-                  .add(LoginSubmitted(state.email, state.password)),
+                  .add(
+                    LoginSubmitted(
+                      state.email,
+                      state.password,
+                      onSuccess: () => Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.users,
+                      ),
+                      onFailure: AppDialogs.showError,
+                    ),
+                  ),
             ),
           ],
         );
@@ -205,6 +217,8 @@ import 'package:get/get.dart';
 
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_text_field.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dialogs.dart';
 import '../../../../core/utils/dimensions.dart';
 import '../controller/auth_controller.dart';
 
@@ -241,6 +255,8 @@ class LoginForm extends StatelessWidget {
               onPressed: () => controller.login(
                 controller.email.value,
                 controller.password.value,
+                onSuccess: () => Get.offNamed(AppRoutes.users),
+                onFailure: AppDialogs.showError,
               ),
             ),
           ],
@@ -256,6 +272,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_text_field.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dialogs.dart';
 import '../../../../core/utils/dimensions.dart';
 import '../notifiers/auth_notifier.dart';
 import '../state/auth_state.dart';
@@ -293,7 +311,13 @@ class LoginForm extends ConsumerWidget {
         CommonButton(
           label: context.tr('login'),
           isLoading: auth.status == AuthStatus.loading,
-          onPressed: notifier.login,
+          onPressed: () => notifier.login(
+            onSuccess: () => Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.users,
+            ),
+            onFailure: AppDialogs.showError,
+          ),
         ),
       ],
     );
@@ -426,10 +450,23 @@ class UserModel extends UserEntity {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
+      id: _asInt(json['id']),
+      name: _asString(json['name']),
+      email: _asString(json['email']),
     );
+  }
+
+  static int _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static String _asString(dynamic value) {
+    if (value is String) return value;
+    if (value is num || value is bool) return value.toString();
+    return '';
   }
 }
 ''';
@@ -472,8 +509,8 @@ class DemoRemoteDataSource {
     return '''
 $injectableImport
 import 'package:dartz/dartz.dart';
+import '../../../../core/response_handler/api_failure.dart';
 import '../../../../core/session_manager/session_manager.dart';
-import '../../../../core/utils/app_failure.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/demo_repository.dart';
@@ -500,8 +537,8 @@ class DemoRepositoryImpl implements DemoRepository {
       final token = response.data['token']?.toString() ?? '';
       await _sessionManager.saveSession(accessToken: token);
       return Right(token);
-    } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+    } catch (e, stack) {
+      return Left(AppFailure.fromException(e, stack));
     }
   }
 
@@ -514,15 +551,19 @@ class DemoRepositoryImpl implements DemoRepository {
           .map((json) => UserModel.fromJson(json as Map<String, dynamic>))
           .toList();
       return Right(users);
-    } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+    } catch (e, stack) {
+      return Left(AppFailure.fromException(e, stack));
     }
   }
 
   @override
   Future<Result<void>> logout() async {
-    await _sessionManager.clearToken();
-    return const Right(null);
+    try {
+      await _sessionManager.clearToken();
+      return const Right(null);
+    } catch (e, stack) {
+      return Left(AppFailure.fromException(e, stack));
+    }
   }
 }
 ''';
@@ -530,6 +571,7 @@ class DemoRepositoryImpl implements DemoRepository {
 
   static String _authEvent() => '''
   import 'package:equatable/equatable.dart';
+  import 'package:flutter/foundation.dart';
   
   abstract class AuthEvent extends Equatable {
     const AuthEvent();
@@ -557,10 +599,17 @@ class DemoRepositoryImpl implements DemoRepository {
   }
   
   class LoginSubmitted extends AuthEvent {
-    const LoginSubmitted(this.email, this.password);
+    const LoginSubmitted(
+      this.email,
+      this.password, {
+      this.onSuccess,
+      this.onFailure,
+    });
   
     final String email;
     final String password;
+    final VoidCallback? onSuccess;
+    final ValueChanged<String>? onFailure;
 
   @override
   List<Object?> get props => [email, password];
@@ -652,11 +701,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
     );
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: AuthStatus.failure,
-        message: failure.message,
-      )),
-      (_) => emit(state.copyWith(status: AuthStatus.success)),
+      (failure) {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          message: failure.message,
+        ));
+        event.onFailure?.call(failure.message);
+      },
+      (_) {
+        emit(state.copyWith(status: AuthStatus.success));
+        event.onSuccess?.call();
+      },
     );
   }
 
@@ -775,16 +830,12 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
 
   static String _blocLoginScreen() => '''
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/common_widgets/common_button.dart';
-import '../../../../core/common_widgets/common_snackbar.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dimensions.dart';
 import '../../../../core/localization/app_strings.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_state.dart';
 import '../widgets/login_form.dart';
 
 /// Login screen for BLoC state management.
@@ -802,32 +853,18 @@ class LoginScreen extends StatelessWidget {
         title: context.tr('login_title'),
         showBackButton: false,
       ),
-      body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state.status == AuthStatus.failure) {
-            CommonSnackbar.error(
-              context,
-              message: state.message ?? 'Login failed',
-            );
-          }
-          if (state.status == AuthStatus.success) {
-            Navigator.pushReplacementNamed(context, AppRoutes.users);
-          }
-        },
-        child: SingleChildScrollView(
-          padding: dimensions.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const LoginForm(),
-              SizedBox(height: dimensions.height(12)),
-              CommonButton(
-                label: context.tr('settings'),
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.settings),
-              ),
-            ],
-          ),
+      body: SingleChildScrollView(
+        padding: dimensions.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const LoginForm(),
+            SizedBox(height: dimensions.height(12)),
+            CommonButton(
+              label: context.tr('settings'),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+            ),
+          ],
         ),
       ),
     );
@@ -918,6 +955,7 @@ class UsersListScreen extends StatelessWidget {
 ''';
 
   static String _getxAuthController() => '''
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../domain/usecases/login_usecase.dart';
@@ -940,7 +978,12 @@ enum AuthStatus { initial, loading, success, failure }
   
     void setPassword(String value) => password.value = value;
   
-    Future<void> login(String email, String password) async {
+    Future<void> login(
+      String email,
+      String password, {
+      VoidCallback? onSuccess,
+      ValueChanged<String>? onFailure,
+    }) async {
       if (status.value == AuthStatus.loading) return;
       status.value = AuthStatus.loading;
       error.value = null;
@@ -952,8 +995,12 @@ enum AuthStatus { initial, loading, success, failure }
       (failure) {
         status.value = AuthStatus.failure;
         error.value = failure.message;
+        onFailure?.call(failure.message);
       },
-      (_) => status.value = AuthStatus.success,
+      (_) {
+        status.value = AuthStatus.success;
+        onSuccess?.call();
+      },
     );
   }
 
@@ -1048,7 +1095,6 @@ import 'package:get/get.dart';
 import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dimensions.dart';
-import '../controller/auth_controller.dart';
 import '../widgets/login_form.dart';
 
 /// Login screen for GetX state management.
@@ -1059,55 +1105,25 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<AuthController>();
-    
     return Scaffold(
       appBar: CommonAppBar(
         title: 'login_title'.tr,
         showBackButton: false,
       ),
-      body: Obx(() {
-        // Handle error state with GetX snackbar
-        if (controller.status.value == AuthStatus.failure &&
-            controller.error.value != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.snackbar(
-              'error'.tr,
-              controller.error.value ?? 'Login failed',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red.shade100,
-              colorText: Colors.red.shade900,
-              margin: const EdgeInsets.all(16),
-              borderRadius: 8,
-              duration: const Duration(seconds: 3),
-            );
-            controller.reset();
-          });
-        }
-
-        // Handle success - navigate using GetX
-        if (controller.status.value == AuthStatus.success) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            controller.reset();
-            Get.offNamed(AppRoutes.users);
-          });
-        }
-
-        return SingleChildScrollView(
-          padding: Dimensions.allPadding(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const LoginForm(),
-              SizedBox(height: Dimensions.height(12)),
-              OutlinedButton(
-                onPressed: () => Get.toNamed(AppRoutes.settings),
-                child: Text('settings'.tr),
-              ),
-            ],
-          ),
-        );
-      }),
+      body: SingleChildScrollView(
+        padding: Dimensions.allPadding(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const LoginForm(),
+            SizedBox(height: Dimensions.height(12)),
+            OutlinedButton(
+              onPressed: () => Get.toNamed(AppRoutes.settings),
+              child: Text('settings'.tr),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1121,6 +1137,7 @@ import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_loader.dart';
 import '../../../../core/route_handler/app_routes.dart';
+import '../../../../core/utils/dialogs.dart';
 import '../../../../core/utils/dimensions.dart';
 import '../../../../core/session_manager/session_manager.dart';
 import '../controller/auth_controller.dart';
@@ -1193,27 +1210,16 @@ class UsersListScreen extends StatelessWidget {
   }
 
   /// Shows logout confirmation using GetX dialog.
-  void _showLogoutConfirmation(AuthController authController) {
-    Get.dialog(
-      AlertDialog(
-        title: Text('logout'.tr),
-        content: Text('logout_confirm'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('cancel'.tr),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Get.back();
-              await authController.logout();
-              Get.offAllNamed(AppRoutes.login);
-            },
-            child: Text('logout'.tr),
-          ),
-        ],
-      ),
+  void _showLogoutConfirmation(AuthController authController) async {
+    final confirmed = await AppDialogs.showConfirm(
+      title: 'logout'.tr,
+      message: 'logout_confirm'.tr,
+      confirmText: 'logout'.tr,
+      cancelText: 'cancel'.tr,
     );
+    if (!confirmed) return;
+    await authController.logout();
+    Get.offAllNamed(AppRoutes.login);
   }
 
   /// Shows session info using GetX bottom sheet.
@@ -1377,7 +1383,8 @@ class AuthState {
 ''';
 
   static String _riverpodAuthNotifier() => '''
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
@@ -1401,7 +1408,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Attempt to login with email and password.
-  Future<void> login() async {
+  Future<void> login({
+    VoidCallback? onSuccess,
+    ValueChanged<String>? onFailure,
+  }) async {
     if (state.status == AuthStatus.loading) return;
     state = state.copyWith(status: AuthStatus.loading, message: null);
     final result = await _loginUseCase(
@@ -1409,11 +1419,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       password: state.password,
     );
     result.fold(
-      (failure) => state = state.copyWith(
-        status: AuthStatus.failure,
-        message: failure.message,
-      ),
-      (_) => state = state.copyWith(status: AuthStatus.success),
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.failure,
+          message: failure.message,
+        );
+        onFailure?.call(failure.message);
+      },
+      (_) {
+        state = state.copyWith(status: AuthStatus.success);
+        onSuccess?.call();
+      },
     );
   }
 
@@ -1439,7 +1455,7 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 ''';
 
   static String _riverpodUsersNotifier() => '''
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/get_users_usecase.dart';
@@ -1516,12 +1532,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/common_widgets/common_button.dart';
-import '../../../../core/common_widgets/common_snackbar.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dimensions.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../notifiers/auth_notifier.dart';
-import '../state/auth_state.dart';
 import '../widgets/login_form.dart';
 
 /// Login screen for Riverpod state management.
@@ -1532,22 +1546,7 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authProvider);
-    final notifier = ref.read(authProvider.notifier);
     final dimensions = Dimensions(context);
-
-    // Listen for state changes to show snackbars and navigate
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next.status == AuthStatus.failure && next.message != null) {
-        CommonSnackbar.error(
-          context,
-          message: next.message ?? 'Login failed',
-        );
-      }
-      if (next.status == AuthStatus.success) {
-        Navigator.pushReplacementNamed(context, AppRoutes.users);
-      }
-    });
 
     return Scaffold(
       appBar: CommonAppBar(
@@ -1728,16 +1727,11 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) => _route(context));
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
+      backgroundColor: primaryColor,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
         child: SafeArea(
           child: Center(
             child: Column(
@@ -1745,15 +1739,14 @@ class SplashScreen extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.auto_awesome,
                     size: 48,
-                    color: Colors.white,
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -1769,8 +1762,8 @@ class SplashScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Preparing your workspace...',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 14,
                   ),
                 ),
@@ -1817,16 +1810,11 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) => _route());
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
+      backgroundColor: primaryColor,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF141E30), Color(0xFF243B55)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
         child: SafeArea(
           child: Center(
             child: Column(
@@ -1835,14 +1823,13 @@ class SplashScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white24),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.blur_on,
                     size: 48,
-                    color: Colors.white,
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -1857,8 +1844,8 @@ class SplashScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Loading your session...',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 14,
                   ),
                 ),
@@ -1904,16 +1891,11 @@ class SplashScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) => _route(context, ref));
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
+      backgroundColor: primaryColor,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0B132B), Color(0xFF1C2541), Color(0xFF3A506B)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
         child: SafeArea(
           child: Center(
             child: Column(
@@ -1921,15 +1903,14 @@ class SplashScreen extends ConsumerWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.waving_hand_rounded,
                     size: 48,
-                    color: Colors.white,
+                    color: primaryColor,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -1944,8 +1925,8 @@ class SplashScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Finalizing setup...',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 14,
                   ),
                 ),

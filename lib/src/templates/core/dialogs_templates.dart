@@ -56,6 +56,35 @@ class AppDialogs {
       ),
     );
   }
+
+  static Future<bool> showConfirm({
+    required String title,
+    required String message,
+    String confirmText = 'OK',
+    String cancelText = 'Cancel',
+  }) async {
+    final context = AppRoutes.navigatorKey.currentContext;
+    if (context == null) return false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(cancelText),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(confirmText),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 }
 ''';
 
@@ -95,6 +124,31 @@ class AppDialogs {
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
+  }
+
+  static Future<bool> showConfirm({
+    required String title,
+    required String message,
+    String confirmText = 'OK',
+    String cancelText = 'Cancel',
+  }) async {
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text(cancelText),
+          ),
+          FilledButton(
+            onPressed: () => Get.back(result: true),
+            child: Text(confirmText),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 }
 ''';

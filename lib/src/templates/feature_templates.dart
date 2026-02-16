@@ -187,7 +187,7 @@ class ${className}RemoteSource {
         ? '@LazySingleton(as: ${className}Repository)\n'
         : '';
     return '''
-import '../../../../core/utils/app_failure.dart';
+import '../../../../core/response_handler/api_failure.dart';
 import '../../../../core/utils/result.dart';
 import 'package:dartz/dartz.dart';
 import '../../domain/entity/${snake}_entity.dart';
@@ -208,8 +208,8 @@ class ${className}RepositoryImpl implements ${className}Repository {
       final models = await _remote.fetchData();
       final entities = models.map((e) => e.toEntity()).toList();
       return Right(entities);
-    } catch (e) {
-      return Left(AppFailure.fromException(e));
+    } catch (e, stack) {
+      return Left(AppFailure.fromException(e, stack));
     }
   }
 }

@@ -279,6 +279,10 @@ Exact Flutter and Dart versions for the current release are listed in `TOOLCHAIN
 - Dart SDK: ^3.5.4
 - Flutter: Latest stable recommended
 
+### SDK Compatibility
+- Generated splash screens use only `Theme.of(context).colorScheme.primary` and `Colors.white`.
+- Avoid color extensions like `.withValues(...)` and `.withOpacity(...)` in generated templates to reduce lower-SDK compatibility issues.
+
 ---
 
 ## Contributing
