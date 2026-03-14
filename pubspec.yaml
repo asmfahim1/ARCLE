@@ -4,10 +4,10 @@ description: >-
   with BLoC, GetX, or Riverpod state management. Generate features, DI wiring,
   routing, and build APKs with ease.
 version: 1.0.0
-homepage: https://github.com/ArcleApp/arcle
-repository: https://github.com/ArcleApp/arcle
-issue_tracker: https://github.com/ArcleApp/arcle/issues
-documentation: https://github.com/ArcleApp/arcle#readme
+homepage: https://github.com/asmfahim1/ARCLE
+repository: https://github.com/asmfahim1/ARCLE
+issue_tracker: https://github.com/asmfahim1/ARCLE/issues
+documentation: https://github.com/asmfahim1/ARCLE#readme
 
 topics:
   - cli
