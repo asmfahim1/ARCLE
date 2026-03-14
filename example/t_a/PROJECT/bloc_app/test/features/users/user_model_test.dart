@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/features/demo/data/models/user_model.dart';
+import 'package:bloc_app/features/demo/data/models/user_model.dart';
 
 void main() {
   test('UserModel.fromJson parses values', () {

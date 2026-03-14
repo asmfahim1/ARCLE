@@ -15,13 +15,13 @@ class CommonImageContainer extends StatelessWidget {
     this.token = '',
     this.color,
     this.fit,
+    this.fallbackAssetPath,
     this.clipBehavior,
     this.margin,
     this.padding,
     this.alignment,
     this.boxShadow,
     this.border,
-    this.fallbackAssetPath,
   });
 
   factory CommonImageContainer.network({
@@ -124,8 +124,11 @@ class CommonImageContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius:
-            isCircle ? null : BorderRadius.circular(Dimensions(context).radius(borderRadius ?? 10)),
+        borderRadius: isCircle
+            ? null
+            : BorderRadius.circular(
+                Dimensions(context).radius(borderRadius ?? 10),
+              ),
         border: border,
         boxShadow: boxShadow,
       ),
@@ -137,25 +140,22 @@ class CommonImageContainer extends StatelessWidget {
   Widget _buildContent(BuildContext context) {
     if (sourceType == ImageSourceType.offline) {
       if (imageUrl?.toLowerCase().endsWith('.svg') == true) {
-        return SvgPicture.asset(
-          imageUrl ?? "",
-          fit: fit ?? BoxFit.cover,
-        );
+        return SvgPicture.asset(imageUrl ?? "", fit: fit ?? BoxFit.cover);
       }
-      return Image.asset(
-        imageUrl ?? "",
-        fit: fit,
-      );
+      return Image.asset(imageUrl ?? "", fit: fit);
     }
 
-    if (imageUrl?.isEmpty == true || imageUrl?.contains("default.png") == true) {
+    if (imageUrl?.isEmpty == true ||
+        imageUrl?.contains("default.png") == true) {
       return _buildFallbackImage(context);
     }
 
     return Image.network(
       imageUrl ?? "",
       fit: fit,
-      headers: token?.isNotEmpty == true ? {"Authorization": "Bearer $token"} : null,
+      headers: token?.isNotEmpty == true
+          ? {"Authorization": "Bearer $token"}
+          : null,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(

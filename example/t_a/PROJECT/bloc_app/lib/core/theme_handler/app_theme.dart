@@ -52,7 +52,7 @@ class AppTheme {
       navigationBarTheme: const NavigationBarThemeData(
         backgroundColor: Colors.white,
         indicatorColor: Color(0x1A2C3E50),
-        labelTextStyle: MaterialStatePropertyAll(
+        labelTextStyle: WidgetStatePropertyAll(
           TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -72,9 +72,7 @@ class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.black12),
         ),
-        errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _error),
-        ),
+        errorBorder: OutlineInputBorder(borderSide: BorderSide(color: _error)),
         contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
       // Dropdowns using Material 3 dropdown menu.
@@ -128,7 +126,7 @@ class AppTheme {
       navigationBarTheme: const NavigationBarThemeData(
         backgroundColor: Color(0xFF1B2028),
         indicatorColor: Color(0x332C3E50),
-        labelTextStyle: MaterialStatePropertyAll(
+        labelTextStyle: WidgetStatePropertyAll(
           TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -146,9 +144,7 @@ class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.white24),
         ),
-        errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _error),
-        ),
+        errorBorder: OutlineInputBorder(borderSide: BorderSide(color: _error)),
         contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
       dropdownMenuTheme: const DropdownMenuThemeData(

@@ -393,18 +393,18 @@ class SettingsBody extends StatelessWidget {
           $themeText,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        SizedBox(height: ${dimensionAccess}.height(8)),
+        SizedBox(height: $dimensionAccess.height(8)),
         CommonCheckbox(
           value: themeMode == ThemeMode.dark,
           label: $darkModeText,
           onChanged: (value) => onThemeChanged(value ?? false),
         ),
-        SizedBox(height: ${dimensionAccess}.height(16)),
+        SizedBox(height: $dimensionAccess.height(16)),
         Text(
           $languageText,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        SizedBox(height: ${dimensionAccess}.height(8)),
+        SizedBox(height: $dimensionAccess.height(8)),
         CommonDropdown<Locale>(
           value: locale,
           items: AppStrings.supportedLocales,

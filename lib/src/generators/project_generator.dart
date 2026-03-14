@@ -367,7 +367,7 @@ class ProjectGenerator {
     String version,
   ) {
     final pattern = RegExp(
-      'id\\s+[\"\\\']$pluginId[\"\\\']\\s+version\\s+[\"\\\']([^\"\\\']+)[\"\\\']',
+      'id\\s+["\\\']$pluginId["\\\']\\s+version\\s+["\\\']([^"\\\']+)["\\\']',
     );
     if (!pattern.hasMatch(content)) return content;
     return content.replaceAllMapped(pattern, (match) {
@@ -505,7 +505,7 @@ class ProjectGenerator {
 
   String? _extractPluginVersion(String content, String pluginId) {
     final pattern = RegExp(
-      'id\\s+[\"\\\']$pluginId[\"\\\']\\s+version\\s+[\"\\\']([^\"\\\']+)[\"\\\']',
+      'id\\s+["\\\']$pluginId["\\\']\\s+version\\s+["\\\']([^"\\\']+)["\\\']',
     );
     final match = pattern.firstMatch(content);
     return match?.group(1);
@@ -763,7 +763,7 @@ class ProjectGenerator {
         lines.indexWhere((line) => line.trim().startsWith('flutter {'));
     if (flutterIndex == -1) return false;
     final indent = _leadingWhitespace(lines[flutterIndex]);
-    lines.insert(flutterIndex + 1, '$indent  source = \"../..\"');
+    lines.insert(flutterIndex + 1, '$indent  source = "../.."');
     return true;
   }
 

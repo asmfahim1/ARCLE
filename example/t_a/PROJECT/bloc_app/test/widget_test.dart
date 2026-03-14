@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/app/app.dart';
+import 'package:bloc_app/app/app.dart';
 
 void main() {
   testWidgets('App builds', (tester) async {

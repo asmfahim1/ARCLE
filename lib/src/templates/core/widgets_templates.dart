@@ -393,9 +393,8 @@ class CommonDialog extends StatelessWidget {
 ''';
 
   static String commonImageContainer(StateManagement state) {
-    final dimensionAccess = state == StateManagement.getx
-        ? 'Dimensions'
-        : 'Dimensions(context)';
+    final dimensionAccess =
+        state == StateManagement.getx ? 'Dimensions' : 'Dimensions(context)';
     return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -496,8 +495,8 @@ class CommonImageContainer extends StatelessWidget {
         child: SvgPicture.asset(
           fallbackAssetPath ?? "",
           fit: BoxFit.contain,
-          width: ${dimensionAccess}.width(40),
-          height: ${dimensionAccess}.height(40),
+          width: $dimensionAccess.width(40),
+          height: $dimensionAccess.height(40),
         ),
       );
     } else {
@@ -505,8 +504,8 @@ class CommonImageContainer extends StatelessWidget {
         child: Image.asset(
           fallbackAssetPath ?? "",
           fit: BoxFit.contain,
-          width: ${dimensionAccess}.width(40),
-          height: ${dimensionAccess}.height(40),
+          width: $dimensionAccess.width(40),
+          height: $dimensionAccess.height(40),
         ),
       );
     }
@@ -515,8 +514,8 @@ class CommonImageContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: ${dimensionAccess}.height(height ?? 100),
-      width: ${dimensionAccess}.width(width ?? 100),
+      height: $dimensionAccess.height(height ?? 100),
+      width: $dimensionAccess.width(width ?? 100),
       margin: margin,
       padding: padding,
       alignment: alignment,
@@ -524,7 +523,7 @@ class CommonImageContainer extends StatelessWidget {
         color: color,
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius:
-            isCircle ? null : BorderRadius.circular(${dimensionAccess}.radius(borderRadius ?? 10)),
+            isCircle ? null : BorderRadius.circular($dimensionAccess.radius(borderRadius ?? 10)),
         border: border,
         boxShadow: boxShadow,
       ),

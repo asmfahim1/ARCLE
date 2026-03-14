@@ -251,8 +251,8 @@ abstract class ${className}Event extends Equatable {
   List<Object?> get props => [];
 }
 
-class Load${className} extends ${className}Event {
-  const Load${className}();
+class Load$className extends ${className}Event {
+  const Load$className();
 }
 ''';
 
@@ -299,14 +299,14 @@ import '${snake}_state.dart';
 
 class ${className}Bloc extends Bloc<${className}Event, ${className}State> {
   ${className}Bloc(this._useCase) : super(const ${className}State()) {
-    on<Load${className}>(_onLoad);
-    add(const Load${className}());
+    on<Load$className>(_onLoad);
+    add(const Load$className());
   }
 
   final ${className}UseCase _useCase;
 
   Future<void> _onLoad(
-    Load${className} event,
+    Load$className event,
     Emitter<${className}State> emit,
   ) async {
     emit(state.copyWith(status: ${className}Status.loading));
