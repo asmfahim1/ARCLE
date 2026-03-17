@@ -5,9 +5,8 @@ import 'package:arcle/arcle.dart';
 /// Arcle is a Flutter CLI tool that scaffolds Clean Architecture projects
 /// with support for BLoC, GetX, or Riverpod state management.
 void main(List<String> args) async {
-  // Initialize and run the Arcle CLI
-  final arcle = Arcle();
-  await arcle.run(args);
+  // Run the Arcle CLI
+  await run(args);
 }
 
 /// Usage examples:
