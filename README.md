@@ -15,9 +15,16 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - Choose BLoC, GetX, or Riverpod
 - Generate full feature modules
 - Keep DI and route wiring consistent
+- API client ready with Dio
+- Session management & token handling
+- Multi-language support
+- Environment configuration (local, staging, production)
+- **Working demo feature** with login & API integration
+- **Auto-generated documentation**
+- Production-ready code structure
 - Build APKs from the CLI
 
-## Installation
+## 📦 Installation
 
 ### Option 1: Activate globally (Recommended)
 
@@ -49,7 +56,7 @@ Or use without activating:
 dart pub global run arcle:arcle --help
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 # Create with interactive state selection
@@ -68,7 +75,7 @@ arcle build apk --debug
 arcle build apk --release
 ```
 
-## Commands
+## 📝 Commands
 
 - `arcle create <name>`: Create a new Flutter project with Clean Architecture
 - `arcle init`: Scaffold Clean Architecture in an existing project
@@ -100,14 +107,14 @@ ARCLE includes templates and generators for three state management solutions:
 - Excellent for state composition
 - Best for: Apps requiring strong typing and immutability
 
-## Requirements
+## ✅ Requirements
 
 - **Dart SDK**: 3.5.4 or higher
 - **Flutter**: Latest stable channel (3.24.5+)
 - **Operating System**: macOS, Linux, or Windows
 - **Terminal**: bash, sh, zsh, or PowerShell
 
-## Troubleshooting
+## 🧪 Troubleshooting
 
 ### Command Not Found: arcle
 
@@ -145,29 +152,69 @@ flutter channel stable
 flutter upgrade
 ```
 
-## Project Structure
-
-The generated projects follow Clean Architecture principles:
+## 🏗️ Project Structure
 
 ```
-lib/
-├── core/              # Shared utilities, themes, constants
-│   ├── api_client/    # Network layer (Dio setup)
-│   ├── common_widgets/# Reusable UI components
-│   ├── routes/        # Navigation/routing
-│   ├── theme/         # App theming
-│   └── utils/         # Utilities and helpers
-├── features/          # Feature modules
-│   └── [feature_name]/
-│       ├── data/      # Data layer (repositories, models)
-│       ├── domain/    # Domain layer (entities, use cases)
-│       └── presentation/  # UI layer (pages, widgets, state management)
-└── env/               # Environment configuration
-
-test/                  # Unit and widget tests
+my_awesome_app/
+├── lib/
+│   ├── core/                           # Shared infrastructure
+│   │   ├── api/
+│   │   │   ├── api_service.dart       # HTTP client wrapper
+│   │   │   ├── base_response.dart     # API response model
+│   │   │   └── dio_client.dart        # Dio configuration
+│   │   ├── di/
+│   │   │   ├── injection.dart         # DI setup
+│   │   │   └── register_module.dart   # Module registration
+│   │   ├── env/
+│   │   │   ├── env.dart               # Environment interface
+│   │   │   ├── local_env.dart         # Local config
+│   │   │   ├── production_env.dart    # Production config
+│   │   │   ├── staging_env.dart       # Staging config
+│   │   │   └── env_factory.dart       # Environment factory
+│   │   ├── error/
+│   │   │   ├── failures.dart          # Failure classes
+│   │   │   └── result.dart            # Either pattern
+│   │   ├── localization/
+│   │   │   └── app_localizations.dart # Localization setup
+│   │   ├── routes/
+│   │   │   └── app_routes.dart        # Navigation
+│   │   ├── session_manager/
+│   │   │   ├── pref_manager.dart      # SharedPreferences wrapper
+│   │   │   └── session_manager.dart   # Session handling
+│   │   ├── theme/
+│   │   │   └── app_theme.dart         # Theme configuration
+│   │   ├── utils/
+│   │   │   ├── constants.dart         # App constants
+│   │   │   ├── dialog_manager.dart    # Dialogs & snackbars
+│   │   │   ├── enums.dart             # Enumerations
+│   │   │   └── extensions.dart        # Extension methods
+│   │   └── common_widgets/
+│   │       └── common_loader.dart     # Reusable widgets
+│   ├── features/                       # Feature modules
+│   │   └── user_demo/                 # Demo feature (included!)
+│   │       ├── data/
+│   │       │   ├── models/
+│   │       │   ├── repositories/
+│   │       │   └── sources/
+│   │       ├── domain/
+│   │       │   ├── entities/
+│   │       │   ├── repositories/
+│   │       │   └── usecases/
+│   │       └── presentation/
+│   │           ├── logic/
+│   │           ├── screens/
+│   │           └── widgets/
+│   └── main.dart                       # App entry point
+├── assets/
+│   └── lang/
+│       ├── en.json                     # English translations
+│       └── bn.json                     # Bengali translations
+├── docs/                               # Auto-generated documentation
+├── test/                               # Tests
+└── pubspec.yaml                        # Dependencies
 ```
 
-## State Management Details
+## 🏛️ State Management Details
 
 ### BLoC/Cubit (auto-gen-di)
 - Event-based state management
@@ -185,7 +232,7 @@ test/                  # Unit and widget tests
 - Compile-time safe
 - Excellent for complex state composition
 
-## Features
+## 🌟 Features
 
 - 📦 Full project scaffolding with chosen architecture
 - 🧩 Feature generation (data/domain/presentation layers)
@@ -196,14 +243,25 @@ test/                  # Unit and widget tests
 - 🌐 API client setup with error handling
 - ✅ Comprehensive code templates
 
-## Toolchain
+## 🎓 Toolchain
 
 - Dart SDK: `^3.5.4`
 - Flutter: stable channel recommended
 
 See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 
-## Contributing
+## 🗺️ Roadmap
+
+- [ ] Add support for more state management options (Provider, Redux)
+- [ ] Generate unit tests automatically
+- [ ] Add GraphQL support
+- [ ] Generate widget tests
+- [ ] Add Firebase integration option
+- [ ] Generate CI/CD configuration
+- [ ] Add more demo features
+- [ ] Support for custom templates
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -211,6 +269,26 @@ See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 4. Push to your branch
 5. Open a pull request
 
-## License
+## 📄 License
 
 MIT License. See [LICENSE](LICENSE).
+
+## 🙏 Acknowledgments
+
+- Flutter team for the amazing framework
+- BLoC, Getx, Riverpod library maintainers
+- Clean Architecture community
+- All contributors
+
+## ⭐ Star History
+
+If ARCLE helps you, consider giving it a star! ⭐
+
+## 📊 Stats
+
+- **Lines of Code Generated**: ~5,000+ per project
+- **Time Saved**: Hours of setup work
+- **Architecture**: Production-ready from day one
+- **Best Practices**: Baked in by default
+
+**Happy Coding! 🚀**
