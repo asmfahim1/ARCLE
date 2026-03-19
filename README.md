@@ -157,80 +157,189 @@ flutter upgrade
 ```
 my_awesome_app/
 ├── lib/
+│   ├── main.dart                       # App entry point
+│   ├── bootstrap.dart                  # Bootstrap configuration
+│   ├── app/
+│   │   └── app.dart                    # App widget setup
 │   ├── core/                           # Shared infrastructure
-│   │   ├── api/
+│   │   ├── api_client/
 │   │   │   ├── api_service.dart       # HTTP client wrapper
 │   │   │   ├── base_response.dart     # API response model
 │   │   │   └── dio_client.dart        # Dio configuration
 │   │   ├── di/
-│   │   │   ├── injection.dart         # DI setup
-│   │   │   └── register_module.dart   # Module registration
+│   │   │   ├── app_di.dart            # DI setup
+│   │   │   ├── injection.dart         # DI setup (BLoC only)
+│   │   │   ├── injectable_module.dart # Module registration (BLoC only)
+│   │   │   ├── injection.config.dart  # Generated config (BLoC only)
+│   │   │   └── providers.dart         # Riverpod providers (Riverpod only)
 │   │   ├── env/
 │   │   │   ├── env.dart               # Environment interface
 │   │   │   ├── local_env.dart         # Local config
-│   │   │   ├── production_env.dart    # Production config
-│   │   │   ├── staging_env.dart       # Staging config
+│   │   │   ├── prod_env.dart          # Production config
+│   │   │   ├── stag_env.dart          # Staging config
 │   │   │   └── env_factory.dart       # Environment factory
-│   │   ├── error/
-│   │   │   ├── failures.dart          # Failure classes
-│   │   │   └── result.dart            # Either pattern
+│   │   ├── error_handler/
+│   │   │   └── error_handler.dart     # Error handling
+│   │   ├── response_handler/
+│   │   │   ├── response_handler.dart  # Response handling
+│   │   │   └── api_failure.dart       # Failure classes
 │   │   ├── localization/
-│   │   │   └── app_localizations.dart # Localization setup
-│   │   ├── routes/
-│   │   │   └── app_routes.dart        # Navigation
+│   │   │   ├── app_strings.dart       # Localization keys
+│   │   │   └── getx_localization.dart # GetX localization (GetX only)
+│   │   ├── route_handler/
+│   │   │   ├── app_routes.dart        # Route definitions
+│   │   │   ├── app_router.dart        # Router configuration
+│   │   │   └── app_route_observer.dart # Route observer
 │   │   ├── session_manager/
 │   │   │   ├── pref_manager.dart      # SharedPreferences wrapper
 │   │   │   └── session_manager.dart   # Session handling
-│   │   ├── theme/
+│   │   ├── theme_handler/
 │   │   │   └── app_theme.dart         # Theme configuration
+│   │   ├── notifications/
+│   │   │   └── notification_service.dart # Notification handling
+│   │   ├── permissions/
+│   │   │   └── permission_service.dart  # Permission handling
 │   │   ├── utils/
 │   │   │   ├── constants.dart         # App constants
-│   │   │   ├── dialog_manager.dart    # Dialogs & snackbars
+│   │   │   ├── endpoints.dart         # API endpoints
 │   │   │   ├── enums.dart             # Enumerations
-│   │   │   └── extensions.dart        # Extension methods
+│   │   │   ├── app_assets.dart        # Asset constants
+│   │   │   ├── app_colors.dart        # Color constants
+│   │   │   ├── dimensions.dart        # Dimension constants
+│   │   │   ├── dialogs.dart           # Dialog utilities
+│   │   │   ├── logger.dart            # Logging utility
+│   │   │   ├── result.dart            # Either pattern
+│   │   │   ├── app_validators.dart    # Custom validators
+│   │   │   └── validators.dart        # Validation utilities
 │   │   └── common_widgets/
-│   │       └── common_loader.dart     # Reusable widgets
-│   ├── features/                       # Feature modules
-│   │   └── user_demo/                 # Demo feature (included!)
-│   │       ├── data/
-│   │       │   ├── models/
-│   │       │   ├── repositories/
-│   │       │   └── sources/
-│   │       ├── domain/
-│   │       │   ├── entities/
-│   │       │   ├── repositories/
-│   │       │   └── usecases/
-│   │       └── presentation/
-│   │           ├── logic/
-│   │           ├── screens/
-│   │           └── widgets/
-│   └── main.dart                       # App entry point
+│   │       ├── svg_icon.dart          # SVG icon widget
+│   │       ├── common_loader.dart     # Loading widget
+│   │       ├── common_button.dart     # Button widget
+│   │       ├── common_text_field.dart # Text input widget
+│   │       ├── common_dropdown.dart   # Dropdown widget
+│   │       ├── common_checkbox.dart   # Checkbox widget
+│   │       ├── common_snackbar.dart   # Snackbar widget
+│   │       ├── common_app_bar.dart    # App bar widget
+│   │       ├── common_bottom_sheet.dart # Bottom sheet widget
+│   │       ├── common_dialog.dart     # Dialog widget
+│   │       └── common_image_container.dart # Image container widget
+│   └── features/                       # Feature modules
+│       ├── demo/                       # Demo feature (included!)
+│       │   ├── data/
+│       │   │   ├── models/
+│       │   │   ├── sources/
+│       │   │   └── repositories/
+│       │   ├── domain/
+│       │   │   ├── entities/
+│       │   │   ├── repositories/
+│       │   │   └── usecases/
+│       │   └── presentation/
+│       │       ├── pages/              # Feature screens
+│       │       ├── widgets/            # Feature widgets
+│       │       ├── bloc/ (BLoC)        # BLoC files (if using BLoC)
+│       │       │   ├── *_bloc.dart
+│       │       │   ├── *_event.dart
+│       │       │   └── *_state.dart
+│       │       ├── controller/ (GetX)  # Controllers (if using GetX)
+│       │       │   └── *_controller.dart
+│       │       ├── bindings/ (GetX)    # Bindings (if using GetX)
+│       │       │   └── *_binding.dart
+│       │       └── providers/ (Riverpod) # Providers (if using Riverpod)
+│       │           └── *_providers.dart
+│       └── settings/                   # Settings feature (included!)
 ├── assets/
-│   └── lang/
+│   ├── images/
+│   ├── icons/
+│   └── langs/
 │       ├── en.json                     # English translations
-│       └── bn.json                     # Bengali translations
+│       └── bn.json                     # Bengali translations (BLoC & Riverpod only)
 ├── docs/                               # Auto-generated documentation
 ├── test/                               # Tests
+│   ├── features/
+│   │   └── */
+│   │       └── *_test.dart
+│   └── widget_test.dart
 └── pubspec.yaml                        # Dependencies
 ```
 
 ## 🏛️ State Management Details
 
-### BLoC/Cubit (auto-gen-di)
-- Event-based state management
-- Automatic DI registration with Injectable
-- Build runner required for code generation
-- Run `arcle auto-gen-di` after adding features
+ARCLE generates different structures and setup requirements based on your chosen state management:
+
+### BLoC/Cubit Architecture
+- **Event-based state management** with predictable patterns
+- **DI Setup**: Uses GetIt + Injectable library
+- **Files Created**:
+  - `lib/core/di/injection.dart` - Service locator initialization
+  - `lib/core/di/injectable_module.dart` - Dependency registration module
+  - `lib/core/di/injection.config.dart` - Auto-generated dependencies (generated by build_runner)
+  - `lib/core/di/bloc_providers.dart` - BLoC provider instances
+- **Localization**: Creates `assets/langs/en.json` and `assets/langs/bn.json`
+- **Best For**: Complex apps with multiple features and events
+- **Code Generation**: Requires `build_runner` - run `arcle auto-gen-di` after adding features
 
 ### GetX
-- Service locator pattern
-- Bind controllers in feature modules
-- No additional build steps required
+- **Lightweight and simple reactive state management**
+- **Controller-based**: Uses controller + binding pattern
+- **DI Setup**: Service locator is built into GetX
+- **Files Created**:
+  - `lib/core/localization/getx_localization.dart` - GetX localization wrapper
+  - Feature controller: `lib/features/*/presentation/controller/*_controller.dart`
+  - Feature binding: `lib/features/*/presentation/bindings/*_binding.dart`
+- **Localization**: Creates `.gitkeep` placeholder (you manage translations)
+- **Best For**: Quick prototyping and small to medium apps
+- **Build Step**: No additional build step required
 
 ### Riverpod
-- Provider-based DI and state
-- Compile-time safe
-- Excellent for complex state composition
+- **Type-safe provider-based state management**
+- **Functional approach**: Providers instead of classes
+- **DI Setup**: Built into Riverpod providers
+- **Files Created**:
+  - `lib/core/di/providers.dart` - Core provider definitions
+  - Feature providers: `lib/features/*/presentation/providers/*_providers.dart`
+  - Feature state: `lib/features/*/presentation/state/*_state.dart`
+- **Localization**: Creates `assets/langs/en.json` and `assets/langs/bn.json`
+- **Best For**: Apps requiring strong typing and immutability
+- **Code Generation**: Uses code generation for some features
+
+## 📋 Feature Structure by State Management
+
+Generated features have different presentation structure depending on state management:
+
+```
+BLoC:
+lib/features/feature_name/presentation/
+├── pages/
+│   └── feature_name_screen.dart
+├── widgets/
+│   └── feature_name_card.dart
+└── bloc/
+    ├── feature_name_bloc.dart
+    ├── feature_name_event.dart
+    └── feature_name_state.dart
+
+GetX:
+lib/features/feature_name/presentation/
+├── pages/
+│   └── feature_name_screen.dart
+├── widgets/
+│   └── feature_name_card.dart
+├── controller/
+│   └── feature_name_controller.dart
+└── bindings/
+    └── feature_name_binding.dart
+
+Riverpod:
+lib/features/feature_name/presentation/
+├── pages/
+│   └── feature_name_screen.dart
+├── widgets/
+│   └── feature_name_card.dart
+├── providers/
+│   └── feature_name_providers.dart
+└── state/
+    └── feature_name_state.dart
+```
 
 ## 🌟 Features
 
