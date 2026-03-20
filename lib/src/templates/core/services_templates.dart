@@ -503,31 +503,62 @@ class SessionManager {
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     return '''
+import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 $injectableImport
 
 $injectableAnno
 class PermissionService {
+  bool get _isWeb => kIsWeb;
+  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
+  bool get _isIOS => defaultTargetPlatform == TargetPlatform.iOS;
+  bool get _isMacOS => defaultTargetPlatform == TargetPlatform.macOS;
+
+  bool get supportsNotifications => !_isWeb && (_isAndroid || _isIOS || _isMacOS);
+  bool get supportsStoragePermission => !_isWeb && _isAndroid;
+  bool get supportsPhotosPermission => !_isWeb && (_isIOS || _isMacOS);
+
   // Camera permissions
-  Future<bool> hasCamera() => Permission.camera.isGranted;
+  Future<bool> hasCamera() async {
+    if (_isWeb) return false;
+    return Permission.camera.isGranted;
+  }
   
   Future<bool> requestCamera() async {
+    if (_isWeb) return false;
     final status = await Permission.camera.request();
     return status.isGranted;
   }
 
   // Notification permissions
-  Future<bool> hasNotifications() => Permission.notification.isGranted;
+  Future<bool> hasNotifications() async {
+    if (!supportsNotifications) return false;
+    return Permission.notification.isGranted;
+  }
   
   Future<bool> requestNotifications() async {
+    if (!supportsNotifications) return false;
     final status = await Permission.notification.request();
     return status.isGranted;
   }
 
   // Storage permissions
-  Future<bool> hasStorage() => Permission.storage.isGranted;
+  Future<bool> hasStorage() async {
+    if (supportsStoragePermission) {
+      return Permission.storage.isGranted;
+    }
+    if (supportsPhotosPermission) {
+      return hasPhotos();
+    }
+    return false;
+  }
   
   Future<bool> requestStorage() async {
+    if (supportsPhotosPermission) {
+      return requestPhotos();
+    }
+    if (!supportsStoragePermission) return false;
+
     final status = await Permission.storage.request();
     if (status.isPermanentlyDenied) {
       return false;
@@ -536,31 +567,48 @@ class PermissionService {
   }
 
   // Location permissions
-  Future<bool> hasLocation() => Permission.location.isGranted;
+  Future<bool> hasLocation() async {
+    if (_isWeb) return false;
+    return Permission.locationWhenInUse.isGranted;
+  }
   
   Future<bool> requestLocation() async {
+    if (_isWeb) return false;
     final status = await Permission.locationWhenInUse.request();
     return status.isGranted;
   }
 
   // Microphone permissions
-  Future<bool> hasMicrophone() => Permission.microphone.isGranted;
+  Future<bool> hasMicrophone() async {
+    if (_isWeb) return false;
+    return Permission.microphone.isGranted;
+  }
   
   Future<bool> requestMicrophone() async {
+    if (_isWeb) return false;
     final status = await Permission.microphone.request();
     return status.isGranted;
   }
 
   // Photos/Gallery permissions
-  Future<bool> hasPhotos() => Permission.photos.isGranted;
+  Future<bool> hasPhotos() async {
+    if (!supportsPhotosPermission) return false;
+    return Permission.photos.isGranted;
+  }
   
   Future<bool> requestPhotos() async {
+    if (!supportsPhotosPermission) return false;
     final status = await Permission.photos.request();
     return status.isGranted;
   }
 
   // Request multiple permissions at once
   Future<Map<Permission, bool>> requestMultiple(List<Permission> permissions) async {
+    if (_isWeb) {
+      return {
+        for (final permission in permissions) permission: false,
+      };
+    }
     final statuses = await permissions.request();
     return statuses.map((key, value) => MapEntry(key, value.isGranted));
   }
@@ -582,6 +630,7 @@ class PermissionService {
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     return '''
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -600,6 +649,12 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _plugin;
   
+  bool get isSupportedPlatform =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
   void Function(String? payload)? _onNotificationTapped;
   
   static const String defaultChannel = 'default';
@@ -610,15 +665,21 @@ class NotificationService {
 
   Future<void> init({void Function(String? payload)? onNotificationTapped}) async {
     _onNotificationTapped = onNotificationTapped;
+    if (!isSupportedPlatform) return;
+
     tz.initializeTimeZones();
     
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
+    const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
+    );
     
     await _plugin.initialize(
       settings,
@@ -663,6 +724,8 @@ class NotificationService {
     String? payload,
     String channel = defaultChannel,
   }) async {
+    if (!isSupportedPlatform) return;
+
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         channel,
@@ -671,6 +734,7 @@ class NotificationService {
         priority: Priority.high,
       ),
       iOS: const DarwinNotificationDetails(),
+      macOS: const DarwinNotificationDetails(),
     );
     await _plugin.show(id ?? _nextId, title, body, details, payload: payload);
   }
@@ -691,10 +755,13 @@ class NotificationService {
     required DateTime scheduledAt,
     String? payload,
   }) async {
+    if (!isSupportedPlatform) return;
+
     final tzTime = tz.TZDateTime.from(scheduledAt, tz.local);
     const details = NotificationDetails(
       android: AndroidNotificationDetails(reminderChannel, 'Reminders'),
       iOS: DarwinNotificationDetails(),
+      macOS: DarwinNotificationDetails(),
     );
     
     await _plugin.zonedSchedule(
@@ -718,6 +785,8 @@ class NotificationService {
     required int minute,
     String? payload,
   }) async {
+    if (!isSupportedPlatform) return;
+
     final now = tz.TZDateTime.now(tz.local);
     var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
     if (scheduledDate.isBefore(now)) {
@@ -727,6 +796,7 @@ class NotificationService {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(reminderChannel, 'Reminders'),
       iOS: DarwinNotificationDetails(),
+      macOS: DarwinNotificationDetails(),
     );
     
     await _plugin.zonedSchedule(
@@ -743,9 +813,20 @@ class NotificationService {
     );
   }
 
-  Future<void> cancel(int id) => _plugin.cancel(id);
-  Future<void> cancelAll() => _plugin.cancelAll();
-  Future<List<PendingNotificationRequest>> getPending() => _plugin.pendingNotificationRequests();
+  Future<void> cancel(int id) async {
+    if (!isSupportedPlatform) return;
+    await _plugin.cancel(id);
+  }
+
+  Future<void> cancelAll() async {
+    if (!isSupportedPlatform) return;
+    await _plugin.cancelAll();
+  }
+
+  Future<List<PendingNotificationRequest>> getPending() async {
+    if (!isSupportedPlatform) return [];
+    return _plugin.pendingNotificationRequests();
+  }
 }
 ''';
   }

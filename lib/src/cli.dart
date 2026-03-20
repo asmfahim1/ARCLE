@@ -3,11 +3,13 @@ import 'package:io/io.dart';
 
 import 'commands/build_command.dart';
 import 'commands/create_command.dart';
+import 'commands/doctor_command.dart';
 import 'commands/feature_command.dart';
 import 'commands/auto_gen_di_command.dart';
 import 'commands/gen_di_command.dart';
 import 'commands/gen_doc_command.dart';
 import 'commands/init_command.dart';
+import 'commands/verify_command.dart';
 import 'ui/cli_ui.dart';
 import 'utils/console.dart';
 import 'utils/command_suggester.dart';
@@ -43,6 +45,8 @@ class Cli {
         return InitCommand(console).run(cmd);
       case 'feature':
         return FeatureCommand(console).run(cmd);
+      case 'doctor':
+        return DoctorCommand(console).run(cmd);
       case 'auto-gen-di':
         return AutoGenDiCommand(console).run(cmd);
       case 'auto_gen_di':
@@ -53,6 +57,8 @@ class Cli {
         return BuildCommand(console).run(cmd);
       case 'gen-doc':
         return GenDocCommand(console).run(cmd);
+      case 'verify':
+        return VerifyCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
         final suggestion =
@@ -72,11 +78,13 @@ class Cli {
     parser.addCommand('create', CreateCommand.parser());
     parser.addCommand('init', InitCommand.parser());
     parser.addCommand('feature', FeatureCommand.parser());
+    parser.addCommand('doctor', DoctorCommand.parser());
     parser.addCommand('auto-gen-di', AutoGenDiCommand.parser());
     parser.addCommand('auto_gen_di', AutoGenDiCommand.parser());
     parser.addCommand('gen-di', GenDiCommand.parser());
     parser.addCommand('build', BuildCommand.parser());
     parser.addCommand('gen-doc', GenDocCommand.parser());
+    parser.addCommand('verify', VerifyCommand.parser());
     return parser;
   }
 
@@ -85,11 +93,13 @@ class Cli {
       'create',
       'init',
       'feature',
+      'doctor',
       'auto-gen-di',
       'auto_gen_di',
       'gen-di',
       'build',
       'gen-doc',
+      'verify',
     ];
   }
 
@@ -108,10 +118,12 @@ class Cli {
       '    \ud83d\udce6  create <name>    Create a new Flutter project + clean architecture',
       '    \ud83d\udee0\ufe0f  init             Scaffold clean architecture in existing project',
       '    \u2728  feature <name>   Generate a feature (data/domain/presentation)',
+      '    \ud83e\ude7a  doctor           Validate project health and safe repairs',
       '    \ud83d\udd04  auto-gen-di      Regenerate DI + run build_runner',
       '    \ud83d\udd27  gen-di           Regenerate core DI files only',
       '    \ud83d\udd28  build            Build APK (debug or release)',
       '    \ud83d\udcda  gen-doc          Generate architecture documentation',
+      '    \u2705  verify           Run analyze/test/codegen verification',
       '',
       '  STATE MANAGEMENT OPTIONS',
       '    🧱  BLoC       Business Logic Component, predictable state',

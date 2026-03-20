@@ -24,6 +24,16 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - Production-ready code structure
 - Build APKs from the CLI
 
+## What's New In 1.0.2
+
+- Added `arcle doctor` to validate ARCLE projects and detect common setup issues
+- Added `arcle doctor --fix` for safe ARCLE-managed repairs
+- Added `arcle verify` to run analyze, test, and BLoC codegen checks
+- Added generated `core/utils/date_formatter.dart` with UTC/local conversion and UX-friendly output helpers
+- Added automatic `intl` dependency support in generated projects
+- Updated generated notification and permission services to be platform-safe for Android, iOS, macOS, and unsupported platforms like web
+- Removed generated `lib/features/README.md` from new projects across all state management options
+
 ## 📦 Installation
 
 ### Option 1: Activate globally (Recommended)
@@ -73,6 +83,11 @@ arcle feature auth
 # Build APK
 arcle build apk --debug
 arcle build apk --release
+
+# Validate and verify an ARCLE project
+arcle doctor
+arcle doctor --fix
+arcle verify
 ```
 
 ## 📝 Commands
@@ -80,10 +95,12 @@ arcle build apk --release
 - `arcle create <name>`: Create a new Flutter project with Clean Architecture
 - `arcle init`: Scaffold Clean Architecture in an existing project
 - `arcle feature <name>`: Generate feature data/domain/presentation layers
+- `arcle doctor`: Validate ARCLE project health and safe repairs
 - `arcle auto-gen-di`: Regenerate DI and refresh dependencies (BLoC)
 - `arcle gen-di`: Regenerate DI files only (BLoC)
 - `arcle build apk`: Build APK in debug or release mode
 - `arcle gen-doc`: Generate project documentation
+- `arcle verify`: Run analyze/test/codegen verification
 
 ## State Management
 
@@ -113,6 +130,14 @@ ARCLE includes templates and generators for three state management solutions:
 - **Flutter**: Latest stable channel (3.24.5+)
 - **Operating System**: macOS, Linux, or Windows
 - **Terminal**: bash, sh, zsh, or PowerShell
+
+## Platform Notes
+
+- ARCLE project scaffolding works for Android, iOS, macOS, and web because it builds on `flutter create`
+- Generated notification and permission services now include platform guards so unsupported platforms fail safely instead of crashing
+- Android and iOS are the primary supported mobile targets for the generated permission and local notification setup
+- iOS still requires proper native permission descriptions in `Info.plist` and Apple signing setup before release builds
+- Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default
 
 ## 🧪 Troubleshooting
 

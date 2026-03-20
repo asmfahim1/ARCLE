@@ -785,6 +785,7 @@ class ProjectGenerator {
       _Dependency('dartz', '^0.10.1'),
       _Dependency('flutter_local_notifications', '18.0.1'),
       _Dependency('timezone', '^0.9.4'),
+      _Dependency('intl', 'any'),
       _Dependency('google_fonts', 'any'),
       _Dependency('flutter_svg', 'any'),
       _Dependency.sdk('flutter_localizations'),
