@@ -21,10 +21,11 @@ class Cli {
     final ui = CliUi(console);
     FirstRunTracker(ui).greetOnce();
     final parser = _buildParser();
+    final normalizedArgs = _normalizeArgs(args);
 
     late ArgResults results;
     try {
-      results = parser.parse(args);
+      results = parser.parse(normalizedArgs);
     } on ArgParserException catch (e) {
       ui.error(e.message);
       console.line('');
@@ -73,6 +74,40 @@ class Cli {
     }
   }
 
+  List<String> _normalizeArgs(List<String> args) {
+    if (args.isEmpty) return args;
+
+    final shortcutAliases = <String, List<String>>{
+      '--b--r': ['build', 'apk', '--release'],
+      '--b--d': ['build', 'apk', '--debug'],
+      'br': ['build', 'apk', '--release'],
+      'bd': ['build', 'apk', '--debug'],
+    };
+    final commandAliases = <String, String>{
+      'new': 'create',
+      'setup': 'init',
+      'feat': 'feature',
+      'health': 'doctor',
+      'autodi': 'auto-gen-di',
+      'di': 'gen-di',
+      'b': 'build',
+      'docs': 'gen-doc',
+      'ver': 'verify',
+    };
+
+    final shortcutReplacement = shortcutAliases[args.first];
+    if (shortcutReplacement != null) {
+      return [...shortcutReplacement, ...args.skip(1)];
+    }
+
+    final commandReplacement = commandAliases[args.first];
+    if (commandReplacement != null) {
+      return [commandReplacement, ...args.skip(1)];
+    }
+
+    return args;
+  }
+
   ArgParser _buildParser() {
     final parser = ArgParser()..addFlag('help', abbr: 'h', negatable: false);
     parser.addCommand('create', CreateCommand.parser());
@@ -91,15 +126,26 @@ class Cli {
   List<String> _commandNames() {
     return [
       'create',
+      'new',
       'init',
+      'setup',
       'feature',
+      'feat',
       'doctor',
+      'health',
       'auto-gen-di',
       'auto_gen_di',
+      'autodi',
       'gen-di',
+      'di',
       'build',
+      'b',
+      'br',
+      'bd',
       'gen-doc',
+      'docs',
       'verify',
+      'ver',
     ];
   }
 
@@ -116,14 +162,23 @@ class Cli {
       '',
       '  COMMANDS',
       '    \ud83d\udce6  create <name>    Create a new Flutter project + clean architecture',
+      '         alias: new',
       '    \ud83d\udee0\ufe0f  init             Scaffold clean architecture in existing project',
+      '         alias: setup',
       '    \u2728  feature <name>   Generate a feature (data/domain/presentation)',
+      '         alias: feat',
       '    \ud83e\ude7a  doctor           Validate project health and safe repairs',
+      '         alias: health',
       '    \ud83d\udd04  auto-gen-di      Regenerate DI + run build_runner',
+      '         alias: autodi',
       '    \ud83d\udd27  gen-di           Regenerate core DI files only',
+      '         alias: di',
       '    \ud83d\udd28  build            Build APK (debug or release)',
+      '         alias: b',
       '    \ud83d\udcda  gen-doc          Generate architecture documentation',
+      '         alias: docs',
       '    \u2705  verify           Run analyze/test/codegen verification',
+      '         alias: ver',
       '',
       '  STATE MANAGEMENT OPTIONS',
       '    🧱  BLoC       Business Logic Component, predictable state',
@@ -136,7 +191,11 @@ class Cli {
       '  EXAMPLES',
       '    arcle create my_app --state BLoc/Getx/Riverpod',
       '    arcle feature payments --state BLoc/Getx/Riverpod',
-      '    arcle build --mode release           # Build release APK',
+      '    arcle build apk --release            # Build release APK',
+      '    arcle new my_app                     # Shortcut alias for create',
+      '    arcle feat payments                  # Shortcut alias for feature',
+      '    arcle br                             # Shortcut for build apk --release',
+      '    arcle bd                             # Shortcut for build apk --debug',
       '',
       '  \ud83d\udca1 TIP: Use --state BLoc/Getx/Riverpod in CI/CD for explicit configuration',
       '',

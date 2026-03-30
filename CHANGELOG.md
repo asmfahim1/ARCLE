@@ -1,3 +1,10 @@
+## 1.0.3
+
+- Added persistent build version updates in `arcle build apk` with `--version-name` and `--version-code`, which rewrite the target project's `pubspec.yaml`.
+- Added persistent environment updates in `arcle build apk --env prod|stag|local`, which rewrite the target project's `lib/core/env/env_factory.dart`.
+- Added static 16 KB Android APK compatibility checks with `arcle verify --check-16kb`.
+- Added optional short command aliases such as `new`, `feat`, `health`, `autodi`, `di`, `docs`, `ver`, `b`, `br`, and `bd` while keeping all existing commands unchanged.
+
 ## 1.0.2
 
 - Added `doctor` command for ARCLE project health checks.

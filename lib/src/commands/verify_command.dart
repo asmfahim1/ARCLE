@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:args/args.dart';
 import 'package:io/io.dart';
@@ -42,6 +43,16 @@ class VerifyCommand {
       ..addFlag(
         'skip-codegen',
         help: 'Skip build_runner check for BLoC projects',
+        negatable: false,
+      )
+      ..addFlag(
+        'include-boilerplate-tests',
+        help: 'Include ARCLE-generated widget boilerplate tests during flutter test',
+        negatable: false,
+      )
+      ..addFlag(
+        'check-16kb',
+        help: 'Build a release APK and run static 16 KB page-size checks',
         negatable: false,
       )
       ..addFlag(
@@ -96,14 +107,22 @@ class VerifyCommand {
     }
 
     if (cmd['skip-test'] != true) {
-      failed = !await _runStep(
-        ui,
-        'TEST    ',
-        'flutter',
-        const ['test'],
+      final testArgs = _resolveTestArgs(
         targetDir,
-      ) ||
-          failed;
+        includeBoilerplateTests: cmd['include-boilerplate-tests'] == true,
+      );
+      if (testArgs == null) {
+        ui.warn('No non-boilerplate tests selected; skipping flutter test.');
+      } else {
+        failed = !await _runStep(
+          ui,
+          'TEST    ',
+          'flutter',
+          testArgs,
+          targetDir,
+        ) ||
+            failed;
+      }
     }
 
     if (state == StateManagement.bloc && cmd['skip-codegen'] != true) {
@@ -117,6 +136,10 @@ class VerifyCommand {
           failed;
     }
 
+    if (cmd['check-16kb'] == true) {
+      failed = !await _run16KbCheck(ui, targetDir) || failed;
+    }
+
     if (failed) {
       ui.error('Verification failed.');
       return ExitCode.software.code;
@@ -124,6 +147,45 @@ class VerifyCommand {
 
     ui.success('Verification passed.');
     return ExitCode.success.code;
+  }
+
+  Future<bool> _run16KbCheck(CliUi ui, Directory targetDir) async {
+    ui.step('16KB    ', 'flutter build apk --release');
+    final buildResult = await _runProcess(
+      'flutter',
+      const ['build', 'apk', '--release'],
+      targetDir,
+    );
+    if (buildResult.exitCode != 0) {
+      _printFailureOutput(ui, buildResult);
+      ui.error('16 KB check failed because release APK build failed.');
+      return false;
+    }
+
+    final apkFile = _findReleaseApk(targetDir);
+    if (apkFile == null) {
+      ui.error('16 KB check failed: release APK was not found.');
+      return false;
+    }
+
+    ui.step('16KBAPK ', apkFile.path);
+
+    final report = _analyzeApk16Kb(apkFile);
+    for (final line in report.details) {
+      ui.raw(line);
+    }
+
+    switch (report.status) {
+      case _SixteenKbStatus.pass:
+        ui.success('16 KB static checks passed.');
+        return true;
+      case _SixteenKbStatus.fail:
+        ui.error('16 KB static checks failed.');
+        return false;
+      case _SixteenKbStatus.unknown:
+        ui.warn('16 KB static checks are inconclusive.');
+        return false;
+    }
   }
 
   Future<bool> _runStep(
@@ -135,21 +197,9 @@ class VerifyCommand {
   ) async {
     ui.step(label, '$executable ${args.join(' ')}');
     try {
-      final result = await Process.run(
-        executable,
-        args,
-        workingDirectory: targetDir.path,
-        runInShell: true,
-      );
+      final result = await _runProcess(executable, args, targetDir);
       if (result.exitCode != 0) {
-        final stdout = result.stdout.toString().trim();
-        final stderr = result.stderr.toString().trim();
-        if (stdout.isNotEmpty) {
-          ui.raw(stdout);
-        }
-        if (stderr.isNotEmpty) {
-          ui.raw(stderr);
-        }
+        _printFailureOutput(ui, result);
         ui.error('$executable ${args.first} failed.');
         return false;
       }
@@ -161,6 +211,371 @@ class VerifyCommand {
     }
   }
 
+  Future<ProcessResult> _runProcess(
+    String executable,
+    List<String> args,
+    Directory targetDir,
+  ) {
+    return Process.run(
+      executable,
+      args,
+      workingDirectory: targetDir.path,
+      runInShell: true,
+    );
+  }
+
+  void _printFailureOutput(CliUi ui, ProcessResult result) {
+    final stdout = result.stdout.toString().trim();
+    final stderr = result.stderr.toString().trim();
+    if (stdout.isNotEmpty) {
+      ui.raw(stdout);
+    }
+    if (stderr.isNotEmpty) {
+      ui.raw(stderr);
+    }
+  }
+
+  File? _findReleaseApk(Directory targetDir) {
+    final candidates = [
+      _join(targetDir.path, 'build/app/outputs/flutter-apk/app-release.apk'),
+      _join(targetDir.path, 'build/app/outputs/apk/release/app-release.apk'),
+    ];
+    for (final path in candidates) {
+      final file = File(path);
+      if (file.existsSync()) return file;
+    }
+    return null;
+  }
+
+  List<String>? _resolveTestArgs(
+    Directory targetDir, {
+    required bool includeBoilerplateTests,
+  }) {
+    final testDir = Directory(_join(targetDir.path, 'test'));
+    if (!testDir.existsSync()) {
+      return null;
+    }
+
+    final allTests = testDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('_test.dart'))
+        .map((file) => _relativePath(targetDir.path, file.path))
+        .toList()
+      ..sort();
+
+    if (allTests.isEmpty) {
+      return null;
+    }
+
+    if (includeBoilerplateTests) {
+      return ['test', ...allTests];
+    }
+
+    final selectedTests = allTests
+        .where((path) => !_generatedBoilerplateTests.contains(path))
+        .toList();
+
+    if (selectedTests.isEmpty) {
+      return null;
+    }
+
+    return ['test', ...selectedTests];
+  }
+
+  String _relativePath(String basePath, String fullPath) {
+    final normalizedBase = basePath.replaceAll('\\', '/');
+    final normalizedFull = fullPath.replaceAll('\\', '/');
+    final baseWithSlash = normalizedBase.endsWith('/')
+        ? normalizedBase
+        : '$normalizedBase/';
+    if (normalizedFull.startsWith(baseWithSlash)) {
+      return normalizedFull.substring(baseWithSlash.length);
+    }
+    return normalizedFull;
+  }
+
+  _SixteenKbReport _analyzeApk16Kb(File apkFile) {
+    try {
+      final bytes = apkFile.readAsBytesSync();
+      final entries = _readZipEntries(bytes);
+      final nativeEntries = entries
+          .where((entry) =>
+              entry.fileName.startsWith('lib/') &&
+              entry.fileName.endsWith('.so'))
+          .toList()
+        ..sort((a, b) => a.fileName.compareTo(b.fileName));
+
+      if (nativeEntries.isEmpty) {
+        return _SixteenKbReport(
+          _SixteenKbStatus.unknown,
+          const ['No native .so libraries were found in the release APK.'],
+        );
+      }
+
+      final details = <String>[
+        'Static 16 KB checks inspect APK entry alignment and ELF PT_LOAD alignment.',
+      ];
+      var hasFailure = false;
+      var hasUnknown = false;
+
+      for (final entry in nativeEntries) {
+        final issues = <String>[];
+        if (entry.dataOffset % 16384 != 0) {
+          issues.add('APK entry data offset ${entry.dataOffset} is not 16 KB aligned');
+        }
+
+        if (entry.compressionMethod != 0) {
+          issues.add(
+            'APK entry uses ZIP compression method ${entry.compressionMethod}; expected stored/uncompressed for mmap-friendly loading',
+          );
+        }
+
+        List<int> libraryBytes;
+        try {
+          libraryBytes = _extractZipEntry(bytes, entry);
+        } catch (error) {
+          hasUnknown = true;
+          details.add('UNKNOWN ${entry.fileName}: could not read library bytes ($error)');
+          continue;
+        }
+
+        final elfResult = _analyzeElf16Kb(libraryBytes);
+        if (elfResult.error != null) {
+          hasUnknown = true;
+          details.add('UNKNOWN ${entry.fileName}: ${elfResult.error}');
+          continue;
+        }
+
+        issues.addAll(elfResult.issues);
+        if (issues.isEmpty) {
+          details.add('PASS ${entry.fileName}');
+        } else {
+          hasFailure = true;
+          details.add('FAIL ${entry.fileName}: ${issues.join('; ')}');
+        }
+      }
+
+      if (hasFailure) {
+        return _SixteenKbReport(_SixteenKbStatus.fail, details);
+      }
+      if (hasUnknown) {
+        return _SixteenKbReport(_SixteenKbStatus.unknown, details);
+      }
+      return _SixteenKbReport(_SixteenKbStatus.pass, details);
+    } catch (error) {
+      return _SixteenKbReport(
+        _SixteenKbStatus.unknown,
+        ['Could not inspect APK for 16 KB compatibility: $error'],
+      );
+    }
+  }
+
+  List<_ZipEntry> _readZipEntries(List<int> bytes) {
+    final data = ByteData.sublistView(Uint8List.fromList(bytes));
+    final eocdOffset = _findEndOfCentralDirectory(bytes);
+    if (eocdOffset < 0) {
+      throw const FormatException('ZIP end of central directory not found');
+    }
+
+    final totalEntries = data.getUint16(eocdOffset + 10, Endian.little);
+    final centralDirectoryOffset =
+        data.getUint32(eocdOffset + 16, Endian.little);
+
+    final entries = <_ZipEntry>[];
+    var offset = centralDirectoryOffset;
+    for (var i = 0; i < totalEntries; i++) {
+      final signature = data.getUint32(offset, Endian.little);
+      if (signature != 0x02014b50) {
+        throw FormatException(
+            'Invalid ZIP central directory signature at offset $offset');
+      }
+
+      final compressionMethod = data.getUint16(offset + 10, Endian.little);
+      final compressedSize = data.getUint32(offset + 20, Endian.little);
+      final uncompressedSize = data.getUint32(offset + 24, Endian.little);
+      final fileNameLength = data.getUint16(offset + 28, Endian.little);
+      final extraFieldLength = data.getUint16(offset + 30, Endian.little);
+      final fileCommentLength = data.getUint16(offset + 32, Endian.little);
+      final localHeaderOffset = data.getUint32(offset + 42, Endian.little);
+      final fileNameBytes =
+          bytes.sublist(offset + 46, offset + 46 + fileNameLength);
+      final fileName = String.fromCharCodes(fileNameBytes);
+      final dataOffset = _zipEntryDataOffset(data, localHeaderOffset);
+
+      entries.add(_ZipEntry(
+        fileName: fileName,
+        compressionMethod: compressionMethod,
+        compressedSize: compressedSize,
+        uncompressedSize: uncompressedSize,
+        localHeaderOffset: localHeaderOffset,
+        dataOffset: dataOffset,
+      ));
+
+      offset += 46 + fileNameLength + extraFieldLength + fileCommentLength;
+    }
+
+    return entries;
+  }
+
+  int _findEndOfCentralDirectory(List<int> bytes) {
+    final minOffset = bytes.length >= 22 ? bytes.length - 22 : 0;
+    final lowerBound = bytes.length > 0x10000 + 22 ? bytes.length - 0x10000 - 22 : 0;
+    for (var offset = minOffset; offset >= lowerBound; offset--) {
+      if (bytes[offset] == 0x50 &&
+          bytes[offset + 1] == 0x4b &&
+          bytes[offset + 2] == 0x05 &&
+          bytes[offset + 3] == 0x06) {
+        return offset;
+      }
+    }
+    return -1;
+  }
+
+  int _zipEntryDataOffset(ByteData data, int localHeaderOffset) {
+    final signature = data.getUint32(localHeaderOffset, Endian.little);
+    if (signature != 0x04034b50) {
+      throw FormatException(
+          'Invalid ZIP local header signature at offset $localHeaderOffset');
+    }
+    final fileNameLength =
+        data.getUint16(localHeaderOffset + 26, Endian.little);
+    final extraFieldLength =
+        data.getUint16(localHeaderOffset + 28, Endian.little);
+    return localHeaderOffset + 30 + fileNameLength + extraFieldLength;
+  }
+
+  List<int> _extractZipEntry(List<int> archiveBytes, _ZipEntry entry) {
+    final compressedBytes = archiveBytes.sublist(
+      entry.dataOffset,
+      entry.dataOffset + entry.compressedSize,
+    );
+
+    switch (entry.compressionMethod) {
+      case 0:
+        return compressedBytes;
+      case 8:
+        final decoded = ZLibDecoder(raw: true).convert(compressedBytes);
+        if (decoded.length != entry.uncompressedSize) {
+          throw FormatException(
+            'Unexpected uncompressed size for ${entry.fileName}: '
+            'expected ${entry.uncompressedSize}, got ${decoded.length}',
+          );
+        }
+        return decoded;
+      default:
+        throw UnsupportedError(
+          'Unsupported ZIP compression method ${entry.compressionMethod}',
+        );
+    }
+  }
+
+  _ElfCheckResult _analyzeElf16Kb(List<int> bytes) {
+    if (bytes.length < 16 ||
+        bytes[0] != 0x7f ||
+        bytes[1] != 0x45 ||
+        bytes[2] != 0x4c ||
+        bytes[3] != 0x46) {
+      return const _ElfCheckResult(error: 'file is not a valid ELF library');
+    }
+
+    final elfClass = bytes[4];
+    final elfData = bytes[5];
+    final endian = switch (elfData) {
+      1 => Endian.little,
+      2 => Endian.big,
+      _ => null,
+    };
+    if (endian == null) {
+      return const _ElfCheckResult(error: 'ELF endianness is unsupported');
+    }
+
+    final data = ByteData.sublistView(Uint8List.fromList(bytes));
+    final issues = <String>[];
+
+    late final int phoff;
+    late final int phentsize;
+    late final int phnum;
+
+    if (elfClass == 1) {
+      if (bytes.length < 52) {
+        return const _ElfCheckResult(error: 'ELF32 header is truncated');
+      }
+      phoff = data.getUint32(28, endian);
+      phentsize = data.getUint16(42, endian);
+      phnum = data.getUint16(44, endian);
+    } else if (elfClass == 2) {
+      if (bytes.length < 64) {
+        return const _ElfCheckResult(error: 'ELF64 header is truncated');
+      }
+      final phoff64 = data.getUint64(32, endian);
+      if (phoff64 > bytes.length) {
+        return const _ElfCheckResult(error: 'ELF64 program header offset is invalid');
+      }
+      phoff = phoff64.toInt();
+      phentsize = data.getUint16(54, endian);
+      phnum = data.getUint16(56, endian);
+    } else {
+      return _ElfCheckResult(error: 'unsupported ELF class $elfClass');
+    }
+
+    if (phnum == 0) {
+      return const _ElfCheckResult(error: 'ELF file has no program headers');
+    }
+
+    for (var i = 0; i < phnum; i++) {
+      final entryOffset = phoff + (i * phentsize);
+      if (entryOffset + phentsize > bytes.length) {
+        return _ElfCheckResult(
+          error: 'program header $i extends beyond the ELF file',
+        );
+      }
+
+      late final int type;
+      late final int offset;
+      late final int vaddr;
+      late final int align;
+
+      if (elfClass == 1) {
+        type = data.getUint32(entryOffset, endian);
+        offset = data.getUint32(entryOffset + 4, endian);
+        vaddr = data.getUint32(entryOffset + 8, endian);
+        align = data.getUint32(entryOffset + 28, endian);
+      } else {
+        type = data.getUint32(entryOffset, endian);
+        final offset64 = data.getUint64(entryOffset + 8, endian);
+        final vaddr64 = data.getUint64(entryOffset + 16, endian);
+        final align64 = data.getUint64(entryOffset + 48, endian);
+        if (offset64 > bytes.length || vaddr64 > 0x7fffffffffffffff) {
+          return _ElfCheckResult(
+            error: 'program header $i contains values that are too large to inspect',
+          );
+        }
+        offset = offset64.toInt();
+        vaddr = vaddr64.toInt();
+        align = align64 > 0x7fffffffffffffff ? 0 : align64.toInt();
+      }
+
+      if (type != 1) continue;
+
+      if (align < 16384) {
+        issues.add('PT_LOAD[$i] has p_align=$align, expected at least 16384');
+      }
+      if (align > 0 && (offset % 16384) != (vaddr % 16384)) {
+        issues.add(
+          'PT_LOAD[$i] has mismatched p_offset/p_vaddr modulo 16384 (${offset % 16384} vs ${vaddr % 16384})',
+        );
+      }
+    }
+
+    return _ElfCheckResult(issues: issues);
+  }
+
+  String _join(String base, String relative) {
+    final normalized = relative.replaceAll('/', Platform.pathSeparator);
+    return '$base${Platform.pathSeparator}$normalized';
+  }
+
   String _usage() {
     return [
       'Usage:',
@@ -170,4 +585,44 @@ class VerifyCommand {
       parser().usage,
     ].join('\n');
   }
+}
+
+const Set<String> _generatedBoilerplateTests = {
+  'test/widget_test.dart',
+  'test/features/auth/login_screen_test.dart',
+  'test/features/settings/settings_screen_test.dart',
+};
+
+enum _SixteenKbStatus { pass, fail, unknown }
+
+class _SixteenKbReport {
+  const _SixteenKbReport(this.status, this.details);
+
+  final _SixteenKbStatus status;
+  final List<String> details;
+}
+
+class _ZipEntry {
+  const _ZipEntry({
+    required this.fileName,
+    required this.compressionMethod,
+    required this.compressedSize,
+    required this.uncompressedSize,
+    required this.localHeaderOffset,
+    required this.dataOffset,
+  });
+
+  final String fileName;
+  final int compressionMethod;
+  final int compressedSize;
+  final int uncompressedSize;
+  final int localHeaderOffset;
+  final int dataOffset;
+}
+
+class _ElfCheckResult {
+  const _ElfCheckResult({this.issues = const [], this.error});
+
+  final List<String> issues;
+  final String? error;
 }

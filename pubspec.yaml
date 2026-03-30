@@ -1,6 +1,6 @@
 name: arcle
 description: A Flutter CLI to scaffold Clean Architecture projects with BLoC, GetX, or Riverpod. Easily generate features, routing, and DI.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/asmfahim1/ARCLE
 repository: https://github.com/asmfahim1/ARCLE
 issue_tracker: https://github.com/asmfahim1/ARCLE/issues

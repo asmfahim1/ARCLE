@@ -8,10 +8,12 @@ void main() {
         '--skip-analyze',
         '--skip-test',
         '--skip-codegen',
+        '--include-boilerplate-tests',
       ]);
       expect(results['skip-analyze'], isTrue);
       expect(results['skip-test'], isTrue);
       expect(results['skip-codegen'], isTrue);
+      expect(results['include-boilerplate-tests'], isTrue);
     });
 
     test('parser supports state option', () {

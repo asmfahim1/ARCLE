@@ -24,7 +24,7 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - Production-ready code structure
 - Build APKs from the CLI
 
-## What's New In 1.0.2
+## What's New In 1.0.3
 
 - Added `arcle doctor` to validate ARCLE projects and detect common setup issues
 - Added `arcle doctor --fix` for safe ARCLE-managed repairs
@@ -32,7 +32,10 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - Added generated `core/utils/date_formatter.dart` with UTC/local conversion and UX-friendly output helpers
 - Added automatic `intl` dependency support in generated projects
 - Updated generated notification and permission services to be platform-safe for Android, iOS, macOS, and unsupported platforms like web
-- Removed generated `lib/features/README.md` from new projects across all state management options
+- Added persistent Android build version updates from `arcle build apk` via `--version-name` and `--version-code`
+- Added persistent environment selection from `arcle build apk --env prod|stag|local`
+- Added static 16 KB APK compatibility verification with `arcle verify --check-16kb`
+- Added optional short aliases for faster command usage while keeping all existing commands unchanged
 
 ## 📦 Installation
 
@@ -72,6 +75,9 @@ dart pub global run arcle:arcle --help
 # Create with interactive state selection
 arcle create my_app
 
+# Optional alias
+arcle new my_app
+
 # Create with explicit state
 arcle create my_app --state bloc
 arcle create my_app --state getx
@@ -80,27 +86,45 @@ arcle create my_app --state riverpod
 # Add a feature
 arcle feature auth
 
+# Optional alias
+arcle feat auth
+
 # Build APK
 arcle build apk --debug
 arcle build apk --release
+arcle br
+
+# Persist version + environment before build
+arcle build apk --release --env prod --version-name 1.2.0 --version-code 12
 
 # Validate and verify an ARCLE project
 arcle doctor
 arcle doctor --fix
 arcle verify
+arcle verify --check-16kb
 ```
 
 ## 📝 Commands
 
 - `arcle create <name>`: Create a new Flutter project with Clean Architecture
+- Alias: `arcle new <name>`
 - `arcle init`: Scaffold Clean Architecture in an existing project
+- Alias: `arcle setup`
 - `arcle feature <name>`: Generate feature data/domain/presentation layers
+- Alias: `arcle feat <name>`
 - `arcle doctor`: Validate ARCLE project health and safe repairs
+- Alias: `arcle health`
 - `arcle auto-gen-di`: Regenerate DI and refresh dependencies (BLoC)
+- Alias: `arcle autodi`
 - `arcle gen-di`: Regenerate DI files only (BLoC)
-- `arcle build apk`: Build APK in debug or release mode
+- Alias: `arcle di`
+- `arcle build apk`: Build APK in debug or release mode, with optional persistent `--env`, `--version-name`, and `--version-code`
+- Aliases: `arcle b`, `arcle br`, `arcle bd`
 - `arcle gen-doc`: Generate project documentation
+- Alias: `arcle docs`
 - `arcle verify`: Run analyze/test/codegen verification
+- Alias: `arcle ver`
+- `arcle verify --check-16kb`: Build a release APK and run static 16 KB page-size compatibility checks
 
 ## State Management
 
@@ -138,6 +162,13 @@ ARCLE includes templates and generators for three state management solutions:
 - Android and iOS are the primary supported mobile targets for the generated permission and local notification setup
 - iOS still requires proper native permission descriptions in `Info.plist` and Apple signing setup before release builds
 - Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default
+
+## Build Behavior
+
+- `arcle build apk --version-name ... --version-code ...` rewrites the target project's `pubspec.yaml` version field before building
+- `arcle build apk --env prod|stag|local` rewrites the target project's `lib/core/env/env_factory.dart` default environment before building
+- These build changes are persistent in the target Flutter project
+- Existing command forms remain fully supported; aliases are optional shortcuts only
 
 ## 🧪 Troubleshooting
 

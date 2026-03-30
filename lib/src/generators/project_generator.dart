@@ -596,6 +596,8 @@ class ProjectGenerator {
     final lines = content.split('\n');
     var changed = false;
 
+    changed = _ensureAndroidSdkVersionsGroovy(lines) || changed;
+
     if (!_containsLine(lines, 'coreLibraryDesugaringEnabled true')) {
       changed = _ensureCoreLibraryDesugaringEnabled(lines) || changed;
     }
@@ -629,6 +631,8 @@ class ProjectGenerator {
     final lines = content.split('\n');
     var changed = false;
 
+    changed = _ensureAndroidSdkVersionsKotlin(lines) || changed;
+
     // Kotlin DSL uses `isCoreLibraryDesugaringEnabled = true`
     if (!_containsLinePattern(
         lines, r'isCoreLibraryDesugaringEnabled\s*=\s*true')) {
@@ -656,6 +660,132 @@ class ProjectGenerator {
     ui.itemUpdated(
       'android${Platform.pathSeparator}app${Platform.pathSeparator}build.gradle.kts',
     );
+  }
+
+  bool _ensureAndroidSdkVersionsGroovy(List<String> lines) {
+    var changed = false;
+    changed = _replaceOrInsertAndroidLine(
+          lines,
+          patterns: [
+            r'^\s*compileSdk\s+\S+',
+            r'^\s*compileSdkVersion\s+\S+',
+          ],
+          replacement: 'compileSdk 35',
+        ) ||
+        changed;
+    changed = _replaceOrInsertDefaultConfigLine(
+          lines,
+          patterns: [r'^\s*minSdk\s+\S+', r'^\s*minSdkVersion\s+\S+'],
+          replacement: 'minSdk 21',
+        ) ||
+        changed;
+    changed = _replaceOrInsertDefaultConfigLine(
+          lines,
+          patterns: [r'^\s*targetSdk\s+\S+', r'^\s*targetSdkVersion\s+\S+'],
+          replacement: 'targetSdk 35',
+        ) ||
+        changed;
+    return changed;
+  }
+
+  bool _ensureAndroidSdkVersionsKotlin(List<String> lines) {
+    var changed = false;
+    changed = _replaceOrInsertAndroidLine(
+          lines,
+          patterns: [
+            r'^\s*compileSdk\s*=\s*\S+',
+            r'^\s*compileSdk\s+\S+',
+          ],
+          replacement: 'compileSdk = 35',
+        ) ||
+        changed;
+    changed = _replaceOrInsertDefaultConfigLine(
+          lines,
+          patterns: [
+            r'^\s*minSdk\s*=\s*\S+',
+            r'^\s*minSdk\s+\S+',
+            r'^\s*minSdkVersion\s*\(\s*\S+\s*\)',
+          ],
+          replacement: 'minSdk = 21',
+        ) ||
+        changed;
+    changed = _replaceOrInsertDefaultConfigLine(
+          lines,
+          patterns: [
+            r'^\s*targetSdk\s*=\s*\S+',
+            r'^\s*targetSdk\s+\S+',
+            r'^\s*targetSdkVersion\s*\(\s*\S+\s*\)',
+          ],
+          replacement: 'targetSdk = 35',
+        ) ||
+        changed;
+    return changed;
+  }
+
+  bool _replaceOrInsertAndroidLine(
+    List<String> lines, {
+    required List<String> patterns,
+    required String replacement,
+  }) {
+    if (_replaceMatchingLine(lines, patterns, replacement)) {
+      return true;
+    }
+
+    final androidIndex =
+        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    if (androidIndex == -1) return false;
+    final indent = _leadingWhitespace(lines[androidIndex]);
+    lines.insert(androidIndex + 1, '$indent  $replacement');
+    return true;
+  }
+
+  bool _replaceOrInsertDefaultConfigLine(
+    List<String> lines, {
+    required List<String> patterns,
+    required String replacement,
+  }) {
+    if (_replaceMatchingLine(lines, patterns, replacement)) {
+      return true;
+    }
+
+    final defaultConfigIndex =
+        lines.indexWhere((line) => line.trim().startsWith('defaultConfig {'));
+    if (defaultConfigIndex != -1) {
+      final indent = _leadingWhitespace(lines[defaultConfigIndex]);
+      lines.insert(defaultConfigIndex + 1, '$indent    $replacement');
+      return true;
+    }
+
+    final androidIndex =
+        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    if (androidIndex == -1) return false;
+    final indent = _leadingWhitespace(lines[androidIndex]);
+    lines.insertAll(androidIndex + 1, [
+      '$indent  defaultConfig {',
+      '$indent    $replacement',
+      '$indent  }',
+    ]);
+    return true;
+  }
+
+  bool _replaceMatchingLine(
+    List<String> lines,
+    List<String> patterns,
+    String replacement,
+  ) {
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      for (final pattern in patterns) {
+        final regex = RegExp(pattern);
+        if (!regex.hasMatch(line)) continue;
+        final indent = _leadingWhitespace(line);
+        final updatedLine = '$indent$replacement';
+        if (lines[i] == updatedLine) return false;
+        lines[i] = updatedLine;
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _ensureCoreLibraryDesugaringEnabledKotlin(List<String> lines) {
