@@ -111,6 +111,9 @@ class CreateCommand {
       ui.info('Build runner skipped (not required for ${state.label}).');
     }
     ui.success('🎉 Project "$projectName" created successfully!');
+    ui.info('✅ Android: Gradle configured (SDK 21-35, desugaring enabled)');
+    ui.info(
+        '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready');
     ui.nextSteps([
       'cd $projectName',
       'flutter run                    ← Launch your app',

@@ -10,6 +10,22 @@ import '../utils/arcle_config.dart';
 import '../utils/console.dart';
 import '../utils/state_picker.dart';
 
+/// Auto-generates Dependency Injection (DI) and completes the setup.
+///
+/// This command performs a full DI regeneration workflow:
+/// 1. Generates/updates DI files
+/// 2. Updates project dependencies (pubspec.yaml)
+/// 3. Runs `pub get` to fetch dependencies
+/// 4. Runs build_runner for BLoC code generation (if using BLoC)
+///
+/// Use this command when you:
+/// - Want a complete one-shot setup after modifying DI
+/// - Add/remove service dependencies frequently
+/// - Need everything wired up and ready immediately
+/// - Are setting up a new project with DI
+///
+/// For manual control over build steps or quick DI updates only,
+/// use `gen-di` instead.
 class AutoGenDiCommand {
   AutoGenDiCommand(this.console);
 
@@ -117,6 +133,21 @@ class AutoGenDiCommand {
     return [
       'Usage:',
       '  arcle auto-gen-di [options]',
+      '',
+      'Description:',
+      '  Auto-generate DI files AND complete the entire setup in one command.',
+      '  Workflow: DI generation → pub get → build_runner (for BLoC)',
+      '',
+      'When to use:',
+      '  • You want everything done automatically in a single step',
+      '  • After modifying service dependencies',
+      '  • Setting up a fresh project with DI scaffolding',
+      '  • Using BLoC state management (needs build_runner)',
+      '  • You want maximum convenience without manual steps',
+      '',
+      'Alias: arcle autodi',
+      '',
+      'Related: arcle gen-di (for DI-only generation without build steps)',
       '',
       'Options:',
       parser().usage,

@@ -10,6 +10,17 @@ import '../utils/arcle_config.dart';
 import '../utils/console.dart';
 import '../utils/state_picker.dart';
 
+/// Generates or regenerates Dependency Injection (DI) files only.
+///
+/// This command creates the core DI infrastructure without running post-generation
+/// steps like pub get or build_runner. Use this when you:
+/// - Only need to create/update DI files
+/// - Want to manually handle build steps
+/// - Are updating DI after manual code changes
+/// - Work with non-BLoC state management (GetX, Riverpod don't need build_runner)
+///
+/// For complete setup with automatic dependency and build runner execution,
+/// use `auto-gen-di` instead.
 class GenDiCommand {
   GenDiCommand(this.console);
 
@@ -109,6 +120,20 @@ class GenDiCommand {
     return [
       'Usage:',
       '  arcle gen-di [options]',
+      '',
+      'Description:',
+      '  Generate or regenerate Dependency Injection files only (no build steps).',
+      '  Use this for quick DI updates when you want manual control over build process.',
+      '',
+      'When to use:',
+      '  • You only need to create/update DI infrastructure',
+      '  • You want to manually run pub get and build_runner',
+      '  • Using GetX or Riverpod (which don\'t need build_runner)',
+      '  • Quick iterations on DI structure',
+      '',
+      'Alias: arcle di',
+      '',
+      'Related: arcle auto-gen-di (for complete setup with all steps)',
       '',
       'Options:',
       parser().usage,

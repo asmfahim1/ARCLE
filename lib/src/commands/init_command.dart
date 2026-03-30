@@ -72,6 +72,9 @@ class InitCommand {
     ui.success('✨ Clean architecture scaffolded successfully!');
     ui.info(
         'Your project is now organized with data/domain/presentation layers.');
+    ui.info('✅ Android: Gradle configured (SDK 21-35, desugaring enabled)');
+    ui.info(
+        '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready');
     return ExitCode.success.code;
   }
 

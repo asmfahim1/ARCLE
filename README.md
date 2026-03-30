@@ -157,11 +157,13 @@ ARCLE includes templates and generators for three state management solutions:
 
 ## Platform Notes
 
-- ARCLE project scaffolding works for Android, iOS, macOS, and web because it builds on `flutter create`
-- Generated notification and permission services now include platform guards so unsupported platforms fail safely instead of crashing
-- Android and iOS are the primary supported mobile targets for the generated permission and local notification setup
-- iOS still requires proper native permission descriptions in `Info.plist` and Apple signing setup before release builds
-- Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default
+- **Android:** ARCLE automatically configures Gradle build files with SDK versions (minSdk 21, compileSdk 35) and desugaring support for modern Java features. APK building is fully supported via `arcle build apk`.
+- **iOS:** ARCLE automatically configures the iOS deployment target (13.0+) in Podfile and generates essential permission descriptions in Info.plist for camera, photos, microphone, location, calendar, and contacts access. Projects are ready for iOS development after creation.
+- Generated notification and permission services include platform guards so unsupported platforms fail safely instead of crashing.
+- Android and iOS are the primary supported mobile targets for the generated permission and local notification setup.
+- **iOS Release Builds:** Remember to configure Apple signing in Xcode, set your Team ID, and manage provisioning profiles before building for distribution.
+- Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default.
+- macOS support is available in the generated code structure and is platform-safe, though features like permissions default to graceful failure.
 
 ## Build Behavior
 
