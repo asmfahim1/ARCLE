@@ -24,18 +24,16 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - Production-ready code structure
 - Build APKs from the CLI
 
-## What's New In 1.0.3
+## What's New In 1.0.4
 
-- Added `arcle doctor` to validate ARCLE projects and detect common setup issues
-- Added `arcle doctor --fix` for safe ARCLE-managed repairs
-- Added `arcle verify` to run analyze, test, and BLoC codegen checks
-- Added generated `core/utils/date_formatter.dart` with UTC/local conversion and UX-friendly output helpers
-- Added automatic `intl` dependency support in generated projects
-- Updated generated notification and permission services to be platform-safe for Android, iOS, macOS, and unsupported platforms like web
-- Added persistent Android build version updates from `arcle build apk` via `--version-name` and `--version-code`
-- Added persistent environment selection from `arcle build apk --env prod|stag|local`
-- Added static 16 KB APK compatibility verification with `arcle verify --check-16kb`
-- Added optional short aliases for faster command usage while keeping all existing commands unchanged
+- Redesigned localization commands — locale management is now per-locale and composable:
+  - `arcle add locale <code>` — add any locale (e.g. `en`, `my`, `fr`); first call bootstraps the dart infrastructure, subsequent calls append the locale
+  - `arcle delete locale <code>` — remove a specific locale; cleans up JSON, dart files, and pubspec automatically
+  - Short forms: `arcle add loc --my` / `arcle del loc --my`
+  - `del` is a new alias for `delete`
+- Any ISO 639-1 code is accepted; country codes for 60+ languages are built in
+- Feature localization injection now covers all locales automatically (not just `en`/`bn`)
+- Added `arcle verify --check-features`, `--check-assets`, `--check-l10n`, and `--full` for whole-project structural analysis
 
 ## 📦 Installation
 
@@ -102,6 +100,21 @@ arcle doctor
 arcle doctor --fix
 arcle verify
 arcle verify --check-16kb
+
+# Localization — add / remove individual locales
+arcle add locale en                      # Add English (sets up infra on first run)
+arcle add locale bn                      # Add Bengali
+arcle add locale my                      # Add Myanmar / Burmese
+arcle add loc --fr                       # Short form — add French
+arcle delete locale bn                   # Remove Bengali locale
+arcle del loc --my                       # Short form remove
+arcle del locale en --force              # Skip confirmation prompt
+
+# Deep project analysis
+arcle verify --check-features            # Check feature layer completeness
+arcle verify --check-assets              # Check pubspec asset paths exist
+arcle verify --check-l10n               # Check feature translation key coverage
+arcle verify --full                      # Run all checks at once
 ```
 
 ## 📝 Commands
@@ -125,6 +138,14 @@ arcle verify --check-16kb
 - `arcle verify`: Run analyze/test/codegen verification
 - Alias: `arcle ver`
 - `arcle verify --check-16kb`: Build a release APK and run static 16 KB page-size compatibility checks
+- `arcle verify --check-features`: Check every feature module has all required ARCLE layer files
+- `arcle verify --check-assets`: Check every pubspec.yaml asset path exists on disk
+- `arcle verify --check-l10n`: Check every feature has its translation key in the localization file
+- `arcle verify --full`: Run all structural checks in a single pass
+- `arcle add locale <code>`: Add a locale to the project (e.g. `en`, `my`, `fr`)
+- Short form: `arcle add loc --<code>`
+- `arcle delete locale <code>`: Remove a locale from the project
+- Alias: `arcle del locale <code>` | Short: `arcle del loc --<code>`
 
 ## State Management
 
@@ -407,6 +428,8 @@ lib/features/feature_name/presentation/
 - 🎨 Pre-configured theming system
 - 🌐 API client setup with error handling
 - ✅ Comprehensive code templates
+- Localization: per-locale management with `arcle add locale` and `arcle delete locale`
+- 🔍 Deep project analysis with `arcle verify --full`
 
 ## 🎓 Toolchain
 

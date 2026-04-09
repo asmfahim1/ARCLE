@@ -1,104 +1,188 @@
-# Arcle CLI - Usage Examples
+# ARCLE CLI - Usage Examples
 
-Arcle is a powerful Flutter CLI tool that scaffolds Clean Architecture projects with built-in support for multiple state management patterns (BLoC, GetX, and Riverpod).
+ARCLE is a Flutter CLI that scaffolds Clean Architecture projects with BLoC, GetX, or Riverpod.
 
 ## Installation
-
-First, install Arcle globally using pub:
 
 ```bash
 dart pub global activate arcle
 ```
 
+Ensure the pub cache bin is in your PATH:
+
+- **Linux/macOS**: `export PATH="$PATH:$HOME/.pub-cache/bin"`
+- **Windows**: Add `%APPDATA%\Pub\Cache\bin` to System Environment Variables
+
+---
+
 ## Quick Start
 
-### 1. Initialize a New Project
-
-Create a new Flutter project with Clean Architecture:
+### 1. Create a New Project
 
 ```bash
-arcle init -n my_awesome_app -s bloc
+# Interactive (prompts for state management)
+arcle create my_app
+
+# Explicit state
+arcle create my_app --state bloc
+arcle create my_app --state getx
+arcle create my_app --state riverpod
+
+# Short alias
+arcle new my_app
 ```
 
-**Options:**
-- `-n, --name`: Project name (required)
-- `-s, --state-management`: State management library (`bloc`, `getx`, or `riverpod`)
-
-### 2. Create a New Feature
-
-Generate a new feature with complete structure:
+### 2. Scaffold an Existing Project
 
 ```bash
-arcle feature -n home -s bloc
+arcle init
+arcle init --state bloc
+arcle setup            # alias
 ```
 
-This creates:
-- Data layer (datasources, models, repositories)
-- Domain layer (entities, repositories interface, use cases)
-- Presentation layer (BLoC/Controller, pages, widgets)
-- Routes
-- Tests
-
-### 3. Generate Dependency Injection
-
-Auto-generate DI (GetIt, Riverpod, etc.) configuration:
+### 3. Generate a Feature
 
 ```bash
-arcle gen_di
+arcle feature payments
+arcle feature payments --state bloc
+arcle feat payments    # alias
 ```
 
-### 4. Build Project
+Creates data/domain/presentation layers, wires routes, DI, endpoints, and localization keys automatically.
 
-Generate all required files and run code generation:
+### 4. Localization
+
+Locales are managed individually — you can add and remove any ISO 639-1 locale code.
+
+#### Add a locale
 
 ```bash
-arcle build
+arcle add locale en              # English — bootstraps dart infra on first run
+arcle add locale bn              # Bengali — appends to existing infra
+arcle add locale my              # Myanmar/Burmese
+arcle add locale fr              # French
+arcle add loc --de               # German (flag short form)
+arcle add loc --ja --state getx  # Japanese with explicit state
 ```
 
-### 5. Generate Documentation
+First call creates:
+- `lib/core/localization/app_strings.dart` — `AppLocalizations` delegate (BLoC/Riverpod) or `.tr` extension (GetX)
+- `lib/core/localization/getx_localization.dart` — GetX `Language` class (GetX only)
 
-Create API documentation:
+Every call creates `assets/langs/<code>.json` and updates `pubspec.yaml`.  
+Known locales (`en`, `bn`) get curated translations; all others get an English-value placeholder so the app stays runnable while you translate.
+
+#### Remove a locale
 
 ```bash
-arcle gen_doc
+arcle delete locale bn           # remove Bengali locale (prompts for confirmation)
+arcle del locale en --force      # remove English, skip prompt
+arcle del loc --my               # flag short form
 ```
+
+Deletes `assets/langs/<code>.json`, removes the locale from `supportedLocales` / `isSupported` in `app_strings.dart`, and removes the GetX section when applicable.  
+When the last JSON file is removed the `assets/langs/` entry is also cleaned from `pubspec.yaml`.
+
+### 5. Build APK
+
+```bash
+arcle build apk --debug
+arcle build apk --release
+
+# Short aliases
+arcle bd     # debug
+arcle br     # release
+
+# Persist version and environment before building
+arcle build apk --release --env prod --version-name 2.0.0 --version-code 20
+```
+
+### 6. Verify Project
+
+```bash
+# Basic: analyze + test
+arcle verify
+arcle ver                          # alias
+
+# Optional checks
+arcle verify --skip-analyze
+arcle verify --skip-test
+arcle verify --check-16kb          # static 16 KB APK compatibility check
+
+# Structural analysis (new in 1.0.4)
+arcle verify --check-features      # each feature has all required layer files
+arcle verify --check-assets        # every pubspec.yaml asset path exists on disk
+arcle verify --check-l10n          # every feature has its translation key
+arcle verify --full                 # run all of the above at once
+```
+
+### 7. Project Health
+
+```bash
+arcle doctor                       # validate project structure and dependencies
+arcle doctor --fix                 # apply safe ARCLE-managed repairs
+arcle health                       # alias
+```
+
+### 8. Dependency Injection (BLoC)
+
+```bash
+arcle auto-gen-di     # regenerate DI + run build_runner
+arcle autodi          # alias
+
+arcle gen-di          # regenerate DI files only
+arcle di              # alias
+```
+
+### 9. Documentation
+
+```bash
+arcle gen-doc
+arcle docs            # alias
+```
+
+---
 
 ## Supported State Management
 
-- **BLoC**: Complete BLoC + Cubit setup with providers
-- **GetX**: GetX controllers with dependency injection
-- **Riverpod**: Riverpod providers with functional approach
+| State       | Pattern                        | DI               | Code Gen     |
+|-------------|--------------------------------|------------------|--------------|
+| **BLoC**    | Event-driven, predictable      | GetIt + Injectable | build_runner |
+| **GetX**    | Reactive, controller-based     | Built-in GetX    | None         |
+| **Riverpod**| Type-safe, provider-based      | Built-in         | None         |
 
-## Project Structure
+---
 
-Arcle generates a complete Clean Architecture structure:
+## Generated Project Structure
 
 ```
-lib/
-├── core/
-│   ├── constants/
-│   ├── di/
-│   ├── routing/
-│   ├── services/
-│   └── utils/
-└── features/
-    ├── feature_name/
-    │   ├── data/
-    │   ├── domain/
-    │   └── presentation/
+my_app/
+├── lib/
+│   ├── core/
+│   │   ├── di/                    # DI setup
+│   │   ├── localization/          # AppLocalizations / GetX Language
+│   │   ├── route_handler/         # Routes and router
+│   │   ├── api_client/            # Dio HTTP client
+│   │   ├── env/                   # Environment configs
+│   │   └── utils/                 # Constants, colors, validators, etc.
+│   └── features/
+│       └── feature_name/
+│           ├── data/
+│           ├── domain/
+│           └── presentation/
+├── assets/
+│   ├── images/
+│   ├── icons/
+│   └── langs/
+│       ├── en.json
+│       └── bn.json
+└── pubspec.yaml
 ```
+
+---
 
 ## Learn More
 
 - **GitHub**: https://github.com/asmfahim1/ARCLE
+- **pub.dev**: https://pub.dev/packages/arcle
 - **Issues**: https://github.com/asmfahim1/ARCLE/issues
-- **Documentation**: https://github.com/asmfahim1/ARCLE#readme
-
-## Features
-
-✨ **Rapid Development**: Scaffold projects in seconds  
-🏗️ **Clean Architecture**: Pre-configured structure  
-🔄 **State Management**: BLoC, GetX, and Riverpod support  
-🛣️ **Routing**: Automatic route generation  
-🧪 **Testing**: Pre-configured test setup  
-📚 **Code Generation**: Automatic DI and documentation

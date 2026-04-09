@@ -1,8 +1,10 @@
 import 'package:args/args.dart';
 import 'package:io/io.dart';
 
+import 'commands/add_command.dart';
 import 'commands/build_command.dart';
 import 'commands/create_command.dart';
+import 'commands/delete_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/feature_command.dart';
 import 'commands/auto_gen_di_command.dart';
@@ -60,6 +62,10 @@ class Cli {
         return GenDocCommand(console).run(cmd);
       case 'verify':
         return VerifyCommand(console).run(cmd);
+      case 'add':
+        return AddCommand(console).run(cmd);
+      case 'delete':
+        return DeleteCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
         final suggestion =
@@ -93,6 +99,7 @@ class Cli {
       'b': 'build',
       'docs': 'gen-doc',
       'ver': 'verify',
+      'del': 'delete',
     };
 
     final shortcutReplacement = shortcutAliases[args.first];
@@ -102,10 +109,52 @@ class Cli {
 
     final commandReplacement = commandAliases[args.first];
     if (commandReplacement != null) {
-      return [commandReplacement, ...args.skip(1)];
+      return _normalizeLocaleFlag(
+        [commandReplacement, ...args.skip(1)],
+      );
     }
 
-    return args;
+    return _normalizeLocaleFlag(args);
+  }
+
+  /// Transforms `add loc --<code>` or `delete loc --<code>` by converting
+  /// the `--<code>` locale flag into a plain positional arg and changing
+  /// `loc` to the canonical `locale` subcommand name.
+  ///
+  /// Examples:
+  ///   ['add', 'loc', '--my']        → ['add', 'locale', 'my']
+  ///   ['delete', 'loc', '--fr']     → ['delete', 'locale', 'fr']
+  ///   ['add', 'loc', '--force', '--my'] → ['add', 'locale', 'my', '--force']
+  List<String> _normalizeLocaleFlag(List<String> args) {
+    if (args.length < 2) return args;
+    if (args[0] != 'add' && args[0] != 'delete') return args;
+    if (args[1] != 'loc') return args;
+
+    // Known option names that should NOT be treated as locale codes
+    const knownOpts = {
+      'force', 'f', 'path', 'p', 'state', 's', 'help', 'h',
+      'interactive', 'i',
+    };
+
+    final newArgs = <String>[args[0], 'locale'];
+    String? localeFound;
+
+    for (final arg in args.skip(2)) {
+      if (localeFound == null &&
+          arg.startsWith('--') &&
+          !arg.contains('=')) {
+        final name = arg.substring(2);
+        if (!knownOpts.contains(name) &&
+            RegExp(r'^[a-zA-Z]{2,3}$').hasMatch(name)) {
+          localeFound = name.toLowerCase();
+          newArgs.add(localeFound); // positional locale code
+          continue;
+        }
+      }
+      newArgs.add(arg);
+    }
+
+    return newArgs;
   }
 
   ArgParser _buildParser() {
@@ -120,32 +169,24 @@ class Cli {
     parser.addCommand('build', BuildCommand.parser());
     parser.addCommand('gen-doc', GenDocCommand.parser());
     parser.addCommand('verify', VerifyCommand.parser());
+    parser.addCommand('add', AddCommand.parser());
+    parser.addCommand('delete', DeleteCommand.parser());
     return parser;
   }
 
   List<String> _commandNames() {
     return [
-      'create',
-      'new',
-      'init',
-      'setup',
-      'feature',
-      'feat',
-      'doctor',
-      'health',
-      'auto-gen-di',
-      'auto_gen_di',
-      'autodi',
-      'gen-di',
-      'di',
-      'build',
-      'b',
-      'br',
-      'bd',
-      'gen-doc',
-      'docs',
-      'verify',
-      'ver',
+      'create', 'new',
+      'init', 'setup',
+      'feature', 'feat',
+      'doctor', 'health',
+      'auto-gen-di', 'auto_gen_di', 'autodi',
+      'gen-di', 'di',
+      'build', 'b', 'br', 'bd',
+      'gen-doc', 'docs',
+      'verify', 'ver',
+      'add',
+      'delete', 'del',
     ];
   }
 
@@ -179,6 +220,10 @@ class Cli {
       '         alias: docs',
       '    \u2705  verify           Run analyze/test/codegen verification',
       '         alias: ver',
+      '    \ud83c\udf10  add locale       Add a locale to the project',
+      '         short: add loc --<code>',
+      '    \ud83d\uddd1\ufe0f  delete locale    Remove a locale from the project',
+      '         alias: del  |  short: del loc --<code>',
       '',
       '  STATE MANAGEMENT OPTIONS',
       '    🧱  BLoC       Business Logic Component, predictable state',
@@ -189,15 +234,18 @@ class Cli {
       parser.usage,
       '',
       '  EXAMPLES',
-      '    arcle create my_app --state BLoc/Getx/Riverpod',
-      '    arcle feature payments --state BLoc/Getx/Riverpod',
-      '    arcle build apk --release            # Build release APK',
-      '    arcle new my_app                     # Shortcut alias for create',
-      '    arcle feat payments                  # Shortcut alias for feature',
-      '    arcle br                             # Shortcut for build apk --release',
-      '    arcle bd                             # Shortcut for build apk --debug',
+      '    arcle create my_app --state bloc',
+      '    arcle feature payments --state bloc',
+      '    arcle add locale en              # Add English locale',
+      '    arcle add locale my              # Add Myanmar locale',
+      '    arcle add loc --fr               # Short form (French)',
+      '    arcle delete locale bn           # Remove Bengali locale',
+      '    arcle del loc --my               # Short form remove',
+      '    arcle build apk --release        # Build release APK',
+      '    arcle br                         # Shortcut for build apk --release',
+      '    arcle verify --full              # Run all structural checks',
       '',
-      '  \ud83d\udca1 TIP: Use --state BLoc/Getx/Riverpod in CI/CD for explicit configuration',
+      '  \ud83d\udca1 TIP: Use --state bloc|getx|riverpod in CI/CD for explicit configuration',
       '',
     ].join('\n');
   }

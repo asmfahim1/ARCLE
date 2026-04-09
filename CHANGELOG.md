@@ -1,3 +1,17 @@
+## 1.0.4
+
+- Reworked localization management around dedicated top-level commands:
+  - `arcle add locale <code>` adds a single locale to the project; on first use it creates the localization infrastructure, and on later calls it appends the locale to the existing setup.
+  - `arcle delete locale <code>` removes a single locale's JSON file, updates `supportedLocales` / `isSupported` in `app_strings.dart`, removes the GetX locale section when applicable, and cleans the `assets/langs/` pubspec entry when the last locale is removed.
+- Added localization command aliases: `arcle add loc <code>`, `arcle delete loc <code>`, `arcle del locale <code>`, and `arcle del loc --<code>`.
+- Added `--<code>` flag shorthand for locale commands such as `arcle add loc --my` and `arcle del loc --my`.
+- `add locale` now supports any ISO 639-1 locale code, with built-in country-code mappings for 60+ languages; unknown locales receive English-value placeholder JSON so the app stays runnable while translations are filled in.
+- Updated localization injection so feature keys are added to every JSON file under `assets/langs/` and every `// arcle:keys_*` marker in `getx_localization.dart`.
+- Added `arcle verify --check-features` to scan every module under `lib/features/` and report missing data, domain, or presentation layer files for the project's state management.
+- Added `arcle verify --check-assets` to verify that every asset path declared in `pubspec.yaml` exists on disk.
+- Added `arcle verify --check-l10n` to verify that each feature has its `{feature}_title` translation key present in `assets/langs/en.json` (BLoC/Riverpod) or `lib/core/localization/getx_localization.dart` (GetX).
+- Added `arcle verify --full` to run `--check-features`, `--check-assets`, and `--check-l10n` in a single pass.
+
 ## 1.0.3
 
 - Added persistent build version updates in `arcle build apk` with `--version-name` and `--version-code`, which rewrite the target project's `pubspec.yaml`.
