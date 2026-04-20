@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -53,6 +54,26 @@ class VerifyCommand {
       ..addFlag(
         'check-16kb',
         help: 'Build a release APK and run static 16 KB page-size checks',
+        negatable: false,
+      )
+      ..addFlag(
+        'check-features',
+        help: 'Check that each feature module has all required ARCLE layers',
+        negatable: false,
+      )
+      ..addFlag(
+        'check-assets',
+        help: 'Check that all asset paths declared in pubspec.yaml exist on disk',
+        negatable: false,
+      )
+      ..addFlag(
+        'check-l10n',
+        help: 'Check that each feature has a localization key in the translation files',
+        negatable: false,
+      )
+      ..addFlag(
+        'full',
+        help: 'Run all checks including --check-features, --check-assets and --check-l10n',
         negatable: false,
       )
       ..addFlag(
@@ -138,6 +159,20 @@ class VerifyCommand {
 
     if (cmd['check-16kb'] == true) {
       failed = !await _run16KbCheck(ui, targetDir) || failed;
+    }
+
+    final fullCheck = cmd['full'] == true;
+
+    if ((cmd['check-features'] == true || fullCheck) && state != null) {
+      failed = !_runFeatureCheck(ui, targetDir, state) || failed;
+    }
+
+    if (cmd['check-assets'] == true || fullCheck) {
+      failed = !_runAssetCheck(ui, targetDir) || failed;
+    }
+
+    if ((cmd['check-l10n'] == true || fullCheck) && state != null) {
+      failed = !_runL10nCheck(ui, targetDir, state) || failed;
     }
 
     if (failed) {
@@ -571,6 +606,281 @@ class VerifyCommand {
     return _ElfCheckResult(issues: issues);
   }
 
+  // ─── Feature structure check ───────────────────────────────────────────────
+
+  bool _runFeatureCheck(
+    CliUi ui,
+    Directory targetDir,
+    StateManagement state,
+  ) {
+    ui.step('FEATURES', 'Checking feature module completeness...');
+    final featuresDir = Directory(_join(targetDir.path, 'lib/features'));
+    if (!featuresDir.existsSync()) {
+      ui.warn('lib/features not found — skipping feature check.');
+      return true;
+    }
+
+    final features = featuresDir
+        .listSync()
+        .whereType<Directory>()
+        .toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
+
+    if (features.isEmpty) {
+      ui.info('No feature modules found.');
+      return true;
+    }
+
+    var allPassed = true;
+    for (final featureDir in features) {
+      final name = featureDir.uri.pathSegments
+          .where((s) => s.isNotEmpty)
+          .last;
+      final missing = _missingFeatureFiles(featureDir, name, state);
+      if (missing.isEmpty) {
+        ui.success('feature/$name — complete');
+      } else {
+        allPassed = false;
+        ui.warn('feature/$name — missing ${missing.length} file(s):');
+        for (final m in missing) {
+          ui.raw('       • $m');
+        }
+      }
+    }
+
+    if (allPassed) {
+      ui.success('All feature modules are complete.');
+    } else {
+      ui.error('Some feature modules have missing files.');
+    }
+    return allPassed;
+  }
+
+  List<String> _missingFeatureFiles(
+    Directory featureDir,
+    String name,
+    StateManagement state,
+  ) {
+    final required = <String>[
+      'data/model/${name}_model.dart',
+      'data/source/${name}_remote_source.dart',
+      'data/repository/${name}_repository_impl.dart',
+      'domain/entity/${name}_entity.dart',
+      'domain/repository/${name}_repository.dart',
+      'domain/usecase/${name}_usecase.dart',
+      'presentation/pages/${name}_screen.dart',
+    ];
+
+    switch (state) {
+      case StateManagement.bloc:
+        required.addAll([
+          'presentation/bloc/${name}_bloc.dart',
+          'presentation/bloc/${name}_event.dart',
+          'presentation/bloc/${name}_state.dart',
+        ]);
+        break;
+      case StateManagement.getx:
+        required.addAll([
+          'presentation/controller/${name}_controller.dart',
+          'presentation/bindings/${name}_binding.dart',
+        ]);
+        break;
+      case StateManagement.riverpod:
+        required.addAll([
+          'presentation/providers/${name}_providers.dart',
+          'presentation/state/${name}_state.dart',
+        ]);
+        break;
+    }
+
+    return required.where((rel) {
+      final norm = rel.replaceAll('/', Platform.pathSeparator);
+      final full = '${featureDir.path}${Platform.pathSeparator}$norm';
+      return !File(full).existsSync();
+    }).toList();
+  }
+
+  // ─── Asset existence check ─────────────────────────────────────────────────
+
+  bool _runAssetCheck(CliUi ui, Directory targetDir) {
+    ui.step('ASSETS  ', 'Checking pubspec.yaml asset paths...');
+    final pubspecFile = File(_join(targetDir.path, 'pubspec.yaml'));
+    if (!pubspecFile.existsSync()) {
+      ui.warn('pubspec.yaml not found — skipping asset check.');
+      return true;
+    }
+
+    final assetPaths = _parseAssetPaths(pubspecFile.readAsStringSync());
+    if (assetPaths.isEmpty) {
+      ui.info('No asset paths declared in pubspec.yaml.');
+      return true;
+    }
+
+    var allPassed = true;
+    for (final assetPath in assetPaths) {
+      final norm = assetPath.replaceAll('/', Platform.pathSeparator);
+      final full = '${targetDir.path}${Platform.pathSeparator}$norm';
+      final type = FileSystemEntity.typeSync(full);
+      if (type == FileSystemEntityType.notFound) {
+        allPassed = false;
+        ui.warn('Missing asset path: $assetPath');
+      }
+    }
+
+    if (allPassed) {
+      ui.success('All declared asset paths exist (${assetPaths.length} checked).');
+    } else {
+      ui.error('Some declared asset paths are missing.');
+    }
+    return allPassed;
+  }
+
+  List<String> _parseAssetPaths(String pubspecContent) {
+    final paths = <String>[];
+    final lines = pubspecContent.split('\n');
+    var inFlutter = false;
+    var inAssets = false;
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed == 'flutter:' && !line.startsWith(' ')) {
+        inFlutter = true;
+        inAssets = false;
+        continue;
+      }
+      if (inFlutter) {
+        if (line.isNotEmpty && !line.startsWith(' ')) {
+          inFlutter = false;
+          inAssets = false;
+          continue;
+        }
+        if (trimmed == 'assets:') {
+          inAssets = true;
+          continue;
+        }
+        if (inAssets) {
+          if (trimmed.isNotEmpty && !trimmed.startsWith('-') &&
+              !trimmed.startsWith('#')) {
+            inAssets = false;
+            continue;
+          }
+          if (trimmed.startsWith('- ')) {
+            paths.add(trimmed.substring(2).trim());
+          }
+        }
+      }
+    }
+
+    return paths;
+  }
+
+  // ─── Localization key check ────────────────────────────────────────────────
+
+  bool _runL10nCheck(
+    CliUi ui,
+    Directory targetDir,
+    StateManagement state,
+  ) {
+    ui.step('L10N    ', 'Checking localization key coverage...');
+    final featuresDir = Directory(_join(targetDir.path, 'lib/features'));
+    if (!featuresDir.existsSync()) {
+      ui.warn('lib/features not found — skipping l10n check.');
+      return true;
+    }
+
+    final features = featuresDir
+        .listSync()
+        .whereType<Directory>()
+        .map((d) => d.uri.pathSegments.where((s) => s.isNotEmpty).last)
+        .toList()
+      ..sort();
+
+    if (features.isEmpty) {
+      ui.info('No feature modules found.');
+      return true;
+    }
+
+    if (state == StateManagement.getx) {
+      return _checkGetxL10nKeys(ui, targetDir, features);
+    }
+    return _checkJsonL10nKeys(ui, targetDir, features);
+  }
+
+  bool _checkJsonL10nKeys(
+    CliUi ui,
+    Directory targetDir,
+    List<String> features,
+  ) {
+    final enFile = File(_join(targetDir.path, 'assets/langs/en.json'));
+    if (!enFile.existsSync()) {
+      ui.warn('assets/langs/en.json not found — run "arcle localization add".');
+      return false;
+    }
+
+    Map<String, dynamic> enMap;
+    try {
+      enMap = json.decode(enFile.readAsStringSync()) as Map<String, dynamic>;
+    } catch (_) {
+      ui.error('Could not parse assets/langs/en.json.');
+      return false;
+    }
+
+    var allPassed = true;
+    for (final feature in features) {
+      final key = '${feature}_title';
+      if (enMap.containsKey(key)) {
+        ui.success('$feature — key "$key" found');
+      } else {
+        allPassed = false;
+        ui.warn('$feature — missing key "$key" in en.json');
+      }
+    }
+
+    if (allPassed) {
+      ui.success('All feature localization keys are present.');
+    } else {
+      ui.error('Some features are missing localization keys.');
+    }
+    return allPassed;
+  }
+
+  bool _checkGetxL10nKeys(
+    CliUi ui,
+    Directory targetDir,
+    List<String> features,
+  ) {
+    final getxFile = File(
+      _join(targetDir.path, 'lib/core/localization/getx_localization.dart'),
+    );
+    if (!getxFile.existsSync()) {
+      ui.warn(
+        'lib/core/localization/getx_localization.dart not found — run "arcle localization add".',
+      );
+      return false;
+    }
+
+    final content = getxFile.readAsStringSync();
+    var allPassed = true;
+    for (final feature in features) {
+      final key = '${feature}_title';
+      if (content.contains("'$key'")) {
+        ui.success('$feature — key "$key" found');
+      } else {
+        allPassed = false;
+        ui.warn('$feature — missing key "$key" in getx_localization.dart');
+      }
+    }
+
+    if (allPassed) {
+      ui.success('All feature localization keys are present.');
+    } else {
+      ui.error('Some features are missing localization keys.');
+    }
+    return allPassed;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   String _join(String base, String relative) {
     final normalized = relative.replaceAll('/', Platform.pathSeparator);
     return '$base${Platform.pathSeparator}$normalized';
@@ -583,6 +893,13 @@ class VerifyCommand {
       '',
       'Options:',
       parser().usage,
+      '',
+      'Examples:',
+      '  arcle verify                        # analyze + test',
+      '  arcle verify --check-features       # check feature layer completeness',
+      '  arcle verify --check-assets         # check pubspec asset paths exist',
+      '  arcle verify --check-l10n           # check feature localization keys',
+      '  arcle verify --full                 # run all checks',
     ].join('\n');
   }
 }

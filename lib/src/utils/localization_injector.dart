@@ -15,23 +15,27 @@ class LocalizationInjector {
       return;
     }
 
-    _injectJson(base, 'assets/langs/en.json', featureName);
-    _injectJson(base, 'assets/langs/bn.json', featureName);
+    // Inject into every JSON file found under assets/langs/
+    final langsDir = Directory('${base.path}${Platform.pathSeparator}assets${Platform.pathSeparator}langs');
+    if (!langsDir.existsSync()) return;
+
+    for (final entity in langsDir.listSync()) {
+      if (entity is File && entity.path.endsWith('.json')) {
+        _injectJsonFile(entity, featureName);
+      }
+    }
   }
 
-  static void _injectJson(
-    Directory base,
-    String relativePath,
-    String featureName,
-  ) {
-    final file =
-        File('${base.path}${Platform.pathSeparator}$relativePath');
-    if (!file.existsSync()) {
-      return;
-    }
+  static void _injectJsonFile(File file, String featureName) {
+    if (!file.existsSync()) return;
 
     final content = file.readAsStringSync();
-    final Map<String, dynamic> jsonMap = jsonDecode(content);
+    late Map<String, dynamic> jsonMap;
+    try {
+      jsonMap = jsonDecode(content) as Map<String, dynamic>;
+    } catch (_) {
+      return;
+    }
 
     final snake = StringHelpers.snakeCase(featureName);
     final className = StringHelpers.pascalCase(featureName);
@@ -39,17 +43,14 @@ class LocalizationInjector {
     if (jsonMap.containsKey(key)) return;
 
     jsonMap[key] = className;
-    final encoder = const JsonEncoder.withIndent('  ');
-    file.writeAsStringSync(encoder.convert(jsonMap));
+    file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(jsonMap));
   }
 
   static void _injectGetx(Directory base, String featureName) {
     final file = File(
       '${base.path}${Platform.pathSeparator}lib/core/localization/getx_localization.dart',
     );
-    if (!file.existsSync()) {
-      return;
-    }
+    if (!file.existsSync()) return;
 
     final content = file.readAsStringSync();
     final snake = StringHelpers.snakeCase(featureName);
@@ -58,15 +59,17 @@ class LocalizationInjector {
 
     if (content.contains("'$key'")) return;
 
-    const enMarker = '// arcle:keys_en';
-    const bnMarker = '// arcle:keys_bn';
-    if (!content.contains(enMarker) || !content.contains(bnMarker)) return;
+    // Inject into every // arcle:keys_<lang> marker in the file
+    final markerPattern = RegExp(r'// arcle:keys_(\w+)');
+    var updated = content;
+    for (final match in markerPattern.allMatches(content)) {
+      final marker = match.group(0)!;
+      final line = "          '$key': '$className',\n";
+      updated = updated.replaceFirst(marker, '$line          $marker');
+    }
 
-    final enLine = "          '$key': '$className',\n";
-    final bnLine = "          '$key': '$className',\n";
-
-    final withEn = content.replaceFirst(enMarker, '$enLine          $enMarker');
-    final withBn = withEn.replaceFirst(bnMarker, '$bnLine          $bnMarker');
-    file.writeAsStringSync(withBn);
+    if (updated != content) {
+      file.writeAsStringSync(updated);
+    }
   }
 }
