@@ -1,6 +1,6 @@
-# ARCLE CLI v1.0.3 - Production Readiness Report
+# ARCLE CLI v1.0.4 - Production Readiness Report
 
-**Release Date:** March 30, 2026  
+**Release Date:** April 20, 2026  
 **Status:** ✅ **PRODUCTION READY**
 
 ---
@@ -8,8 +8,8 @@
 ## 📋 Quality Assurance Checklist
 
 ### Code Quality
-- ✅ **Dart Analysis**: Passed with no errors or critical warnings
-- ✅ **Code Coverage**: 120+ unit tests, all passing
+- ✅ **Dart Analysis**: Passed with no errors or critical warnings (merge conflict resolved)
+- ✅ **Code Coverage**: 120 unit tests, all passing ✅
 - ✅ **Compilation**: Builds without errors
 - ✅ **Code Organization**: 55 source Dart files properly structured
 
@@ -57,23 +57,23 @@
 - [x] Platform configuration tested and working
 
 ### Version Information
-- **Current Version**: 1.0.3
+- **Current Version**: 1.0.4
 - **Dart SDK Requirement**: ^3.5.4 or higher
 - **Flutter Requirement**: Latest stable (3.24.5+)
 
-### Key Features in v1.0.3
-1. **Platform Configuration** - Complete Android & iOS setup
-2. **DI Commands** - Separated gen-di and auto-gen-di with docs
-3. **Build Management** - Version and environment persistence
-4. **Verification Tools** - analyze, test, 16KB checks
-5. **Developer Experience** - Command aliases for faster workflows
+### Key Features in v1.0.4
+1. **Localization Management** - Per-locale `add`/`delete` commands with automatic setup
+2. **ISO 639-1 Support** - Any locale code accepted with 60+ country code mappings
+3. **Verification Enhancements** - `--check-features`, `--check-assets`, `--check-l10n`, `--full` flags
+4. **Feature Localization** - Auto-inject keys to all locale JSON files
+5. **Command Aliases** - `add loc`, `del loc`, `del` for faster workflows
 
 ---
 
 ## 📦 Package Information
 
 **Name**: arcle  
-**Version**: 1.0.3  
+**Version**: 1.0.4  
 **Description**: A Flutter CLI to scaffold Clean Architecture projects with BLoC, GetX, or Riverpod. Easily generate features, routing, and DI.  
 **Homepage**: https://github.com/asmfahim1/ARCLE  
 **Repository**: https://github.com/asmfahim1/ARCLE  
