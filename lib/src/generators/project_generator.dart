@@ -18,6 +18,7 @@ class ProjectGenerator {
     required this.state,
     required this.stateVersion,
     required this.force,
+    this.projectName = '',
     this.overwriteMain = false,
     this.overwriteWidgetTest = false,
     this.overwriteAnalysisOptions = false,
@@ -27,6 +28,7 @@ class ProjectGenerator {
   final StateManagement state;
   final String? stateVersion;
   final bool force;
+  final String projectName;
   final bool overwriteMain;
   final bool overwriteWidgetTest;
   final bool overwriteAnalysisOptions;
@@ -91,7 +93,7 @@ class ProjectGenerator {
   }
 
   Future<int> buildRunner(Directory targetDir) async {
-    ui.step('CODEGEN ', 'Running code generation...');
+    ui.step('CODEGEN', 'Running code generation...');
     final process = await Process.start(
       'dart',
       ['run', 'build_runner', 'build', '--delete-conflicting-outputs'],
@@ -193,7 +195,10 @@ class ProjectGenerator {
     _updatePubspec(targetDir);
     _updateDevDependencies(targetDir);
     _writeConfig(targetDir);
+    _updateSdkConstraint(targetDir);
     _updateAndroidGradle(targetDir);
+    _updateIOSPodfile(targetDir);
+    _updateIOSInfoPlist(targetDir);
     console.line('');
     ui.success('🏗️  Architecture scaffold complete!');
   }
@@ -246,7 +251,7 @@ class ProjectGenerator {
   }
 
   Map<String, String> _buildFiles() {
-    return buildProjectFiles(state);
+    return buildProjectFiles(state, projectName: projectName);
   }
 
   void _writeConfig(Directory base) {
@@ -897,6 +902,144 @@ class ProjectGenerator {
     return true;
   }
 
+  void _updateIOSPodfile(Directory base) {
+    final iosDir = Directory('${base.path}${Platform.pathSeparator}ios');
+    if (!iosDir.existsSync()) {
+      ui.warn('iOS folder not found; skipping Podfile updates.');
+      return;
+    }
+
+    final podfile = File('${iosDir.path}${Platform.pathSeparator}Podfile');
+    if (!podfile.existsSync()) {
+      ui.warn('Podfile not found; skipping iOS configuration.');
+      return;
+    }
+
+    var content = podfile.readAsStringSync();
+    var changed = false;
+
+    // Ensure minimum iOS platform version is set
+    if (!content.contains("platform :ios")) {
+      // Add platform line after the first comment block
+      final lines = content.split('\n');
+      var insertIndex = 0;
+      for (int i = 0; i < lines.length; i++) {
+        if (!lines[i].trim().startsWith('#') && lines[i].trim().isNotEmpty) {
+          insertIndex = i;
+          break;
+        }
+      }
+      lines.insert(insertIndex, "platform :ios, '13.0'\n");
+      content = lines.join('\n');
+      changed = true;
+    } else if (content.contains("platform :ios, '")) {
+      // Update existing platform version to 13.0 minimum
+      content = content.replaceAllMapped(
+        RegExp(r"platform :ios, '(\d+\.\d+)'"),
+        (match) {
+          final currentVersion = match.group(1)!;
+          final major = int.parse(currentVersion.split('.')[0]);
+          if (major < 13) {
+            return "platform :ios, '13.0'";
+          }
+          return match.group(0)!;
+        },
+      );
+      if (content != podfile.readAsStringSync()) {
+        changed = true;
+      }
+    }
+
+    // Ensure post_install hook for flutter_root
+    if (!content.contains('post_install do |installer|')) {
+      content += '''
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+    end
+  end
+end
+''';
+      changed = true;
+    }
+
+    if (!changed) {
+      ui.info('iOS Podfile already configured.');
+      return;
+    }
+
+    podfile.writeAsStringSync(content);
+    ui.itemUpdated('ios${Platform.pathSeparator}Podfile');
+  }
+
+  void _updateIOSInfoPlist(Directory base) {
+    final iosDir = Directory('${base.path}${Platform.pathSeparator}ios');
+    if (!iosDir.existsSync()) {
+      return;
+    }
+
+    final infoPlistPath =
+        '${iosDir.path}${Platform.pathSeparator}Runner${Platform.pathSeparator}Info.plist';
+    final infoPlist = File(infoPlistPath);
+    if (!infoPlist.existsSync()) {
+      ui.warn('Info.plist not found; skipping permission descriptions.');
+      return;
+    }
+
+    var content = infoPlist.readAsStringSync();
+    var changed = false;
+
+    // List of permission descriptions to ensure exist
+    final permissionDescriptions = {
+      'NSCameraUsageDescription':
+          'This app needs camera access to take photos and videos.',
+      'NSPhotoLibraryUsageDescription':
+          'This app needs access to your photo library.',
+      'NSPhotoLibraryAddUsageDescription':
+          'This app needs permission to save photos to your photo library.',
+      'NSMicrophoneUsageDescription':
+          'This app needs microphone access for audio recording.',
+      'NSLocationWhenInUseUsageDescription':
+          'This app needs your location when in use.',
+      'NSLocationAlwaysAndWhenInUseUsageDescription':
+          'This app needs your location for better service.',
+      'NSContactsUsageDescription': 'This app needs access to your contacts.',
+      'NSCalendarsUsageDescription': 'This app needs access to your calendar.',
+    };
+
+    for (final entry in permissionDescriptions.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      // Check if permission already exists
+      if (content.contains('<key>$key</key>')) {
+        continue;
+      }
+
+      // Add the permission key-value pair before closing </dict>
+      final insertPoint = content.lastIndexOf('</dict>');
+      if (insertPoint != -1) {
+        final permissionEntry =
+            '\t<key>$key</key>\n\t<string>$value</string>\n';
+        content = content.substring(0, insertPoint) +
+            permissionEntry +
+            content.substring(insertPoint);
+        changed = true;
+      }
+    }
+
+    if (!changed) {
+      ui.info('iOS Info.plist permissions already configured.');
+      return;
+    }
+
+    infoPlist.writeAsStringSync(content);
+    ui.itemUpdated(
+        'ios${Platform.pathSeparator}Runner${Platform.pathSeparator}Info.plist');
+  }
+
   bool _containsLine(List<String> lines, String match) {
     return lines.any((line) => line.trim() == match);
   }
@@ -984,6 +1127,27 @@ class ProjectGenerator {
   String _join(String base, String relative) {
     final normalized = relative.replaceAll('/', Platform.pathSeparator);
     return '$base${Platform.pathSeparator}$normalized';
+  }
+
+  void _updateSdkConstraint(Directory base) {
+    final pubspecFile = File(_join(base.path, 'pubspec.yaml'));
+    if (!pubspecFile.existsSync()) return;
+    final content = pubspecFile.readAsStringSync();
+    final patterns = [
+      RegExp(r'''sdk:\s*["']?>=?3\.\d+\.\d+\s*<?\s*\d+\.\d+\.\d+["']?'''),
+      RegExp(r'''sdk:\s*["']?\^3\.\d+\.\d+["']?'''),
+      RegExp(r'''sdk:\s*["']?>=3\.[0-9]+["']?'''),
+    ];
+    var updated = content;
+    for (final pattern in patterns) {
+      if (pattern.hasMatch(updated)) {
+        updated = updated.replaceAll(pattern, 'sdk: ">=3.7.0 <4.0.0"');
+        break;
+      }
+    }
+    if (updated == content) return;
+    pubspecFile.writeAsStringSync(updated);
+    ui.itemUpdated('pubspec.yaml (SDK constraint)');
   }
 
   String _ensureAssets(String content) {

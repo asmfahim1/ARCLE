@@ -58,11 +58,15 @@ class InitCommand {
     }
 
     final targetDir = Directory(cmd['path'] as String);
+    final projectName = targetDir.uri.pathSegments
+        .where((s) => s.isNotEmpty)
+        .lastOrNull ?? 'my_app';
     final generator = ProjectGenerator(
       ui: ui,
       state: state,
       stateVersion: (cmd['state-version'] as String?)?.trim(),
       force: cmd['force'] as bool,
+      projectName: projectName,
     );
 
     ui.section('🛠️  Initializing Clean Architecture');
@@ -72,6 +76,9 @@ class InitCommand {
     ui.success('✨ Clean architecture scaffolded successfully!');
     ui.info(
         'Your project is now organized with data/domain/presentation layers.');
+    ui.info('✅ Android: Gradle configured (SDK 21-35, desugaring enabled)');
+    ui.info(
+        '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready');
     return ExitCode.success.code;
   }
 

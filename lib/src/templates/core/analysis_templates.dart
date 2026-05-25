@@ -34,7 +34,7 @@ linter:
     always_declare_return_types: true
     avoid_types_as_parameter_names: true
     directives_ordering: true
-    prefer_relative_imports: true
+    always_use_package_imports: true
     require_trailing_commas: true
     sort_constructors_first: true
 
@@ -57,5 +57,9 @@ linter:
     prefer_final_locals: true
     sized_box_for_whitespace: true
     use_super_parameters: true
+    avoid_unnecessary_containers: true
+    prefer_single_quotes: true
+    unnecessary_const: true
+    unnecessary_new: true
 ''';
 }

@@ -1,7 +1,8 @@
 import 'package:args/args.dart';
 import 'package:io/io.dart';
-
 import 'commands/add_command.dart';
+import 'commands/agent_command.dart';
+import 'commands/ai_command.dart';
 import 'commands/build_command.dart';
 import 'commands/create_command.dart';
 import 'commands/delete_command.dart';
@@ -11,6 +12,7 @@ import 'commands/auto_gen_di_command.dart';
 import 'commands/gen_di_command.dart';
 import 'commands/gen_doc_command.dart';
 import 'commands/init_command.dart';
+import 'commands/upgrade_command.dart';
 import 'commands/verify_command.dart';
 import 'ui/cli_ui.dart';
 import 'utils/console.dart';
@@ -66,6 +68,12 @@ class Cli {
         return AddCommand(console).run(cmd);
       case 'delete':
         return DeleteCommand(console).run(cmd);
+      case 'agent':
+        return AgentCommand(console).run(cmd);
+      case 'ai':
+        return AiCommand(console).run(cmd);
+      case 'upgrade':
+        return UpgradeCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
         final suggestion =
@@ -120,17 +128,11 @@ class Cli {
   /// Transforms `add loc --<code>` or `delete loc --<code>` by converting
   /// the `--<code>` locale flag into a plain positional arg and changing
   /// `loc` to the canonical `locale` subcommand name.
-  ///
-  /// Examples:
-  ///   ['add', 'loc', '--my']        → ['add', 'locale', 'my']
-  ///   ['delete', 'loc', '--fr']     → ['delete', 'locale', 'fr']
-  ///   ['add', 'loc', '--force', '--my'] → ['add', 'locale', 'my', '--force']
   List<String> _normalizeLocaleFlag(List<String> args) {
     if (args.length < 2) return args;
     if (args[0] != 'add' && args[0] != 'delete') return args;
     if (args[1] != 'loc') return args;
 
-    // Known option names that should NOT be treated as locale codes
     const knownOpts = {
       'force', 'f', 'path', 'p', 'state', 's', 'help', 'h',
       'interactive', 'i',
@@ -147,7 +149,7 @@ class Cli {
         if (!knownOpts.contains(name) &&
             RegExp(r'^[a-zA-Z]{2,3}$').hasMatch(name)) {
           localeFound = name.toLowerCase();
-          newArgs.add(localeFound); // positional locale code
+          newArgs.add(localeFound);
           continue;
         }
       }
@@ -171,22 +173,41 @@ class Cli {
     parser.addCommand('verify', VerifyCommand.parser());
     parser.addCommand('add', AddCommand.parser());
     parser.addCommand('delete', DeleteCommand.parser());
+    parser.addCommand('agent', AgentCommand.parser());
+    parser.addCommand('ai', AiCommand.parser());
+    parser.addCommand('upgrade', UpgradeCommand.parser());
     return parser;
   }
 
   List<String> _commandNames() {
     return [
-      'create', 'new',
-      'init', 'setup',
-      'feature', 'feat',
-      'doctor', 'health',
-      'auto-gen-di', 'auto_gen_di', 'autodi',
-      'gen-di', 'di',
-      'build', 'b', 'br', 'bd',
-      'gen-doc', 'docs',
-      'verify', 'ver',
+      'create',
+      'new',
+      'init',
+      'setup',
+      'feature',
+      'feat',
+      'doctor',
+      'health',
+      'auto-gen-di',
+      'auto_gen_di',
+      'autodi',
+      'gen-di',
+      'di',
+      'build',
+      'b',
+      'br',
+      'bd',
+      'gen-doc',
+      'docs',
+      'verify',
+      'ver',
       'add',
-      'delete', 'del',
+      'delete',
+      'del',
+      'agent',
+      'ai',
+      'upgrade',
     ];
   }
 
@@ -202,28 +223,37 @@ class Cli {
       '    arcle <command> [options]',
       '',
       '  COMMANDS',
-      '    \ud83d\udce6  create <name>    Create a new Flutter project + clean architecture',
+      '    📦  create <name>    Create a new Flutter project + clean architecture',
       '         alias: new',
-      '    \ud83d\udee0\ufe0f  init             Scaffold clean architecture in existing project',
+      '    🔧️  init             Scaffold clean architecture in existing project',
       '         alias: setup',
-      '    \u2728  feature <name>   Generate a feature (data/domain/presentation)',
+      '    ✨  feature <name>   Generate a feature (data/domain/presentation)',
       '         alias: feat',
-      '    \ud83e\ude7a  doctor           Validate project health and safe repairs',
+      '    🤷  doctor           Validate project health and safe repairs',
       '         alias: health',
-      '    \ud83d\udd04  auto-gen-di      Regenerate DI + run build_runner',
+      '    🔄  auto-gen-di      Auto-gen DI + dependencies + build_runner (complete)',
       '         alias: autodi',
-      '    \ud83d\udd27  gen-di           Regenerate core DI files only',
+      '    🔧  gen-di           Generate DI files only (manual control)',
       '         alias: di',
-      '    \ud83d\udd28  build            Build APK (debug or release)',
+      '    🔨  build            Build APK (debug or release)',
       '         alias: b',
-      '    \ud83d\udcda  gen-doc          Generate architecture documentation',
+      '    📚  gen-doc          Generate architecture documentation',
       '         alias: docs',
-      '    \u2705  verify           Run analyze/test/codegen verification',
+      '    ✅  verify           Run analyze/test/codegen verification',
       '         alias: ver',
-      '    \ud83c\udf10  add locale       Add a locale to the project',
+      '    🌐  add locale       Add a locale to the project',
       '         short: add loc --<code>',
-      '    \ud83d\uddd1\ufe0f  delete locale    Remove a locale from the project',
+      '    🗑️   delete locale    Remove a locale from the project',
       '         alias: del  |  short: del loc --<code>',
+      '    🤖  agent            Manage AI agent configurations (claude/codex/gemini)',
+      '    🧠  ai               Initialize and manage .ai/ project context',
+      '    ⬆️   upgrade          Upgrade an existing ARCLE project to v2.0.0',
+      '',
+      '  DI COMMAND DIFFERENCES',
+      '    ─────────────────────────────────────────────────────────────',
+      '    gen-di      → Generates DI files only (you control pub get & build)',
+      '    auto-gen-di → Full workflow: DI + pub get + build_runner (one-shot)',
+      '    ─────────────────────────────────────────────────────────────',
       '',
       '  STATE MANAGEMENT OPTIONS',
       '    🧱  BLoC       Business Logic Component, predictable state',
@@ -235,7 +265,7 @@ class Cli {
       '',
       '  EXAMPLES',
       '    arcle create my_app --state bloc',
-      '    arcle feature payments --state bloc',
+      '    arcle feature payments --state riverpod',
       '    arcle add locale en              # Add English locale',
       '    arcle add locale my              # Add Myanmar locale',
       '    arcle add loc --fr               # Short form (French)',
@@ -245,7 +275,21 @@ class Cli {
       '    arcle br                         # Shortcut for build apk --release',
       '    arcle verify --full              # Run all structural checks',
       '',
-      '  \ud83d\udca1 TIP: Use --state bloc|getx|riverpod in CI/CD for explicit configuration',
+      '  AI / AGENT EXAMPLES',
+      '    arcle ai init                        # Init .ai/ config for current project',
+      '    arcle agent add claude               # Add Claude Code integration',
+      '    arcle agent add gemini               # Add Gemini integration',
+      '    arcle agent list                     # List configured agents',
+      '    arcle agent switch claude            # Set active agent',
+      '    arcle upgrade                        # Upgrade project to v2.0.0',
+      '',
+      '  DI COMMAND EXAMPLES',
+      '    arcle gen-di                         # Quick DI update (manual build)',
+      '    arcle auto-gen-di                    # Complete setup (auto pub get + build)',
+      '    arcle di --state bloc                # Explicit state + quick DI only',
+      '    arcle autodi --force                 # Rebuild everything (auto-gen with force)',
+      '',
+      '  💡 TIP: Use --state bloc/getx/riverpod in CI/CD for explicit configuration',
       '',
     ].join('\n');
   }

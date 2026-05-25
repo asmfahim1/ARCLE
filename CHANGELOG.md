@@ -1,3 +1,39 @@
+## 2.0.0
+
+**ARCLE Agentic Flutter Development Platform**
+
+### New Commands
+
+- `arcle agent add <claude|codex|gemini|custom>` — scaffold agent-specific config files (`.claude/`, `.codex/`, `.gemini/`, `.custom-agent/`)
+- `arcle agent remove <agent>` — remove an agent configuration directory
+- `arcle agent switch <agent>` — set `active_agent` in `.ai/settings.yaml`
+- `arcle agent list` — list all configured AI agents in the project
+- `arcle agent validate` — validate that all required `.ai/` files exist
+- `arcle ai init [--state]` — generate `.ai/` project context & rules directory
+- `arcle ai sync` — sync `.ai/settings.yaml` state from `arcle.yaml`
+- `arcle ai validate` — check all required `.ai/` config files
+- `arcle ai doctor` — diagnose AI configuration health
+- `arcle upgrade [--force]` — upgrade an existing ARCLE project to v2.0.0 (SDK, analysis, dimensions, `.ai/`, scripts)
+
+### Project Scaffolding
+
+- New projects now include `.ai/` directory with 6 AI agent context files: `settings.yaml`, `project-context.md`, `architecture-rules.md`, `coding-rules.md`, `security-rules.md`, `permissions.yaml`
+- New projects now include Claude Code integration (`.claude/CLAUDE.md`, `.claude/settings.json`)
+- New projects now include OpenAI Codex integration (`.codex/instructions.md`, `.codex/settings.json`)
+- New projects now include Gemini integration (`.gemini/GEMINI.md`, `.gemini/settings.json`)
+- New projects now include `scripts/setup.sh`, `scripts/setup.ps1`, `scripts/doctor.sh`, `scripts/doctor.ps1`
+
+### Breaking Changes
+
+- Replaced `DimensionsTemplates.dimensions(state)` with universal `DimensionsTemplates.dimensions()` — new implementation uses `dart:ui` PlatformDispatcher directly (works for all state management, no GetX dependency)
+- Updated `analysis_options.yaml` template: replaced `prefer_relative_imports` with `always_use_package_imports`, added `avoid_unnecessary_containers`, `prefer_single_quotes`, `unnecessary_const`, `unnecessary_new`
+- Minimum Dart SDK raised from `^3.5.4` to `>=3.7.0 <4.0.0`
+
+### Improvements
+
+- Generated project `pubspec.yaml` SDK constraint is now automatically set to `>=3.7.0 <4.0.0`
+- `buildCommonProjectFiles` now accepts `projectName` parameter for proper AI context generation
+
 ## 1.0.4
 
 - Reworked localization management around dedicated top-level commands:
@@ -14,10 +50,26 @@
 
 ## 1.0.3
 
+**Platform Configuration Improvements:**
+- **[CRITICAL FIX]** Added automatic iOS Podfile configuration with minimum deployment target of iOS 13.0.
+- **[CRITICAL FIX]** Added automatic iOS Info.plist generation with essential permission descriptions (camera, photos, microphone, location, contacts, calendar).
+- **[CRITICAL FIX]** Added post-install hooks to Podfile to ensure consistent iOS build settings across all targets.
+- **[CRITICAL FIX]** Fixed iOS builds that would previously fail due to missing Info.plist permission descriptions.
+- Added automatic iOS deployment target enforcement to prevent compatibility issues.
+- Updated iOS configuration to match Android's rigorous platform setup standard.
+- Both Android and iOS are now configured equally during project creation for production-ready apps.
+- Created comprehensive `PLATFORM_CONFIGURATION_GUIDE.md` with setup details, checklists, and troubleshooting.
+
+**Build & DI Improvements:**
 - Added persistent build version updates in `arcle build apk` with `--version-name` and `--version-code`, which rewrite the target project's `pubspec.yaml`.
 - Added persistent environment updates in `arcle build apk --env prod|stag|local`, which rewrite the target project's `lib/core/env/env_factory.dart`.
 - Added static 16 KB Android APK compatibility checks with `arcle verify --check-16kb`.
+- Added separated `gen-di` and `auto-gen-di` commands with clear documentation on when/why to use each.
+- Added comprehensive DI_COMMANDS_GUIDE.md explaining command differences and use cases.
+
+**Developer Experience:**
 - Added optional short command aliases such as `new`, `feat`, `health`, `autodi`, `di`, `docs`, `ver`, `b`, `br`, and `bd` while keeping all existing commands unchanged.
+- Platform configuration status now shown during project creation (Android & iOS setup feedback).
 
 ## 1.0.2
 

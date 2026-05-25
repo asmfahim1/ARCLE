@@ -1,6 +1,6 @@
 name: arcle
-description: A Flutter CLI to scaffold Clean Architecture projects with BLoC, GetX, or Riverpod. Easily generate features, routing, and DI.
-version: 1.0.4
+description: Agentic Flutter Development Platform — scaffold Clean Architecture projects with BLoC, GetX, or Riverpod, and configure AI agent support.
+version: 2.0.0
 homepage: https://github.com/asmfahim1/ARCLE
 repository: https://github.com/asmfahim1/ARCLE
 issue_tracker: https://github.com/asmfahim1/ARCLE/issues
@@ -19,7 +19,7 @@ topics:
 #     path: screenshots/create.png
 
 environment:
-  sdk: ^3.5.4
+  sdk: ">=3.7.0 <4.0.0"
 
 # This is the MAGIC part.
 # It tells Dart: "When I type 'arcle', run bin/arcle.dart"

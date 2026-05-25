@@ -1,6 +1,6 @@
 # ARCLE CLI
 
-A production-ready Flutter CLI that scaffolds Clean Architecture projects with BLoC, GetX, or Riverpod.
+Agentic Flutter Development Platform — scaffold Clean Architecture projects with BLoC, GetX, or Riverpod, and configure AI agent support for Claude Code, Codex, and Gemini.
 
 [![Pub Version](https://img.shields.io/pub/v/arcle?color=blue&logo=dart)](https://pub.dev/packages/arcle)
 [![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat&logo=dart&logoColor=white)](https://dart.dev)
@@ -23,17 +23,21 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **Auto-generated documentation**
 - Production-ready code structure
 - Build APKs from the CLI
+- **AI agent context generation** — Claude Code, Codex, Gemini out of the box
 
-## What's New In 1.0.4
+## What's New In 2.0.0
 
-- Redesigned localization commands — locale management is now per-locale and composable:
-  - `arcle add locale <code>` — add any locale (e.g. `en`, `my`, `fr`); first call bootstraps the dart infrastructure, subsequent calls append the locale
-  - `arcle delete locale <code>` — remove a specific locale; cleans up JSON, dart files, and pubspec automatically
-  - Short forms: `arcle add loc --my` / `arcle del loc --my`
-  - `del` is a new alias for `delete`
-- Any ISO 639-1 code is accepted; country codes for 60+ languages are built in
-- Feature localization injection now covers all locales automatically (not just `en`/`bn`)
-- Added `arcle verify --check-features`, `--check-assets`, `--check-l10n`, and `--full` for whole-project structural analysis
+- **Agentic Flutter Development Platform** — every new project ships with `.ai/` project context, coding rules, architecture rules, and security rules for any AI coding agent
+- **Claude Code integration** — `.claude/CLAUDE.md` and `.claude/settings.json` generated automatically
+- **Codex integration** — `.codex/instructions.md` and `.codex/settings.json` generated automatically
+- **Gemini integration** — `.gemini/GEMINI.md` and `.gemini/settings.json` generated automatically
+- **New `arcle agent` command** — add/remove/switch/list/validate AI agents
+- **New `arcle ai` command** — init/sync/validate/doctor AI configuration
+- **New `arcle upgrade` command** — upgrade existing projects to v2.0.0 (SDK constraint, dimensions, analysis options, `.ai/` config, scripts)
+- **Universal `Dimensions` class** — no longer depends on GetX; works across all state management options via `dart:ui` PlatformDispatcher
+- **Stricter linting** — `always_use_package_imports`, `avoid_unnecessary_containers`, `prefer_single_quotes`, `unnecessary_const`, `unnecessary_new` added to generated `analysis_options.yaml`
+- **Setup & doctor scripts** — `scripts/setup.sh`, `scripts/setup.ps1`, `scripts/doctor.sh`, `scripts/doctor.ps1` generated in every project
+- Minimum Dart SDK raised to `>=3.7.0 <4.0.0`
 
 ## 📦 Installation
 
@@ -115,6 +119,21 @@ arcle verify --check-features            # Check feature layer completeness
 arcle verify --check-assets              # Check pubspec asset paths exist
 arcle verify --check-l10n               # Check feature translation key coverage
 arcle verify --full                      # Run all checks at once
+
+# AI agent management
+arcle ai init                            # Generate .ai/ config for the project
+arcle ai init --state bloc               # Specify state management explicitly
+arcle agent add claude                   # Add Claude Code integration
+arcle agent add codex                    # Add OpenAI Codex integration
+arcle agent add gemini                   # Add Google Gemini integration
+arcle agent list                         # List configured agents
+arcle agent switch claude                # Set active agent in .ai/settings.yaml
+arcle agent validate                     # Validate all .ai/ config files
+
+# Upgrade existing project
+arcle upgrade                            # Upgrade to v2.0.0 (interactive state)
+arcle upgrade --state bloc               # Upgrade with explicit state
+arcle upgrade --force                    # Overwrite existing files
 ```
 
 ## 📝 Commands
@@ -146,6 +165,16 @@ arcle verify --full                      # Run all checks at once
 - Short form: `arcle add loc --<code>`
 - `arcle delete locale <code>`: Remove a locale from the project
 - Alias: `arcle del locale <code>` | Short: `arcle del loc --<code>`
+- `arcle agent add <claude|codex|gemini|custom>`: Add an AI agent configuration
+- `arcle agent remove <agent>`: Remove an AI agent configuration directory
+- `arcle agent switch <agent>`: Set active agent in `.ai/settings.yaml`
+- `arcle agent list`: List all configured AI agents
+- `arcle agent validate`: Validate all required `.ai/` files exist
+- `arcle ai init [--state]`: Generate `.ai/` project context directory
+- `arcle ai sync`: Sync `.ai/settings.yaml` state from `arcle.yaml`
+- `arcle ai validate`: Check all `.ai/` config files exist
+- `arcle ai doctor`: Diagnose AI configuration health
+- `arcle upgrade [--force]`: Upgrade existing ARCLE project to v2.0.0
 
 ## State Management
 
@@ -171,18 +200,20 @@ ARCLE includes templates and generators for three state management solutions:
 
 ## ✅ Requirements
 
-- **Dart SDK**: 3.5.4 or higher
-- **Flutter**: Latest stable channel (3.24.5+)
+- **Dart SDK**: `>=3.7.0 <4.0.0`
+- **Flutter**: 3.29.3 or higher
 - **Operating System**: macOS, Linux, or Windows
 - **Terminal**: bash, sh, zsh, or PowerShell
 
 ## Platform Notes
 
-- ARCLE project scaffolding works for Android, iOS, macOS, and web because it builds on `flutter create`
-- Generated notification and permission services now include platform guards so unsupported platforms fail safely instead of crashing
-- Android and iOS are the primary supported mobile targets for the generated permission and local notification setup
-- iOS still requires proper native permission descriptions in `Info.plist` and Apple signing setup before release builds
-- Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default
+- **Android:** ARCLE automatically configures Gradle build files with SDK versions (minSdk 21, compileSdk 35) and desugaring support for modern Java features. APK building is fully supported via `arcle build apk`.
+- **iOS:** ARCLE automatically configures the iOS deployment target (13.0+) in Podfile and generates essential permission descriptions in Info.plist for camera, photos, microphone, location, calendar, and contacts access. Projects are ready for iOS development after creation.
+- Generated notification and permission services include platform guards so unsupported platforms fail safely instead of crashing.
+- Android and iOS are the primary supported mobile targets for the generated permission and local notification setup.
+- **iOS Release Builds:** Remember to configure Apple signing in Xcode, set your Team ID, and manage provisioning profiles before building for distribution.
+- Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default.
+- macOS support is available in the generated code structure and is platform-safe, though features like permissions default to graceful failure.
 
 ## Build Behavior
 
@@ -430,11 +461,15 @@ lib/features/feature_name/presentation/
 - ✅ Comprehensive code templates
 - Localization: per-locale management with `arcle add locale` and `arcle delete locale`
 - 🔍 Deep project analysis with `arcle verify --full`
+- 🤖 AI agent context generation (Claude Code, Codex, Gemini) out of the box
+- 🧠 Universal responsive `Dimensions` class via `dart:ui` PlatformDispatcher
+- 🔒 Security rules and permissions system for AI agents
+- 📜 Setup & doctor scripts for every project
 
 ## 🎓 Toolchain
 
-- Dart SDK: `^3.5.4`
-- Flutter: stable channel recommended
+- Dart SDK: `>=3.7.0 <4.0.0`
+- Flutter: 3.29.3+ (stable channel recommended)
 
 See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 
