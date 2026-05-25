@@ -1,18 +1,13 @@
 import 'package:args/args.dart';
 import 'package:io/io.dart';
-import 'commands/add_command.dart';
-import 'commands/agent_command.dart';
-import 'commands/ai_command.dart';
 import 'commands/build_command.dart';
 import 'commands/create_command.dart';
-import 'commands/delete_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/feature_command.dart';
 import 'commands/auto_gen_di_command.dart';
 import 'commands/gen_di_command.dart';
 import 'commands/gen_doc_command.dart';
 import 'commands/init_command.dart';
-import 'commands/upgrade_command.dart';
 import 'commands/verify_command.dart';
 import 'ui/cli_ui.dart';
 import 'utils/console.dart';
@@ -64,16 +59,6 @@ class Cli {
         return GenDocCommand(console).run(cmd);
       case 'verify':
         return VerifyCommand(console).run(cmd);
-      case 'add':
-        return AddCommand(console).run(cmd);
-      case 'delete':
-        return DeleteCommand(console).run(cmd);
-      case 'agent':
-        return AgentCommand(console).run(cmd);
-      case 'ai':
-        return AiCommand(console).run(cmd);
-      case 'upgrade':
-        return UpgradeCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
         final suggestion =
@@ -107,7 +92,6 @@ class Cli {
       'b': 'build',
       'docs': 'gen-doc',
       'ver': 'verify',
-      'del': 'delete',
     };
 
     final shortcutReplacement = shortcutAliases[args.first];
@@ -117,46 +101,10 @@ class Cli {
 
     final commandReplacement = commandAliases[args.first];
     if (commandReplacement != null) {
-      return _normalizeLocaleFlag(
-        [commandReplacement, ...args.skip(1)],
-      );
+      return [commandReplacement, ...args.skip(1)];
     }
 
-    return _normalizeLocaleFlag(args);
-  }
-
-  /// Transforms `add loc --<code>` or `delete loc --<code>` by converting
-  /// the `--<code>` locale flag into a plain positional arg and changing
-  /// `loc` to the canonical `locale` subcommand name.
-  List<String> _normalizeLocaleFlag(List<String> args) {
-    if (args.length < 2) return args;
-    if (args[0] != 'add' && args[0] != 'delete') return args;
-    if (args[1] != 'loc') return args;
-
-    const knownOpts = {
-      'force', 'f', 'path', 'p', 'state', 's', 'help', 'h',
-      'interactive', 'i',
-    };
-
-    final newArgs = <String>[args[0], 'locale'];
-    String? localeFound;
-
-    for (final arg in args.skip(2)) {
-      if (localeFound == null &&
-          arg.startsWith('--') &&
-          !arg.contains('=')) {
-        final name = arg.substring(2);
-        if (!knownOpts.contains(name) &&
-            RegExp(r'^[a-zA-Z]{2,3}$').hasMatch(name)) {
-          localeFound = name.toLowerCase();
-          newArgs.add(localeFound);
-          continue;
-        }
-      }
-      newArgs.add(arg);
-    }
-
-    return newArgs;
+    return args;
   }
 
   ArgParser _buildParser() {
@@ -171,11 +119,6 @@ class Cli {
     parser.addCommand('build', BuildCommand.parser());
     parser.addCommand('gen-doc', GenDocCommand.parser());
     parser.addCommand('verify', VerifyCommand.parser());
-    parser.addCommand('add', AddCommand.parser());
-    parser.addCommand('delete', DeleteCommand.parser());
-    parser.addCommand('agent', AgentCommand.parser());
-    parser.addCommand('ai', AiCommand.parser());
-    parser.addCommand('upgrade', UpgradeCommand.parser());
     return parser;
   }
 
@@ -202,12 +145,6 @@ class Cli {
       'docs',
       'verify',
       'ver',
-      'add',
-      'delete',
-      'del',
-      'agent',
-      'ai',
-      'upgrade',
     ];
   }
 
@@ -241,13 +178,6 @@ class Cli {
       '         alias: docs',
       '    ✅  verify           Run analyze/test/codegen verification',
       '         alias: ver',
-      '    🌐  add locale       Add a locale to the project',
-      '         short: add loc --<code>',
-      '    🗑️   delete locale    Remove a locale from the project',
-      '         alias: del  |  short: del loc --<code>',
-      '    🤖  agent            Manage AI agent configurations (claude/codex/gemini)',
-      '    🧠  ai               Initialize and manage .ai/ project context',
-      '    ⬆️   upgrade          Upgrade an existing ARCLE project to v2.0.0',
       '',
       '  DI COMMAND DIFFERENCES',
       '    ─────────────────────────────────────────────────────────────',
@@ -264,24 +194,13 @@ class Cli {
       parser.usage,
       '',
       '  EXAMPLES',
-      '    arcle create my_app --state bloc',
-      '    arcle feature payments --state riverpod',
-      '    arcle add locale en              # Add English locale',
-      '    arcle add locale my              # Add Myanmar locale',
-      '    arcle add loc --fr               # Short form (French)',
-      '    arcle delete locale bn           # Remove Bengali locale',
-      '    arcle del loc --my               # Short form remove',
-      '    arcle build apk --release        # Build release APK',
-      '    arcle br                         # Shortcut for build apk --release',
-      '    arcle verify --full              # Run all structural checks',
-      '',
-      '  AI / AGENT EXAMPLES',
-      '    arcle ai init                        # Init .ai/ config for current project',
-      '    arcle agent add claude               # Add Claude Code integration',
-      '    arcle agent add gemini               # Add Gemini integration',
-      '    arcle agent list                     # List configured agents',
-      '    arcle agent switch claude            # Set active agent',
-      '    arcle upgrade                        # Upgrade project to v2.0.0',
+      '    arcle create my_app --state BLoc/Getx/Riverpod',
+      '    arcle feature payments --state BLoc/Getx/Riverpod',
+      '    arcle build apk --release            # Build release APK',
+      '    arcle new my_app                     # Shortcut alias for create',
+      '    arcle feat payments                  # Shortcut alias for feature',
+      '    arcle br                             # Shortcut for build apk --release',
+      '    arcle bd                             # Shortcut for build apk --debug',
       '',
       '  DI COMMAND EXAMPLES',
       '    arcle gen-di                         # Quick DI update (manual build)',
