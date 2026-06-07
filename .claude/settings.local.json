@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(dart analyze:*)",
-      "Bash(dart run:*)"
+      "Bash(dart run:*)",
+      "Bash(dir /s /b \"D:\\\\projects\\\\CLI\\\\own github\\\\ARCLE\\\\lib\")",
+      "Bash(dart pub *)",
+      "Bash(git add *)",
+      "Bash(flutter pub *)"
     ]
   }
 }

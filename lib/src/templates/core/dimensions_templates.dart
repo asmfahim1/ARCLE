@@ -41,7 +41,7 @@ class Dimensions {
   static double border(double value) => value * _widthRatio;
 
   /// EdgeInsets helpers
-  static EdgeInsets paddingAll(double padding) => EdgeInsets.all(width(padding));
+  static EdgeInsets allPadding(double padding) => EdgeInsets.all(width(padding));
   static EdgeInsets paddingHorizontal(double horizontal) =>
       EdgeInsets.symmetric(horizontal: width(horizontal));
   static EdgeInsets paddingVertical(double vertical) =>
