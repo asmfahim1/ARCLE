@@ -1,3 +1,9 @@
+## 2.1.2
+
+### Documentation
+
+- Updated README to reflect v2.1.x commands — removed unreachable commands, added `arcle configure-ai` and `arcle review` sections, updated "What's New" from 2.0.0 to 2.1.x.
+
 ## 2.1.1
 
 ### Bug Fixes
