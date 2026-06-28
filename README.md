@@ -12,7 +12,7 @@ Agentic Flutter Development Platform — scaffold Clean Architecture projects wi
 ARCLE removes repetitive setup work for scalable Flutter apps.
 
 - Create a project with Clean Architecture structure
-- Choose BLoC, GetX, or Riverpod
+- Choose BLoC, GetX, or Riverpod via an arrow-key menu
 - Generate full feature modules
 - Keep DI and route wiring consistent
 - API client ready with Dio
@@ -23,21 +23,21 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **Auto-generated documentation**
 - Production-ready code structure
 - Build APKs from the CLI
-- **AI agent context generation** — Claude Code, Codex, Gemini out of the box
+- **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
+- **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
 
-## What's New In 2.0.0
+## What's New In v2.1.x
 
-- **Agentic Flutter Development Platform** — every new project ships with `.ai/` project context, coding rules, architecture rules, and security rules for any AI coding agent
-- **Claude Code integration** — `.claude/CLAUDE.md` and `.claude/settings.json` generated automatically
-- **Codex integration** — `.codex/instructions.md` and `.codex/settings.json` generated automatically
-- **Gemini integration** — `.gemini/GEMINI.md` and `.gemini/settings.json` generated automatically
-- **New `arcle agent` command** — add/remove/switch/list/validate AI agents
-- **New `arcle ai` command** — init/sync/validate/doctor AI configuration
-- **New `arcle upgrade` command** — upgrade existing projects to v2.0.0 (SDK constraint, dimensions, analysis options, `.ai/` config, scripts)
-- **Universal `Dimensions` class** — no longer depends on GetX; works across all state management options via `dart:ui` PlatformDispatcher
-- **Stricter linting** — `always_use_package_imports`, `avoid_unnecessary_containers`, `prefer_single_quotes`, `unnecessary_const`, `unnecessary_new` added to generated `analysis_options.yaml`
-- **Setup & doctor scripts** — `scripts/setup.sh`, `scripts/setup.ps1`, `scripts/doctor.sh`, `scripts/doctor.ps1` generated in every project
-- Minimum Dart SDK raised to `>=3.7.0 <4.0.0`
+- **Decoupled AI scaffolding** — `arcle create` now generates only the Flutter Clean Architecture structure. AI agent config (`.ai/`, `.claude/`, `.codex/`, `.gemini/`) is opt-in via the new `arcle configure-ai` command.
+- **Arrow-key TUI menu for state management** — replaced text-based `--state` prompting with an ANSI arrow-key navigable menu. Automatically falls back to a numbered list in CI/CD and non-TTY environments. The `--state` flag still works for scripted use.
+- **New `arcle configure-ai` command** (alias: `arcle agent-init`) — one-question interactive wizard that detects your state management from `arcle.yaml` and scaffolds the chosen AI agent context files.
+- **New `arcle review` command** (aliases: `arcle audit`, `arcle -r`) — pre-commit quality gate:
+  - `dart analyze` + `dart format` check (always on, fast)
+  - Missing-tests scan scoped to files in the current git diff (warns without blocking)
+  - `flutter test` (opt-in via `--test`)
+  - `flutter test --coverage` with percentage report (opt-in via `--coverage`)
+  - AI-assisted diff review via your configured agent binary (opt-in via `--ai`)
+- **Bug fix (v2.1.1)** — fixed `StdinException: Error setting terminal echo mode` crash on Windows terminals that report `stdin.hasTerminal = true` but do not support raw mode. The menu now silently falls back to the numbered list.
 
 ## 📦 Installation
 
@@ -58,14 +58,7 @@ Add to your PATH if not already present:
 - **Linux/macOS**: Add to `~/.bashrc` or `~/.zshrc`: `export PATH="$PATH:$HOME/.pub-cache/bin"`
 - **Windows**: Use System Properties → Environment Variables → Add `%APPDATA%\Pub\Cache\bin`
 
-### Option 2: Run from pub
-
-```bash
-dart pub global activate arcle
-arcle --help
-```
-
-Or use without activating:
+### Option 2: Run without activating
 
 ```bash
 dart pub global run arcle:arcle --help
@@ -74,186 +67,177 @@ dart pub global run arcle:arcle --help
 ## 🚀 Quick Start
 
 ```bash
-# Create with interactive state selection
+# Create a new project — arrow-key menu picks state management
 arcle create my_app
 
-# Optional alias
-arcle new my_app
-
-# Create with explicit state
+# Or skip the menu with an explicit flag (great for CI/CD)
 arcle create my_app --state bloc
 arcle create my_app --state getx
 arcle create my_app --state riverpod
 
+# Optional alias
+arcle new my_app
+
+# Add AI agent context after project creation (opt-in)
+arcle configure-ai               # interactive wizard — Claude / Codex / Gemini / All
+arcle agent-init                 # alias
+
+# Pre-commit quality gate
+arcle review                     # analyze + format + missing-tests scan (fast)
+arcle review --test              # also run flutter test
+arcle review --coverage          # flutter test --coverage + report %
+arcle review --ai                # AI-assisted diff review
+arcle -r                         # shortcut
+
 # Add a feature
 arcle feature auth
-
-# Optional alias
-arcle feat auth
+arcle feat auth                  # alias
 
 # Build APK
 arcle build apk --debug
 arcle build apk --release
-arcle br
+arcle br                         # shortcut for release
+arcle bd                         # shortcut for debug
 
 # Persist version + environment before build
 arcle build apk --release --env prod --version-name 1.2.0 --version-code 12
 
-# Validate and verify an ARCLE project
+# Validate project health
 arcle doctor
 arcle doctor --fix
+
+# Structural verification
 arcle verify
-arcle verify --check-16kb
+arcle verify --check-features    # check feature layer completeness
+arcle verify --check-assets      # check pubspec asset paths exist
+arcle verify --check-l10n        # check feature translation key coverage
+arcle verify --check-16kb        # build release APK + static 16 KB page-size checks
+arcle verify --full              # run all checks at once
 
 # Localization — add / remove individual locales
-arcle add locale en                      # Add English (sets up infra on first run)
-arcle add locale bn                      # Add Bengali
-arcle add locale my                      # Add Myanmar / Burmese
-arcle add loc --fr                       # Short form — add French
-arcle delete locale bn                   # Remove Bengali locale
-arcle del loc --my                       # Short form remove
-arcle del locale en --force              # Skip confirmation prompt
-
-# Deep project analysis
-arcle verify --check-features            # Check feature layer completeness
-arcle verify --check-assets              # Check pubspec asset paths exist
-arcle verify --check-l10n               # Check feature translation key coverage
-arcle verify --full                      # Run all checks at once
-
-# AI agent management
-arcle ai init                            # Generate .ai/ config for the project
-arcle ai init --state bloc               # Specify state management explicitly
-arcle agent add claude                   # Add Claude Code integration
-arcle agent add codex                    # Add OpenAI Codex integration
-arcle agent add gemini                   # Add Google Gemini integration
-arcle agent list                         # List configured agents
-arcle agent switch claude                # Set active agent in .ai/settings.yaml
-arcle agent validate                     # Validate all .ai/ config files
-
-# Upgrade existing project
-arcle upgrade                            # Upgrade to v2.0.0 (interactive state)
-arcle upgrade --state bloc               # Upgrade with explicit state
-arcle upgrade --force                    # Overwrite existing files
+arcle add locale en              # Add English (sets up infra on first run)
+arcle add locale bn              # Add Bengali
+arcle add loc --fr               # Short form — add French
+arcle delete locale bn           # Remove Bengali locale
+arcle del loc --my               # Short form remove
 ```
 
 ## 📝 Commands
 
-- `arcle create <name>`: Create a new Flutter project with Clean Architecture
-- Alias: `arcle new <name>`
-- `arcle init`: Scaffold Clean Architecture in an existing project
-- Alias: `arcle setup`
-- `arcle feature <name>`: Generate feature data/domain/presentation layers
-- Alias: `arcle feat <name>`
-- `arcle doctor`: Validate ARCLE project health and safe repairs
-- Alias: `arcle health`
-- `arcle auto-gen-di`: Regenerate DI and refresh dependencies (BLoC)
-- Alias: `arcle autodi`
-- `arcle gen-di`: Regenerate DI files only (BLoC)
-- Alias: `arcle di`
-- `arcle build apk`: Build APK in debug or release mode, with optional persistent `--env`, `--version-name`, and `--version-code`
-- Aliases: `arcle b`, `arcle br`, `arcle bd`
-- `arcle gen-doc`: Generate project documentation
-- Alias: `arcle docs`
-- `arcle verify`: Run analyze/test/codegen verification
-- Alias: `arcle ver`
-- `arcle verify --check-16kb`: Build a release APK and run static 16 KB page-size compatibility checks
-- `arcle verify --check-features`: Check every feature module has all required ARCLE layer files
-- `arcle verify --check-assets`: Check every pubspec.yaml asset path exists on disk
-- `arcle verify --check-l10n`: Check every feature has its translation key in the localization file
-- `arcle verify --full`: Run all structural checks in a single pass
-- `arcle add locale <code>`: Add a locale to the project (e.g. `en`, `my`, `fr`)
-- Short form: `arcle add loc --<code>`
-- `arcle delete locale <code>`: Remove a locale from the project
-- Alias: `arcle del locale <code>` | Short: `arcle del loc --<code>`
-- `arcle agent add <claude|codex|gemini|custom>`: Add an AI agent configuration
-- `arcle agent remove <agent>`: Remove an AI agent configuration directory
-- `arcle agent switch <agent>`: Set active agent in `.ai/settings.yaml`
-- `arcle agent list`: List all configured AI agents
-- `arcle agent validate`: Validate all required `.ai/` files exist
-- `arcle ai init [--state]`: Generate `.ai/` project context directory
-- `arcle ai sync`: Sync `.ai/settings.yaml` state from `arcle.yaml`
-- `arcle ai validate`: Check all `.ai/` config files exist
-- `arcle ai doctor`: Diagnose AI configuration health
-- `arcle upgrade [--force]`: Upgrade existing ARCLE project to v2.0.0
+| Command | Description | Alias |
+|---|---|---|
+| `arcle create <name>` | Create a new Flutter project with Clean Architecture | `arcle new` |
+| `arcle init` | Scaffold Clean Architecture in an existing project | `arcle setup` |
+| `arcle feature <name>` | Generate feature data/domain/presentation layers | `arcle feat` |
+| `arcle configure-ai` | Add AI agent context files to an existing project | `arcle agent-init` |
+| `arcle review` | Pre-commit quality gate (analyze, format, missing tests) | `arcle audit`, `arcle -r` |
+| `arcle doctor` | Validate ARCLE project health and safe repairs | `arcle health` |
+| `arcle verify` | Run analyze/test/codegen verification | `arcle ver` |
+| `arcle verify --check-features` | Check every feature module has all required ARCLE layer files | |
+| `arcle verify --check-assets` | Check every pubspec.yaml asset path exists on disk | |
+| `arcle verify --check-l10n` | Check every feature has its translation key | |
+| `arcle verify --check-16kb` | Build a release APK and run static 16 KB page-size checks | |
+| `arcle verify --full` | Run all structural checks in a single pass | |
+| `arcle auto-gen-di` | Regenerate DI and refresh dependencies (BLoC) | `arcle autodi` |
+| `arcle gen-di` | Regenerate DI files only (BLoC) | `arcle di` |
+| `arcle build apk` | Build APK in debug or release mode | `arcle b`, `arcle br`, `arcle bd` |
+| `arcle gen-doc` | Generate project documentation | `arcle docs` |
+| `arcle add locale <code>` | Add a locale (e.g. `en`, `my`, `fr`) | `arcle add loc --<code>` |
+| `arcle delete locale <code>` | Remove a locale | `arcle del locale`, `arcle del loc --<code>` |
+
+### `arcle review` flags
+
+| Flag | Default | Description |
+|---|---|---|
+| `--skip-analyze` | on | Skip `dart analyze` |
+| `--skip-format` | on | Skip `dart format` check |
+| `--skip-missing-tests` | on | Skip missing-tests scan |
+| `--test` | **off** | Run `flutter test` (opt-in) |
+| `--coverage` | off | Run `flutter test --coverage` + show % (implies `--test`) |
+| `--ai` | off | AI-assisted diff review via configured agent |
+| `--staged` | off | Diff only staged changes (`git diff --staged`) |
+| `--path` | cwd | Target project directory |
 
 ## State Management
 
 ARCLE includes templates and generators for three state management solutions:
 
 ### BLoC (Business Logic Component)
-- Event-driven architecture
-- Predictable state management with clear separation of concerns
+- Event-driven architecture with predictable state management
 - Automatic DI generation using `GetIt` and `Injectable`
+- Requires `build_runner` — run `arcle auto-gen-di` after adding features
 - Best for: Complex apps with multiple features and events
 
 ### GetX
-- Lightweight and simple to use
-- Reactive state management with bindings
-- No build_runner needed
+- Lightweight, reactive state management with bindings
+- No `build_runner` needed
 - Best for: Quick prototyping and small to medium apps
 
 ### Riverpod
 - Type-safe provider-based state management
 - No context needed, functional approach
-- Excellent for state composition
 - Best for: Apps requiring strong typing and immutability
+
+## 🤖 AI Agent Configuration
+
+`arcle create` generates only the Flutter Clean Architecture structure. To add AI agent context files run this from your project root after creation:
+
+```bash
+arcle configure-ai   # interactive wizard — pick Claude / Codex / Gemini / All / Skip
+```
+
+This writes:
+- `.ai/` — shared context files (`settings.yaml`, `project-context.md`, `architecture-rules.md`, `coding-rules.md`, `security-rules.md`, `permissions.yaml`)
+- `.claude/` — Claude Code integration (`CLAUDE.md`, `settings.json`)
+- `.codex/` — OpenAI Codex integration (`instructions.md`, `settings.json`)
+- `.gemini/` — Google Gemini integration (`GEMINI.md`, `settings.json`)
+- `scripts/` — setup and doctor scripts for your team
+
+State management is read from `arcle.yaml` automatically. Use `--force` to overwrite existing config.
 
 ## ✅ Requirements
 
 - **Dart SDK**: `>=3.7.0 <4.0.0`
 - **Flutter**: 3.29.3 or higher
 - **Operating System**: macOS, Linux, or Windows
-- **Terminal**: bash, sh, zsh, or PowerShell
+- **Terminal**: bash, sh, zsh, PowerShell, or Windows Terminal
 
 ## Platform Notes
 
 - **Android:** ARCLE automatically configures Gradle build files with SDK versions (minSdk 21, compileSdk 35) and desugaring support for modern Java features. APK building is fully supported via `arcle build apk`.
-- **iOS:** ARCLE automatically configures the iOS deployment target (13.0+) in Podfile and generates essential permission descriptions in Info.plist for camera, photos, microphone, location, calendar, and contacts access. Projects are ready for iOS development after creation.
+- **iOS:** ARCLE automatically configures the iOS deployment target (13.0+) in Podfile and generates essential permission descriptions in Info.plist for camera, photos, microphone, location, calendar, and contacts access.
 - Generated notification and permission services include platform guards so unsupported platforms fail safely instead of crashing.
-- Android and iOS are the primary supported mobile targets for the generated permission and local notification setup.
 - **iOS Release Builds:** Remember to configure Apple signing in Xcode, set your Team ID, and manage provisioning profiles before building for distribution.
 - Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default.
-- macOS support is available in the generated code structure and is platform-safe, though features like permissions default to graceful failure.
 
 ## Build Behavior
 
 - `arcle build apk --version-name ... --version-code ...` rewrites the target project's `pubspec.yaml` version field before building
-- `arcle build apk --env prod|stag|local` rewrites the target project's `lib/core/env/env_factory.dart` default environment before building
+- `arcle build apk --env prod|stag|local` rewrites `lib/core/env/env_factory.dart` default environment before building
 - These build changes are persistent in the target Flutter project
-- Existing command forms remain fully supported; aliases are optional shortcuts only
 
 ## 🧪 Troubleshooting
 
 ### Command Not Found: arcle
 
-If you get "command not found: arcle" after global activation, ensure the pub cache bin is in your PATH:
-
 ```bash
-# Check if dart is properly installed
-dart --version
-
-# Re-activate arcle
 dart pub global activate arcle
 
-# On Linux/macOS, add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
+# Linux/macOS — add to ~/.bashrc or ~/.zshrc
 export PATH="$PATH:$HOME/.pub-cache/bin"
 
-# On Windows, use System Environment Variables
+# Windows — add to System Environment Variables
 %APPDATA%\Pub\Cache\bin
 ```
 
 ### Flutter SDK Not Found
 
-ARCLE requires Flutter to be installed and available in PATH:
-
 ```bash
 flutter --version
-which flutter  # or 'where flutter' on Windows
+which flutter   # or 'where flutter' on Windows
 ```
 
-###  Build Failures
-
-Ensure you're using a compatible Flutter version:
+### Build Failures
 
 ```bash
 flutter channel stable
@@ -271,200 +255,68 @@ my_awesome_app/
 │   │   └── app.dart                    # App widget setup
 │   ├── core/                           # Shared infrastructure
 │   │   ├── api_client/
-│   │   │   ├── api_service.dart       # HTTP client wrapper
-│   │   │   ├── base_response.dart     # API response model
-│   │   │   └── dio_client.dart        # Dio configuration
 │   │   ├── di/
-│   │   │   ├── app_di.dart            # DI setup
-│   │   │   ├── injection.dart         # DI setup (BLoC only)
-│   │   │   ├── injectable_module.dart # Module registration (BLoC only)
-│   │   │   ├── injection.config.dart  # Generated config (BLoC only)
-│   │   │   └── providers.dart         # Riverpod providers (Riverpod only)
 │   │   ├── env/
-│   │   │   ├── env.dart               # Environment interface
-│   │   │   ├── local_env.dart         # Local config
-│   │   │   ├── prod_env.dart          # Production config
-│   │   │   ├── stag_env.dart          # Staging config
-│   │   │   └── env_factory.dart       # Environment factory
 │   │   ├── error_handler/
-│   │   │   └── error_handler.dart     # Error handling
 │   │   ├── response_handler/
-│   │   │   ├── response_handler.dart  # Response handling
-│   │   │   └── api_failure.dart       # Failure classes
 │   │   ├── localization/
-│   │   │   ├── app_strings.dart       # Localization keys
-│   │   │   └── getx_localization.dart # GetX localization (GetX only)
 │   │   ├── route_handler/
-│   │   │   ├── app_routes.dart        # Route definitions
-│   │   │   ├── app_router.dart        # Router configuration
-│   │   │   └── app_route_observer.dart # Route observer
 │   │   ├── session_manager/
-│   │   │   ├── pref_manager.dart      # SharedPreferences wrapper
-│   │   │   └── session_manager.dart   # Session handling
 │   │   ├── theme_handler/
-│   │   │   └── app_theme.dart         # Theme configuration
 │   │   ├── notifications/
-│   │   │   └── notification_service.dart # Notification handling
 │   │   ├── permissions/
-│   │   │   └── permission_service.dart  # Permission handling
 │   │   ├── utils/
-│   │   │   ├── constants.dart         # App constants
-│   │   │   ├── endpoints.dart         # API endpoints
-│   │   │   ├── enums.dart             # Enumerations
-│   │   │   ├── app_assets.dart        # Asset constants
-│   │   │   ├── app_colors.dart        # Color constants
-│   │   │   ├── dimensions.dart        # Dimension constants
-│   │   │   ├── dialogs.dart           # Dialog utilities
-│   │   │   ├── logger.dart            # Logging utility
-│   │   │   ├── result.dart            # Either pattern
-│   │   │   ├── app_validators.dart    # Custom validators
-│   │   │   └── validators.dart        # Validation utilities
 │   │   └── common_widgets/
-│   │       ├── svg_icon.dart          # SVG icon widget
-│   │       ├── common_loader.dart     # Loading widget
-│   │       ├── common_button.dart     # Button widget
-│   │       ├── common_text_field.dart # Text input widget
-│   │       ├── common_dropdown.dart   # Dropdown widget
-│   │       ├── common_checkbox.dart   # Checkbox widget
-│   │       ├── common_snackbar.dart   # Snackbar widget
-│   │       ├── common_app_bar.dart    # App bar widget
-│   │       ├── common_bottom_sheet.dart # Bottom sheet widget
-│   │       ├── common_dialog.dart     # Dialog widget
-│   │       └── common_image_container.dart # Image container widget
-│   └── features/                       # Feature modules
+│   └── features/
 │       ├── demo/                       # Demo feature (included!)
 │       │   ├── data/
-│       │   │   ├── models/
-│       │   │   ├── sources/
-│       │   │   └── repositories/
 │       │   ├── domain/
-│       │   │   ├── entities/
-│       │   │   ├── repositories/
-│       │   │   └── usecases/
 │       │   └── presentation/
-│       │       ├── pages/              # Feature screens
-│       │       ├── widgets/            # Feature widgets
-│       │       ├── bloc/ (BLoC)        # BLoC files (if using BLoC)
-│       │       │   ├── *_bloc.dart
-│       │       │   ├── *_event.dart
-│       │       │   └── *_state.dart
-│       │       ├── controller/ (GetX)  # Controllers (if using GetX)
-│       │       │   └── *_controller.dart
-│       │       ├── bindings/ (GetX)    # Bindings (if using GetX)
-│       │       │   └── *_binding.dart
-│       │       └── providers/ (Riverpod) # Providers (if using Riverpod)
-│       │           └── *_providers.dart
 │       └── settings/                   # Settings feature (included!)
 ├── assets/
 │   ├── images/
 │   ├── icons/
 │   └── langs/
-│       ├── en.json                     # English translations
-│       └── bn.json                     # Bengali translations (BLoC & Riverpod only)
-├── docs/                               # Auto-generated documentation
-├── test/                               # Tests
-│   ├── features/
-│   │   └── */
-│   │       └── *_test.dart
-│   └── widget_test.dart
-└── pubspec.yaml                        # Dependencies
+│       ├── en.json
+│       └── bn.json
+├── test/
+└── pubspec.yaml
 ```
 
-## 🏛️ State Management Details
-
-ARCLE generates different structures and setup requirements based on your chosen state management:
-
-### BLoC/Cubit Architecture
-- **Event-based state management** with predictable patterns
-- **DI Setup**: Uses GetIt + Injectable library
-- **Files Created**:
-  - `lib/core/di/injection.dart` - Service locator initialization
-  - `lib/core/di/injectable_module.dart` - Dependency registration module
-  - `lib/core/di/injection.config.dart` - Auto-generated dependencies (generated by build_runner)
-  - `lib/core/di/bloc_providers.dart` - BLoC provider instances
-- **Localization**: Creates `assets/langs/en.json` and `assets/langs/bn.json`
-- **Best For**: Complex apps with multiple features and events
-- **Code Generation**: Requires `build_runner` - run `arcle auto-gen-di` after adding features
-
-### GetX
-- **Lightweight and simple reactive state management**
-- **Controller-based**: Uses controller + binding pattern
-- **DI Setup**: Service locator is built into GetX
-- **Files Created**:
-  - `lib/core/localization/getx_localization.dart` - GetX localization wrapper
-  - Feature controller: `lib/features/*/presentation/controller/*_controller.dart`
-  - Feature binding: `lib/features/*/presentation/bindings/*_binding.dart`
-- **Localization**: Creates `.gitkeep` placeholder (you manage translations)
-- **Best For**: Quick prototyping and small to medium apps
-- **Build Step**: No additional build step required
-
-### Riverpod
-- **Type-safe provider-based state management**
-- **Functional approach**: Providers instead of classes
-- **DI Setup**: Built into Riverpod providers
-- **Files Created**:
-  - `lib/core/di/providers.dart` - Core provider definitions
-  - Feature providers: `lib/features/*/presentation/providers/*_providers.dart`
-  - Feature state: `lib/features/*/presentation/state/*_state.dart`
-- **Localization**: Creates `assets/langs/en.json` and `assets/langs/bn.json`
-- **Best For**: Apps requiring strong typing and immutability
-- **Code Generation**: Uses code generation for some features
-
 ## 📋 Feature Structure by State Management
-
-Generated features have different presentation structure depending on state management:
 
 ```
 BLoC:
 lib/features/feature_name/presentation/
-├── pages/
-│   └── feature_name_screen.dart
-├── widgets/
-│   └── feature_name_card.dart
-└── bloc/
-    ├── feature_name_bloc.dart
-    ├── feature_name_event.dart
-    └── feature_name_state.dart
+├── pages/   bloc/  widgets/
+│            ├── feature_name_bloc.dart
+│            ├── feature_name_event.dart
+│            └── feature_name_state.dart
 
 GetX:
 lib/features/feature_name/presentation/
-├── pages/
-│   └── feature_name_screen.dart
-├── widgets/
-│   └── feature_name_card.dart
-├── controller/
-│   └── feature_name_controller.dart
-└── bindings/
-    └── feature_name_binding.dart
+├── pages/   controller/  bindings/  widgets/
 
 Riverpod:
 lib/features/feature_name/presentation/
-├── pages/
-│   └── feature_name_screen.dart
-├── widgets/
-│   └── feature_name_card.dart
-├── providers/
-│   └── feature_name_providers.dart
-└── state/
-    └── feature_name_state.dart
+├── pages/   providers/  state/  widgets/
 ```
 
 ## 🌟 Features
 
-- 📦 Full project scaffolding with chosen architecture
+- 📦 Full project scaffolding with Clean Architecture
+- 🎯 Arrow-key interactive state management selection
 - 🧩 Feature generation (data/domain/presentation layers)
-- 🔄 Automatic DI wiring
+- 🔄 Automatic DI wiring (BLoC/GetIt/Injectable)
 - 📱 Build APK (debug and release modes)
 - 📚 Documentation generation
 - 🎨 Pre-configured theming system
-- 🌐 API client setup with error handling
-- ✅ Comprehensive code templates
-- Localization: per-locale management with `arcle add locale` and `arcle delete locale`
+- 🌐 API client setup with Dio and error handling
+- 🌍 Per-locale management with `arcle add locale` and `arcle delete locale`
 - 🔍 Deep project analysis with `arcle verify --full`
-- 🤖 AI agent context generation (Claude Code, Codex, Gemini) out of the box
+- 🤖 Optional AI agent context (Claude Code, Codex, Gemini) via `arcle configure-ai`
 - 🧠 Universal responsive `Dimensions` class via `dart:ui` PlatformDispatcher
-- 🔒 Security rules and permissions system for AI agents
-- 📜 Setup & doctor scripts for every project
+- ✅ Pre-commit quality gate with `arcle review`
 
 ## 🎓 Toolchain
 
@@ -475,38 +327,14 @@ See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 
 ## 🗺️ Roadmap
 
+- [ ] Fix generated template analyze warnings (Dimensions static calls)
 - [ ] Add support for more state management options (Provider, Redux)
 - [ ] Generate unit tests automatically
 - [ ] Add GraphQL support
 - [ ] Generate widget tests
 - [ ] Add Firebase integration option
 - [ ] Generate CI/CD configuration
-- [ ] Add more demo features
 - [ ] Support for custom templates
-
-## 🤖 AI Agent Configuration
-
-`arcle create` generates only the Flutter Clean Architecture structure. To add AI agent context files run this from your project root after creation:
-
-```bash
-arcle configure-ai   # interactive wizard — pick Claude / Codex / Gemini / All
-arcle agent-init     # alias
-```
-
-This writes `.ai/` context files plus the agent-specific directory (`.claude/`, `.codex/`, `.gemini/`) based on your selection. State management is read from `arcle.yaml` automatically.
-
-## 🔍 Pre-Commit Code Review
-
-```bash
-arcle review              # analyze + format + missing-tests scan (fast, always-on)
-arcle review --test       # also run flutter test
-arcle review --coverage   # flutter test --coverage + report coverage %
-arcle review --ai         # AI-assisted diff review (requires arcle configure-ai)
-arcle review --staged     # diff only staged changes
-arcle -r                  # shortcut alias
-```
-
-The missing-tests scan only checks files that appear in the current git diff — not the entire project — so it stays quiet until you actually change a file without a test.
 
 ## 🤝 Contributing
 
@@ -523,19 +351,12 @@ MIT License. See [LICENSE](LICENSE).
 ## 🙏 Acknowledgments
 
 - Flutter team for the amazing framework
-- BLoC, Getx, Riverpod library maintainers
+- BLoC, GetX, Riverpod library maintainers
 - Clean Architecture community
 - All contributors
 
 ## ⭐ Star History
 
 If ARCLE helps you, consider giving it a star! ⭐
-
-## 📊 Stats
-
-- **Lines of Code Generated**: ~5,000+ per project
-- **Time Saved**: Hours of setup work
-- **Architecture**: Production-ready from day one
-- **Best Practices**: Baked in by default
 
 **Happy Coding! 🚀**
