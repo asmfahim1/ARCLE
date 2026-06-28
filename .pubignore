@@ -1,3 +1,4 @@
 .idea/
+.claude/
 example/test_app/
 example/**/test_app/

@@ -1,3 +1,18 @@
+## 2.1.0
+
+### Improvements
+
+- **Decoupled AI scaffolding from `arcle create`** — default project creation now generates only the Flutter Clean Architecture structure. AI agent config (`.ai/`, `.claude/`, `.codex/`, `.gemini/`, `scripts/`) is no longer generated automatically.
+- **New command: `arcle configure-ai`** (alias: `arcle agent-init`) — interactive one-question wizard to scaffold AI agent context files for an existing project. Detects state management from `arcle.yaml`; prompts if not found. Supports Claude Code, OpenAI Codex, Google Gemini, or all three.
+- **Arrow-key TUI menu for state management selection** — replaced the text-based prompt (typing `bloc`/`getx`/`riverpod`) with an ANSI arrow-key navigable menu. Falls back to a numbered list automatically in CI/CD and non-TTY environments. The `--state` flag still bypasses the menu for scripted use.
+- **New command: `arcle review`** (aliases: `arcle audit`, `arcle -r`) — pre-commit quality gate that runs:
+  - `dart analyze` — static analysis
+  - `dart format --output=none --set-exit-if-changed` — format check
+  - Missing-tests scan — checks only files changed in the current git diff; warns on any `lib/` file with no `test/` counterpart
+  - `flutter test` (opt-in via `--test`)
+  - `flutter test --coverage` with percentage report (opt-in via `--coverage`)
+  - AI-assisted diff review via configured agent binary (opt-in via `--ai`)
+
 ## 2.0.0
 
 **ARCLE Agentic Flutter Development Platform**

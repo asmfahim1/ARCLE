@@ -119,6 +119,8 @@ class CreateCommand {
       'cd $projectName',
       'flutter run                    ← Launch your app',
       'arcle feature login            ← Add your first feature',
+      'arcle configure-ai             ← Add AI agent context (optional)',
+      'arcle review                   ← Pre-commit quality check',
       'code .                         ← Open in VS Code',
     ], projectPath: targetDir.path);
     return ExitCode.success.code;

@@ -484,6 +484,30 @@ See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 - [ ] Add more demo features
 - [ ] Support for custom templates
 
+## 🤖 AI Agent Configuration
+
+`arcle create` generates only the Flutter Clean Architecture structure. To add AI agent context files run this from your project root after creation:
+
+```bash
+arcle configure-ai   # interactive wizard — pick Claude / Codex / Gemini / All
+arcle agent-init     # alias
+```
+
+This writes `.ai/` context files plus the agent-specific directory (`.claude/`, `.codex/`, `.gemini/`) based on your selection. State management is read from `arcle.yaml` automatically.
+
+## 🔍 Pre-Commit Code Review
+
+```bash
+arcle review              # analyze + format + missing-tests scan (fast, always-on)
+arcle review --test       # also run flutter test
+arcle review --coverage   # flutter test --coverage + report coverage %
+arcle review --ai         # AI-assisted diff review (requires arcle configure-ai)
+arcle review --staged     # diff only staged changes
+arcle -r                  # shortcut alias
+```
+
+The missing-tests scan only checks files that appear in the current git diff — not the entire project — so it stays quiet until you actually change a file without a test.
+
 ## 🤝 Contributing
 
 1. Fork the repository

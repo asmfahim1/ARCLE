@@ -1,6 +1,7 @@
 import 'package:args/args.dart';
 import 'package:io/io.dart';
 import 'commands/build_command.dart';
+import 'commands/configure_ai_command.dart';
 import 'commands/create_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/feature_command.dart';
@@ -8,6 +9,7 @@ import 'commands/auto_gen_di_command.dart';
 import 'commands/gen_di_command.dart';
 import 'commands/gen_doc_command.dart';
 import 'commands/init_command.dart';
+import 'commands/review_command.dart';
 import 'commands/verify_command.dart';
 import 'ui/cli_ui.dart';
 import 'utils/console.dart';
@@ -59,6 +61,10 @@ class Cli {
         return GenDocCommand(console).run(cmd);
       case 'verify':
         return VerifyCommand(console).run(cmd);
+      case 'configure-ai':
+        return ConfigureAiCommand(console).run(cmd);
+      case 'review':
+        return ReviewCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
         final suggestion =
@@ -92,11 +98,17 @@ class Cli {
       'b': 'build',
       'docs': 'gen-doc',
       'ver': 'verify',
+      'audit': 'review',
+      'agent-init': 'configure-ai',
     };
 
     final shortcutReplacement = shortcutAliases[args.first];
     if (shortcutReplacement != null) {
       return [...shortcutReplacement, ...args.skip(1)];
+    }
+
+    if (args.first == '-r') {
+      return ['review', ...args.skip(1)];
     }
 
     final commandReplacement = commandAliases[args.first];
@@ -119,6 +131,8 @@ class Cli {
     parser.addCommand('build', BuildCommand.parser());
     parser.addCommand('gen-doc', GenDocCommand.parser());
     parser.addCommand('verify', VerifyCommand.parser());
+    parser.addCommand('configure-ai', ConfigureAiCommand.parser());
+    parser.addCommand('review', ReviewCommand.parser());
     return parser;
   }
 
@@ -145,16 +159,20 @@ class Cli {
       'docs',
       'verify',
       'ver',
+      'configure-ai',
+      'agent-init',
+      'review',
+      'audit',
     ];
   }
 
   String _usage(ArgParser parser) {
     return [
       '',
-      '  \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557',
-      '  \u2551   \ud83d\ude80  ARCLE - Flutter Clean Architecture CLI              \u2551',
-      '  \u2551    Build production-ready Flutter apps with ease         \u2551',
-      '  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d',
+      '  ╔══════════════════════════════════════════════════════════╗',
+      '  ║   🚀  ARCLE - Flutter Clean Architecture CLI              ║',
+      '  ║    Build production-ready Flutter apps with ease         ║',
+      '  ╚══════════════════════════════════════════════════════════╝',
       '',
       '  USAGE',
       '    arcle <command> [options]',
@@ -178,6 +196,10 @@ class Cli {
       '         alias: docs',
       '    ✅  verify           Run analyze/test/codegen verification',
       '         alias: ver',
+      '    ⚙️   configure-ai    Add AI agent context to an existing project',
+      '         alias: agent-init',
+      '    🔍  review           Pre-commit quality gate (analyze, format, missing tests)',
+      '         alias: audit, -r',
       '',
       '  DI COMMAND DIFFERENCES',
       '    ─────────────────────────────────────────────────────────────',
@@ -194,13 +216,15 @@ class Cli {
       parser.usage,
       '',
       '  EXAMPLES',
-      '    arcle create my_app --state BLoc/Getx/Riverpod',
-      '    arcle feature payments --state BLoc/Getx/Riverpod',
+      '    arcle create my_app                  # Arrow-key menu selects state',
+      '    arcle create my_app --state bloc     # Explicit state (CI/CD)',
+      '    arcle feature payments               # Generate a feature',
+      '    arcle configure-ai                   # Add AI agent context after create',
+      '    arcle review                         # Quick pre-commit check',
+      '    arcle review --test --ai             # Full review with tests and AI',
+      '    arcle -r                             # Shortcut for review',
       '    arcle build apk --release            # Build release APK',
-      '    arcle new my_app                     # Shortcut alias for create',
-      '    arcle feat payments                  # Shortcut alias for feature',
       '    arcle br                             # Shortcut for build apk --release',
-      '    arcle bd                             # Shortcut for build apk --debug',
       '',
       '  DI COMMAND EXAMPLES',
       '    arcle gen-di                         # Quick DI update (manual build)',

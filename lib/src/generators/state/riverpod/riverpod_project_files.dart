@@ -12,10 +12,7 @@ import '../common_project_files.dart';
 Map<String, String> buildRiverpodProjectFiles({
   String projectName = 'my_app',
 }) {
-  final files = buildCommonProjectFiles(
-    StateManagement.riverpod,
-    projectName: projectName,
-  );
+  final files = buildCommonProjectFiles(StateManagement.riverpod);
 
   files.addAll({
     // Localization JSON files

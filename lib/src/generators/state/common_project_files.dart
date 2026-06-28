@@ -1,8 +1,4 @@
 import '../../state_management.dart';
-import '../../templates/ai/agent_templates.dart';
-import '../../templates/ai/claude_templates.dart';
-import '../../templates/ai/codex_templates.dart';
-import '../../templates/ai/gemini_templates.dart';
 import '../../templates/app_templates.dart';
 import '../../templates/core/analysis_templates.dart';
 import '../../templates/core/api_templates.dart';
@@ -21,13 +17,9 @@ import '../../templates/core/utils_templates.dart';
 import '../../templates/core/widgets_templates.dart';
 import '../../templates/features/demo_templates.dart';
 import '../../templates/features/settings_templates.dart';
-import '../../templates/scripts/scripts_templates.dart';
 import '../../templates/tests_templates.dart';
 
-Map<String, String> buildCommonProjectFiles(
-  StateManagement state, {
-  String projectName = 'my_app',
-}) {
+Map<String, String> buildCommonProjectFiles(StateManagement state) {
   final files = <String, String>{
     'analysis_options.yaml': AnalysisTemplates.analysisOptions(),
     'lib/bootstrap.dart': AppTemplates.bootstrap(state),
@@ -103,38 +95,6 @@ Map<String, String> buildCommonProjectFiles(
         TestsTemplates.loginScreenTest(state),
     'test/features/users/user_model_test.dart': TestsTemplates.userModelTest(),
     'test/widget_test.dart': TestsTemplates.widgetTest(state),
-
-    // AI configuration
-    '.ai/settings.yaml': AgentTemplates.settingsYaml(state),
-    '.ai/project-context.md': AgentTemplates.projectContext(
-      projectName,
-      state,
-    ),
-    '.ai/architecture-rules.md': AgentTemplates.architectureRules(state),
-    '.ai/coding-rules.md': AgentTemplates.codingRules(state),
-    '.ai/security-rules.md': AgentTemplates.securityRules(),
-    '.ai/permissions.yaml': AgentTemplates.permissionsYaml(),
-
-    // Claude Code integration
-    '.claude/CLAUDE.md': ClaudeTemplates.claudeMd(projectName, state),
-    '.claude/settings.json': ClaudeTemplates.claudeSettings(),
-
-    // Codex integration
-    '.codex/instructions.md': CodexTemplates.instructionsMd(
-      projectName,
-      state,
-    ),
-    '.codex/settings.json': CodexTemplates.codexSettings(state),
-
-    // Gemini integration
-    '.gemini/GEMINI.md': GeminiTemplates.geminiMd(projectName, state),
-    '.gemini/settings.json': GeminiTemplates.geminiSettings(state),
-
-    // Setup scripts
-    'scripts/setup.sh': ScriptsTemplates.setupSh(),
-    'scripts/setup.ps1': ScriptsTemplates.setupPs1(),
-    'scripts/doctor.sh': ScriptsTemplates.doctorSh(),
-    'scripts/doctor.ps1': ScriptsTemplates.doctorPs1(),
   };
 
   files.addAll(SettingsTemplates.files(state));

@@ -5,10 +5,7 @@ import '../../../templates/core/localization_templates.dart';
 import '../common_project_files.dart';
 
 Map<String, String> buildBlocProjectFiles({String projectName = 'my_app'}) {
-  final files = buildCommonProjectFiles(
-    StateManagement.bloc,
-    projectName: projectName,
-  );
+  final files = buildCommonProjectFiles(StateManagement.bloc);
 
   files.addAll({
     'assets/langs/en.json': LocalizationTemplates.enJson(),
