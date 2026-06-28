@@ -1,3 +1,9 @@
+## 2.1.1
+
+### Bug Fixes
+
+- **Fixed crash on Windows when launching the arrow-key state selection menu** — `StdinException: Error setting terminal echo mode` was thrown on certain Windows terminals (cmd.exe, some PowerShell hosts) that report `stdin.hasTerminal = true` but do not support raw mode. Raw-mode setup now happens before any rendering; `StdinException` is caught in `select()` and silently falls back to the numbered list (`1. BLoC / 2. Riverpod / 3. GetX`).
+
 ## 2.1.0
 
 ### Improvements

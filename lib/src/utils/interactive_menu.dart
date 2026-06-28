@@ -5,12 +5,22 @@ class InteractiveMenu {
   static int? select(List<String> items, {String? prompt}) {
     if (items.isEmpty) return null;
     if (!stdin.hasTerminal) return _fallback(items, prompt: prompt);
-    return _interactive(items, prompt: prompt);
+    // stdin.hasTerminal is true on some Windows hosts but raw mode still throws.
+    // Catch that and silently use the numbered fallback instead.
+    try {
+      return _interactive(items, prompt: prompt);
+    } on StdinException catch (_) {
+      return _fallback(items, prompt: prompt);
+    }
   }
 
   static int? _interactive(List<String> items, {String? prompt}) {
-    var selected = 0;
+    // Set raw mode BEFORE rendering — if this throws, select() catches it
+    // and falls back to the numbered list with a clean screen.
+    stdin.echoMode = false;
+    stdin.lineMode = false;
 
+    var selected = 0;
     if (prompt != null) stdout.writeln('  $prompt');
     stdout.writeln('  Use ↑↓ arrows and Enter to confirm:');
     stdout.writeln('');
@@ -18,8 +28,6 @@ class InteractiveMenu {
     stdout.write('\x1b[?25l');
     _draw(items, selected);
 
-    stdin.echoMode = false;
-    stdin.lineMode = false;
     try {
       while (true) {
         final b = stdin.readByteSync();
