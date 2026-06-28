@@ -327,7 +327,6 @@ See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 
 ## 🗺️ Roadmap
 
-- [ ] Fix generated template analyze warnings (Dimensions static calls)
 - [ ] Add support for more state management options (Provider, Redux)
 - [ ] Generate unit tests automatically
 - [ ] Add GraphQL support
