@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import '../state_management.dart';
+import '../ui/cli_ui.dart';
 import 'console.dart';
-import 'interactive_menu.dart';
 
 /// Utility class for picking state management option interactively or from arguments.
 class StatePicker {
@@ -19,28 +21,49 @@ class StatePicker {
   }
 
   StateManagement? _promptSelection() {
+    final ui = CliUi(console);
+
+    console.line('');
+    ui.info('Select a state management solution:');
     console.line('');
 
-    final index = InteractiveMenu.select(
-      [
-        '🧱  Clean Architecture + BLoC',
-        '🌊  Clean Architecture + Riverpod',
-        '⚡  Clean Architecture + GetX',
-      ],
-      prompt: 'Select a state management solution:',
-    );
+    for (final state in StateManagement.values) {
+      final icon = _getIcon(state);
+      final description = _getDescription(state);
+      console.line('  ${state.option}. $icon ${state.label} - $description');
+    }
 
-    if (index == null) return null;
+    console.line('');
+    stdout.write('  Enter your choice (1-${StateManagement.values.length}): ');
 
-    switch (index) {
-      case 0:
-        return StateManagement.bloc;
-      case 1:
-        return StateManagement.riverpod;
-      case 2:
-        return StateManagement.getx;
-      default:
-        return null;
+    final input = stdin.readLineSync()?.trim();
+    if (input == null || input.isEmpty) return null;
+
+    final number = int.tryParse(input);
+    if (number != null) return StateManagement.fromOption(number);
+
+    return StateManagement.fromInput(input);
+  }
+
+  String _getIcon(StateManagement state) {
+    switch (state) {
+      case StateManagement.bloc:
+        return '🧱';
+      case StateManagement.getx:
+        return '⚡';
+      case StateManagement.riverpod:
+        return '🌊';
+    }
+  }
+
+  String _getDescription(StateManagement state) {
+    switch (state) {
+      case StateManagement.bloc:
+        return 'Event-driven, scalable, with GetIt DI';
+      case StateManagement.getx:
+        return 'Simple, reactive, all-in-one solution';
+      case StateManagement.riverpod:
+        return 'Type-safe, testable, compile-time safe';
     }
   }
 }

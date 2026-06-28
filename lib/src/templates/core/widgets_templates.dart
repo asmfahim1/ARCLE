@@ -393,8 +393,7 @@ class CommonDialog extends StatelessWidget {
 ''';
 
   static String commonImageContainer(StateManagement state) {
-    final dimensionAccess =
-        state == StateManagement.getx ? 'Dimensions' : 'Dimensions(context)';
+    const dimensionAccess = 'Dimensions';
     return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';

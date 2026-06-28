@@ -346,11 +346,8 @@ Consumer(
       )''';
 
   static String settingsBodyWidget(StateManagement state) {
-    final dimensionAccess =
-        state == StateManagement.getx ? 'Dimensions' : 'Dimensions(context)';
-    final padding = state == StateManagement.getx
-        ? 'Dimensions.allPadding(20)'
-        : 'Dimensions(context).all(20)';
+    const dimensionAccess = 'Dimensions';
+    const padding = 'Dimensions.allPadding(20)';
     final getxImport =
         state == StateManagement.getx ? "import 'package:get/get.dart';\n" : '';
     final themeText =

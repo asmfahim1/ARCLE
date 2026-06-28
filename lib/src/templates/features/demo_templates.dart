@@ -161,7 +161,6 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dimensions = Dimensions(context);
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         return Column(
@@ -171,21 +170,21 @@ class LoginForm extends StatelessWidget {
               context.tr('login_hint'),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            SizedBox(height: dimensions.height(16)),
+            SizedBox(height: Dimensions.height(16)),
             CommonTextField(
               labelText: context.tr('email'),
               keyboardType: TextInputType.emailAddress,
               onChanged: (value) =>
                   context.read<AuthBloc>().add(EmailChanged(value.trim())),
             ),
-            SizedBox(height: dimensions.height(12)),
+            SizedBox(height: Dimensions.height(12)),
             CommonTextField(
               labelText: context.tr('password'),
               obscureText: true,
               onChanged: (value) =>
                   context.read<AuthBloc>().add(PasswordChanged(value.trim())),
             ),
-            SizedBox(height: dimensions.height(20)),
+            SizedBox(height: Dimensions.height(20)),
             CommonButton(
               label: context.tr('login'),
               isLoading: state.status == AuthStatus.loading,
@@ -286,7 +285,6 @@ class LoginForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
     final notifier = ref.read(authProvider.notifier);
-    final dimensions = Dimensions(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -295,19 +293,19 @@ class LoginForm extends ConsumerWidget {
           context.tr('login_hint'),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        SizedBox(height: dimensions.height(16)),
+        SizedBox(height: Dimensions.height(16)),
         CommonTextField(
           labelText: context.tr('email'),
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) => notifier.updateEmail(value.trim()),
         ),
-        SizedBox(height: dimensions.height(12)),
+        SizedBox(height: Dimensions.height(12)),
         CommonTextField(
           labelText: context.tr('password'),
           obscureText: true,
           onChanged: (value) => notifier.updatePassword(value.trim()),
         ),
-        SizedBox(height: dimensions.height(20)),
+        SizedBox(height: Dimensions.height(20)),
         CommonButton(
           label: context.tr('login'),
           isLoading: auth.status == AuthStatus.loading,
@@ -847,19 +845,18 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dimensions = Dimensions(context);
     return Scaffold(
       appBar: CommonAppBar(
         title: context.tr('login_title'),
         showBackButton: false,
       ),
       body: SingleChildScrollView(
-        padding: dimensions.all(20),
+        padding: Dimensions.allPadding(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const LoginForm(),
-            SizedBox(height: dimensions.height(12)),
+            SizedBox(height: Dimensions.height(12)),
             CommonButton(
               label: context.tr('settings'),
               onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
@@ -898,7 +895,6 @@ class UsersListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dimensions = Dimensions(context);
     return Scaffold(
       appBar: CommonAppBar(
         title: context.tr('user_list'),
@@ -929,7 +925,7 @@ class UsersListScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(state.message ?? 'Error'),
-                    SizedBox(height: dimensions.height(12)),
+                    SizedBox(height: Dimensions.height(12)),
                     CommonButton(
                       label: context.tr('retry'),
                       onPressed: () =>
@@ -940,7 +936,7 @@ class UsersListScreen extends StatelessWidget {
               );
             case UsersStatus.success:
               return ListView.builder(
-                padding: dimensions.all(16),
+                padding: Dimensions.allPadding(16),
                 itemCount: state.users.length,
                 itemBuilder: (_, index) => UserCard(user: state.users[index]),
               );
@@ -1546,20 +1542,18 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dimensions = Dimensions(context);
-
     return Scaffold(
       appBar: CommonAppBar(
         title: context.tr('login_title'),
         showBackButton: false,
       ),
       body: SingleChildScrollView(
-        padding: dimensions.all(20),
+        padding: Dimensions.allPadding(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const LoginForm(),
-            SizedBox(height: dimensions.height(12)),
+            SizedBox(height: Dimensions.height(12)),
             CommonButton(
               label: context.tr('settings'),
               onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),

@@ -1,3 +1,10 @@
+## 2.1.3
+
+### Changes
+
+- **Removed arrow-key TUI menu** — state management selection reverts to the simple numbered prompt (`1. BLoC / 2. GetX / 3. Riverpod`). The ANSI raw-mode approach caused `StdinException` on Windows terminals and added unnecessary complexity. The `--state` flag continues to work as before for non-interactive use.
+- `interactive_menu.dart` removed. `configure-ai` agent selection also uses a numbered prompt.
+
 ## 2.1.2
 
 ### Documentation

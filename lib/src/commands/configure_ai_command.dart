@@ -11,7 +11,6 @@ import '../templates/scripts/scripts_templates.dart';
 import '../ui/cli_ui.dart';
 import '../utils/arcle_config.dart';
 import '../utils/console.dart';
-import '../utils/interactive_menu.dart';
 import '../utils/state_picker.dart';
 
 class ConfigureAiCommand {
@@ -80,18 +79,19 @@ class ConfigureAiCommand {
     }
 
     console.line('');
-    final agentIndex = InteractiveMenu.select(
-      [
-        'Claude Code   (.claude/ + .ai/)',
-        'OpenAI Codex  (.codex/ + .ai/)',
-        'Google Gemini (.gemini/ + .ai/)',
-        'All three agents',
-        'Skip',
-      ],
-      prompt: 'Select an AI agent to configure:',
-    );
+    ui.info('Select an AI agent to configure:');
+    console.line('');
+    console.line('  1. Claude Code   (.claude/ + .ai/)');
+    console.line('  2. OpenAI Codex  (.codex/ + .ai/)');
+    console.line('  3. Google Gemini (.gemini/ + .ai/)');
+    console.line('  4. All three agents');
+    console.line('  5. Skip');
+    console.line('');
+    stdout.write('  Enter your choice (1-5): ');
+    final input = stdin.readLineSync()?.trim();
+    final agentIndex = (int.tryParse(input ?? '') ?? 5) - 1;
 
-    if (agentIndex == null || agentIndex == 4) {
+    if (agentIndex < 0 || agentIndex >= 4) {
       ui.info('AI configuration skipped.');
       return ExitCode.success.code;
     }

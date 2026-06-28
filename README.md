@@ -12,7 +12,7 @@ Agentic Flutter Development Platform — scaffold Clean Architecture projects wi
 ARCLE removes repetitive setup work for scalable Flutter apps.
 
 - Create a project with Clean Architecture structure
-- Choose BLoC, GetX, or Riverpod via an arrow-key menu
+- Choose BLoC, GetX, or Riverpod with a numbered prompt
 - Generate full feature modules
 - Keep DI and route wiring consistent
 - API client ready with Dio
@@ -29,7 +29,7 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 ## What's New In v2.1.x
 
 - **Decoupled AI scaffolding** — `arcle create` now generates only the Flutter Clean Architecture structure. AI agent config (`.ai/`, `.claude/`, `.codex/`, `.gemini/`) is opt-in via the new `arcle configure-ai` command.
-- **Arrow-key TUI menu for state management** — replaced text-based `--state` prompting with an ANSI arrow-key navigable menu. Automatically falls back to a numbered list in CI/CD and non-TTY environments. The `--state` flag still works for scripted use.
+- **Numbered prompt for state management** — interactive selection shows `1. BLoC / 2. GetX / 3. Riverpod`. The `--state` flag bypasses the prompt for CI/CD use.
 - **New `arcle configure-ai` command** (alias: `arcle agent-init`) — one-question interactive wizard that detects your state management from `arcle.yaml` and scaffolds the chosen AI agent context files.
 - **New `arcle review` command** (aliases: `arcle audit`, `arcle -r`) — pre-commit quality gate:
   - `dart analyze` + `dart format` check (always on, fast)
@@ -37,7 +37,7 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
   - `flutter test` (opt-in via `--test`)
   - `flutter test --coverage` with percentage report (opt-in via `--coverage`)
   - AI-assisted diff review via your configured agent binary (opt-in via `--ai`)
-- **Bug fix (v2.1.1)** — fixed `StdinException: Error setting terminal echo mode` crash on Windows terminals that report `stdin.hasTerminal = true` but do not support raw mode. The menu now silently falls back to the numbered list.
+- **Bug fix (v2.1.3)** — removed ANSI raw-mode arrow-key menu that caused `StdinException` on Windows. State management selection uses a plain numbered prompt, consistent across all terminals.
 
 ## 📦 Installation
 
@@ -67,7 +67,7 @@ dart pub global run arcle:arcle --help
 ## 🚀 Quick Start
 
 ```bash
-# Create a new project — arrow-key menu picks state management
+# Create a new project — numbered prompt picks state management
 arcle create my_app
 
 # Or skip the menu with an explicit flag (great for CI/CD)
@@ -305,7 +305,7 @@ lib/features/feature_name/presentation/
 ## 🌟 Features
 
 - 📦 Full project scaffolding with Clean Architecture
-- 🎯 Arrow-key interactive state management selection
+- 🎯 Interactive state management selection (numbered prompt, works on all terminals)
 - 🧩 Feature generation (data/domain/presentation layers)
 - 🔄 Automatic DI wiring (BLoC/GetIt/Injectable)
 - 📱 Build APK (debug and release modes)
