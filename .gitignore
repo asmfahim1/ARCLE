@@ -1,21 +1,38 @@
 # https://dart.dev/guides/libraries/private-files
 # Created by `dart pub`
 .dart_tool/
-# IDE-specific files
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
 .idea/
 *.iml
 *.iws
 *.ipr
+.vscode/
 
-# macOS
+# ── AI assistants (developer-local, not part of the package) ─────────────────
+.claude/
+.codex/
+.gemini/
+.ai/
+
+# ── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
-
-# Windows
 Thumbs.db
+Desktop.ini
 
-# Build outputs
+# ── Build outputs ────────────────────────────────────────────────────────────
 /build/
 /dist/
 
-# Coverage
+# ── Coverage ─────────────────────────────────────────────────────────────────
 /coverage/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+
+# ── Pub ──────────────────────────────────────────────────────────────────────
+.pub/
+pubspec.lock
+
+# ── Generated test / example apps (not part of the published package) ────────
+example/test_app/
