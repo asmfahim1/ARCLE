@@ -1,3 +1,11 @@
+## 2.1.4
+
+### Improvements
+
+- **Expanded `AppColors`** — replaced the minimal 5-constant class with a full design-system palette: brand (light + dark), accent (light + dark), backgrounds, surfaces, borders, text (primary/secondary for each mode), semantic (error, success, warning, info), and neutral utilities (divider, disabled, overlay). `AppColors._()` private constructor prevents instantiation.
+- **Reworked `AppTheme`** — `AppTheme._()` private constructor; `light()` / `dark()` renamed to `lightTheme` / `darkTheme` getters; all hardcoded `Color(...)` values replaced with `AppColors.*` references; added full component theme coverage: `cardTheme`, `elevatedButtonTheme`, `outlinedButtonTheme`, `inputDecorationTheme`, `bottomNavigationBarTheme`, `navigationBarTheme`, `drawerTheme`, `dividerTheme`, `chipTheme`, `snackBarTheme`; imports `app_colors.dart`.
+- **New `PaginatedListView<T>` widget** — generated to `lib/core/common_widgets/paginated_list_view.dart`; pure stateless widget that handles scroll-threshold triggering, separated/normal list modes, loading indicator, empty state, and end-of-list widget. All state (items, isLoading, hasReachedMax) is owned by the caller's state management layer.
+
 ## 2.1.3
 
 ### Changes

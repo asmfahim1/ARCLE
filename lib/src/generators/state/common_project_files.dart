@@ -62,6 +62,8 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
         WidgetsTemplates.commonDialog(),
     'lib/core/common_widgets/common_image_container.dart':
         WidgetsTemplates.commonImageContainer(state),
+    'lib/core/common_widgets/paginated_list_view.dart':
+        WidgetsTemplates.paginatedListView(),
     'lib/core/di/app_di.dart': DiTemplates.di(state),
     'lib/core/env/env.dart': EnvTemplates.envBase(),
     'lib/core/env/prod_env.dart': EnvTemplates.envProd(),

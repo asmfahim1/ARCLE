@@ -130,8 +130,8 @@ MultiBlocProvider(
         builder: (context, settings) {
           return MaterialApp(
             title: 'Arcle Demo',
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
             themeMode: settings.themeMode,
             locale: settings.locale,
             supportedLocales: AppStrings.supportedLocales,
@@ -167,8 +167,8 @@ GetBuilder<AppSettingsController>(
       builder: (controller) {
         return GetMaterialApp(
           title: 'Arcle Demo',
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
           themeMode: controller.themeMode.value,
           locale: controller.locale.value,
           supportedLocales: AppStrings.supportedLocales,
@@ -203,8 +203,8 @@ Consumer(
         final settings = ref.watch(appSettingsProvider);
         return MaterialApp(
           title: 'Arcle Demo',
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
           themeMode: settings.themeMode,
           locale: settings.locale,
           supportedLocales: AppStrings.supportedLocales,
