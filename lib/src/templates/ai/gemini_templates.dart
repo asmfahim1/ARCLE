@@ -30,7 +30,9 @@ lib/
 
   static String geminiSettings(StateManagement state) => r'''
 {
-  "model": "gemini-2.0-flash",
+  "model": {
+    "name": "gemini-3.5-flash"
+  },
   "context_files": [
     ".ai/settings.yaml",
     ".ai/project-context.md",

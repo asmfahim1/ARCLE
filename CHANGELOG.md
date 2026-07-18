@@ -1,3 +1,10 @@
+## 2.1.5
+
+### Fixes
+
+- **Updated generated theme templates for current Flutter APIs** — replaced `CardTheme` with `CardThemeData` in the light and dark `AppTheme` templates so newly generated projects use the correct material theme type.
+- **Refreshed AI agent config templates** — updated Codex and Gemini settings templates to use the newer model object shape; Codex now defaults to `gpt-5.6` and Gemini to `gemini-3.5-flash`.
+
 ## 2.1.4
 
 ### Improvements

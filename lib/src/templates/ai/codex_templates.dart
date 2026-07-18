@@ -29,7 +29,9 @@ Layers: data → domain ← presentation
 
   static String codexSettings(StateManagement state) => r'''
 {
-  "model": "gpt-4o",
+  "model": {
+    "name": "gpt-5.6"
+  },
   "context_files": [
     ".ai/settings.yaml",
     ".ai/project-context.md",

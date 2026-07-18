@@ -37,8 +37,8 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
   - `flutter test` (opt-in via `--test`)
   - `flutter test --coverage` with percentage report (opt-in via `--coverage`)
   - AI-assisted diff review via your configured agent binary (opt-in via `--ai`)
-- **Expanded `AppColors` + reworked `AppTheme` (v2.1.4)** — full design-system palette (brand, accent, backgrounds, surfaces, borders, text, semantic, utilities); `AppTheme` now references `AppColors` throughout with complete component theme coverage (card, button, input, nav bar, drawer, chip, snackbar).
-- **New `PaginatedListView<T>` widget (v2.1.4)** — generated to `lib/core/common_widgets/paginated_list_view.dart`; pure stateless widget with scroll-threshold triggering, separated/normal list modes, loading indicator, empty state, and end-of-list widget.
+- **Updated AI agent config templates (v2.1.5)** — Codex and Gemini settings templates now use the newer model object shape, and the Gemini default model has been bumped to `gemini-3.5-flash`.
+- **Theme template compatibility fix (v2.1.5)** — generated `AppTheme` now uses `CardThemeData` for light and dark themes so new projects match current Flutter material APIs.
 - **Bug fix (v2.1.3)** — removed ANSI raw-mode arrow-key menu that caused `StdinException` on Windows. State management selection uses a plain numbered prompt, consistent across all terminals.
 
 ## 📦 Installation
