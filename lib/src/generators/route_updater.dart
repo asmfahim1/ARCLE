@@ -8,7 +8,11 @@ class RouteUpdater {
   final void Function(String message) stdout;
   final void Function(String message) stderr;
 
-  void addFeatureRoute(Directory base, String featureName, StateManagement state) {
+  void addFeatureRoute(
+    Directory base,
+    String featureName,
+    StateManagement state,
+  ) {
     _addAppRouteConstant(base, featureName);
     if (state == StateManagement.getx) {
       _addGetxRoute(base, featureName);
@@ -120,10 +124,7 @@ class RouteUpdater {
     }
 
     if (!content.contains(entryLine)) {
-      content = content.replaceFirst(
-        pageMarker,
-        '$entryLine\n    $pageMarker',
-      );
+      content = content.replaceFirst(pageMarker, '$entryLine\n    $pageMarker');
     }
 
     routerFile.writeAsStringSync(content);
@@ -131,8 +132,7 @@ class RouteUpdater {
   }
 
   String _pascalCase(String input) {
-    final normalized =
-        input.trim().replaceAll(RegExp(r'[^A-Za-z0-9]+'), ' ');
+    final normalized = input.trim().replaceAll(RegExp(r'[^A-Za-z0-9]+'), ' ');
     final parts = normalized.split(RegExp(r'\s+'));
     return parts.map((part) {
       if (part.isEmpty) return '';

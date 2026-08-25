@@ -497,9 +497,10 @@ class SessionManager {
 ''';
 
   static String permissionService(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     return '''
@@ -623,9 +624,10 @@ class PermissionService {
   }
 
   static String notificationService(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     return '''

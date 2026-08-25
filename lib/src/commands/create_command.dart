@@ -28,20 +28,32 @@ class CreateCommand {
         help: 'Directory to create the project in',
         defaultsTo: Directory.current.path,
       )
-      ..addOption('org',
-          help: 'Organization identifier passed to flutter create')
-      ..addOption('state-version',
-          help:
-              'Version constraint for the selected state package (default: any)')
-      ..addFlag('no-flutter-create',
-          help: 'Skip flutter create and only scaffold architecture',
-          negatable: false)
-      ..addFlag('force',
-          abbr: 'f',
-          help: 'Overwrite existing files if they exist',
-          negatable: false)
-      ..addFlag('interactive',
-          abbr: 'i', help: 'Prompt for any missing values', defaultsTo: true);
+      ..addOption(
+        'org',
+        help: 'Organization identifier passed to flutter create',
+      )
+      ..addOption(
+        'state-version',
+        help:
+            'Version constraint for the selected state package (default: any)',
+      )
+      ..addFlag(
+        'no-flutter-create',
+        help: 'Skip flutter create and only scaffold architecture',
+        negatable: false,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing files if they exist',
+        negatable: false,
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Prompt for any missing values',
+        defaultsTo: true,
+      );
   }
 
   Future<int> run(ArgResults cmd) async {
@@ -59,10 +71,9 @@ class CreateCommand {
       return ExitCode.usage.code;
     }
 
-    final state = StatePicker(console).resolve(
-      cmd['state'] as String?,
-      interactive: cmd['interactive'] as bool,
-    );
+    final state = StatePicker(
+      console,
+    ).resolve(cmd['state'] as String?, interactive: cmd['interactive'] as bool);
     if (state == null) {
       ui.error('No state management selected.');
       ui.info('Run with --state bloc|getx|riverpod to be explicit.');
@@ -74,8 +85,9 @@ class CreateCommand {
     ui.step('PROJECT ', projectName);
     ui.step('STATE   ', '${state.label} ${_stateIcon(state)}');
     final basePath = Directory(cmd['path'] as String);
-    final targetDir =
-        Directory('${basePath.path}${Platform.pathSeparator}$projectName');
+    final targetDir = Directory(
+      '${basePath.path}${Platform.pathSeparator}$projectName',
+    );
 
     final generator = ProjectGenerator(
       ui: ui,
@@ -114,7 +126,8 @@ class CreateCommand {
     ui.success('🎉 Project "$projectName" created successfully!');
     ui.info('✅ Android: Gradle configured (SDK 21-35, desugaring enabled)');
     ui.info(
-        '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready');
+      '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready',
+    );
     ui.nextSteps([
       'cd $projectName',
       'flutter run                    ← Launch your app',

@@ -16,8 +16,10 @@ void main() {
     test('parser supports all state options', () {
       expect(InitCommand.parser().parse(['--state', 'bloc'])['state'], 'bloc');
       expect(InitCommand.parser().parse(['--state', 'getx'])['state'], 'getx');
-      expect(InitCommand.parser().parse(['--state', 'riverpod'])['state'],
-          'riverpod');
+      expect(
+        InitCommand.parser().parse(['--state', 'riverpod'])['state'],
+        'riverpod',
+      );
     });
 
     test('parser rejects invalid state option', () {

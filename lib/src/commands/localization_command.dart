@@ -16,39 +16,41 @@ class LocalizationCommand {
   final Console console;
 
   static ArgParser parser() {
-    final addParser = ArgParser()
-      ..addOption(
-        'state',
-        abbr: 's',
-        allowed: const ['bloc', 'getx', 'riverpod'],
-        help: 'State management option (bloc, getx, riverpod)',
-      )
-      ..addOption(
-        'path',
-        abbr: 'p',
-        help: 'Directory of an ARCLE Flutter project',
-        defaultsTo: Directory.current.path,
-      )
-      ..addFlag(
-        'force',
-        abbr: 'f',
-        help: 'Overwrite existing localization files',
-        negatable: false,
-      );
+    final addParser =
+        ArgParser()
+          ..addOption(
+            'state',
+            abbr: 's',
+            allowed: const ['bloc', 'getx', 'riverpod'],
+            help: 'State management option (bloc, getx, riverpod)',
+          )
+          ..addOption(
+            'path',
+            abbr: 'p',
+            help: 'Directory of an ARCLE Flutter project',
+            defaultsTo: Directory.current.path,
+          )
+          ..addFlag(
+            'force',
+            abbr: 'f',
+            help: 'Overwrite existing localization files',
+            negatable: false,
+          );
 
-    final removeParser = ArgParser()
-      ..addOption(
-        'path',
-        abbr: 'p',
-        help: 'Directory of an ARCLE Flutter project',
-        defaultsTo: Directory.current.path,
-      )
-      ..addFlag(
-        'force',
-        abbr: 'f',
-        help: 'Skip confirmation prompt',
-        negatable: false,
-      );
+    final removeParser =
+        ArgParser()
+          ..addOption(
+            'path',
+            abbr: 'p',
+            help: 'Directory of an ARCLE Flutter project',
+            defaultsTo: Directory.current.path,
+          )
+          ..addFlag(
+            'force',
+            abbr: 'f',
+            help: 'Skip confirmation prompt',
+            negatable: false,
+          );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -160,9 +162,7 @@ class LocalizationCommand {
     CliUi ui,
     bool force,
   ) {
-    final locDir = Directory(
-      _join(targetDir.path, 'lib/core/localization'),
-    );
+    final locDir = Directory(_join(targetDir.path, 'lib/core/localization'));
     if (!locDir.existsSync()) {
       locDir.createSync(recursive: true);
     }
@@ -177,10 +177,7 @@ class LocalizationCommand {
 
     if (state == StateManagement.getx) {
       _writeFile(
-        _join(
-          targetDir.path,
-          'lib/core/localization/getx_localization.dart',
-        ),
+        _join(targetDir.path, 'lib/core/localization/getx_localization.dart'),
         LocalizationTemplates.getxLocalization(),
         targetDir,
         ui,
@@ -272,9 +269,7 @@ class LocalizationCommand {
 
     if (langsDir.existsSync()) {
       langsDir.deleteSync(recursive: true);
-      ui.raw(
-        '    ${console.color('-', ConsoleColor.red)} assets/langs/',
-      );
+      ui.raw('    ${console.color('-', ConsoleColor.red)} assets/langs/');
     }
 
     _removeLangsAsset(targetDir, ui);
@@ -289,10 +284,11 @@ class LocalizationCommand {
 
     final original = pubspecFile.readAsStringSync();
     final lines = original.split('\n');
-    final filtered = lines.where((line) {
-      final t = line.trim();
-      return t != '- assets/langs/' && t != '-assets/langs/';
-    }).toList();
+    final filtered =
+        lines.where((line) {
+          final t = line.trim();
+          return t != '- assets/langs/' && t != '-assets/langs/';
+        }).toList();
 
     if (filtered.length < lines.length) {
       pubspecFile.writeAsStringSync(filtered.join('\n'));
@@ -377,7 +373,10 @@ class LocalizationCommand {
   }
 
   String _relative(String base, String full) {
-    final b = base.endsWith(Platform.pathSeparator) ? base : '$base${Platform.pathSeparator}';
+    final b =
+        base.endsWith(Platform.pathSeparator)
+            ? base
+            : '$base${Platform.pathSeparator}';
     return full.startsWith(b) ? full.substring(b.length) : full;
   }
 

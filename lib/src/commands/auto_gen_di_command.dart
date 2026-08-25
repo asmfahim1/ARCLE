@@ -46,12 +46,18 @@ class AutoGenDiCommand {
         help: 'Directory of an existing Flutter project',
         defaultsTo: Directory.current.path,
       )
-      ..addFlag('force',
-          abbr: 'f',
-          help: 'Overwrite existing DI files if they exist',
-          negatable: false)
-      ..addFlag('interactive',
-          abbr: 'i', help: 'Prompt for any missing values', defaultsTo: true);
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing DI files if they exist',
+        negatable: false,
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Prompt for any missing values',
+        defaultsTo: true,
+      );
   }
 
   Future<int> run(ArgResults cmd) async {

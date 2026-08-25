@@ -9,8 +9,9 @@ void main() {
     test('reports missing arcle config and dependencies', () async {
       final tempDir = Directory.systemTemp.createTempSync('arcle_health_');
       try {
-        File('${tempDir.path}${Platform.pathSeparator}pubspec.yaml')
-            .writeAsStringSync('''
+        File(
+          '${tempDir.path}${Platform.pathSeparator}pubspec.yaml',
+        ).writeAsStringSync('''
 name: sample
 dependencies:
   flutter:
@@ -54,8 +55,9 @@ flutter:
     test('passes a healthy minimal riverpod project', () async {
       final tempDir = Directory.systemTemp.createTempSync('arcle_health_');
       try {
-        File('${tempDir.path}${Platform.pathSeparator}pubspec.yaml')
-            .writeAsStringSync('''
+        File(
+          '${tempDir.path}${Platform.pathSeparator}pubspec.yaml',
+        ).writeAsStringSync('''
 name: sample
 dependencies:
   flutter:
@@ -75,8 +77,9 @@ dependencies:
 flutter:
   uses-material-design: true
 ''');
-        File('${tempDir.path}${Platform.pathSeparator}arcle.yaml')
-            .writeAsStringSync('''
+        File(
+          '${tempDir.path}${Platform.pathSeparator}arcle.yaml',
+        ).writeAsStringSync('''
 state: riverpod
 state_option: 3
 created_at: 2026-03-20T10:00:00.000

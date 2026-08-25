@@ -8,12 +8,14 @@ class DemoTemplates {
       'lib/features/demo/domain/entities/user_entity.dart': _userEntity(),
       'lib/features/demo/domain/repositories/demo_repository.dart':
           _demoRepository(),
-      'lib/features/demo/domain/usecases/login_usecase.dart':
-          _loginUsecase(state),
+      'lib/features/demo/domain/usecases/login_usecase.dart': _loginUsecase(
+        state,
+      ),
       'lib/features/demo/domain/usecases/get_users_usecase.dart':
           _getUsersUsecase(state),
-      'lib/features/demo/domain/usecases/logout_usecase.dart':
-          _logoutUsecase(state),
+      'lib/features/demo/domain/usecases/logout_usecase.dart': _logoutUsecase(
+        state,
+      ),
       // Data layer files
       'lib/features/demo/data/models/login_request.dart': _loginRequest(),
       'lib/features/demo/data/models/user_model.dart': _userModel(),
@@ -354,9 +356,10 @@ abstract class DemoRepository {
 ''';
 
   static String _loginUsecase(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
@@ -379,9 +382,10 @@ ${injectableAnno}class LoginUseCase {
   }
 
   static String _getUsersUsecase(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
@@ -402,9 +406,10 @@ ${injectableAnno}class GetUsersUseCase {
   }
 
   static String _logoutUsecase(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
@@ -470,9 +475,10 @@ class UserModel extends UserEntity {
 ''';
 
   static String _remoteDataSource(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 import 'dart:async';
@@ -498,12 +504,14 @@ class DemoRemoteDataSource {
   }
 
   static String _demoRepositoryImpl(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
-    final injectableAnno = state == StateManagement.bloc
-        ? '@LazySingleton(as: DemoRepository)\n'
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
+    final injectableAnno =
+        state == StateManagement.bloc
+            ? '@LazySingleton(as: DemoRepository)\n'
+            : '';
     return '''
 $injectableImport
 import 'package:dartz/dartz.dart';

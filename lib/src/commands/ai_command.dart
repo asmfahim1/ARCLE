@@ -16,38 +16,41 @@ class AiCommand {
   final Console console;
 
   static ArgParser parser() {
-    final parser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false);
+    final parser = ArgParser()..addFlag('help', abbr: 'h', negatable: false);
 
     // init subcommand
-    final initParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path)
-      ..addOption(
-        'state',
-        abbr: 's',
-        allowed: const ['bloc', 'getx', 'riverpod'],
-        help: 'State management option (bloc, getx, riverpod)',
-      )
-      ..addFlag('force', abbr: 'f', negatable: false);
+    final initParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path)
+          ..addOption(
+            'state',
+            abbr: 's',
+            allowed: const ['bloc', 'getx', 'riverpod'],
+            help: 'State management option (bloc, getx, riverpod)',
+          )
+          ..addFlag('force', abbr: 'f', negatable: false);
     parser.addCommand('init', initParser);
 
     // sync subcommand
-    final syncParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final syncParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('sync', syncParser);
 
     // validate subcommand
-    final validateParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final validateParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('validate', validateParser);
 
     // doctor subcommand
-    final doctorParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final doctorParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('doctor', doctorParser);
 
     return parser;
@@ -101,7 +104,7 @@ class AiCommand {
 
     final projectName =
         targetDir.uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ??
-            'my_app';
+        'my_app';
 
     ui.section('🤖 Initializing AI Configuration');
     ui.step('PROJECT ', projectName);
@@ -143,10 +146,7 @@ class AiCommand {
     var content = aiSettingsFile.readAsStringSync();
     final statePattern = RegExp(r'type:\s*(bloc|getx|riverpod)');
     if (statePattern.hasMatch(content)) {
-      content = content.replaceAll(
-        statePattern,
-        'type: ${config.state.id}',
-      );
+      content = content.replaceAll(statePattern, 'type: ${config.state.id}');
       aiSettingsFile.writeAsStringSync(content);
       ui.itemUpdated('.ai/settings.yaml');
     }
@@ -205,9 +205,7 @@ class AiCommand {
     }
 
     // Check .ai/ dir
-    final aiDir = Directory(
-      '${targetDir.path}${Platform.pathSeparator}.ai',
-    );
+    final aiDir = Directory('${targetDir.path}${Platform.pathSeparator}.ai');
     if (aiDir.existsSync()) {
       ui.success('.ai/ directory found');
     } else {

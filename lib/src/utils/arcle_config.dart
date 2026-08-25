@@ -3,10 +3,7 @@ import 'dart:io';
 import '../state_management.dart';
 
 class ArcleConfig {
-  ArcleConfig({
-    required this.state,
-    required this.createdAt,
-  });
+  ArcleConfig({required this.state, required this.createdAt});
 
   final StateManagement state;
   final DateTime createdAt;

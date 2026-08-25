@@ -67,7 +67,7 @@ class UpgradeCommand {
 
     final projectName =
         targetDir.uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ??
-            'my_app';
+        'my_app';
 
     ui.section('⬆️  Upgrading ARCLE Project to v2.0.0');
     ui.step('PROJECT ', projectName);
@@ -109,9 +109,7 @@ class UpgradeCommand {
 
     final content = pubspecFile.readAsStringSync();
     final patterns = [
-      RegExp(
-        r'''sdk:\s*["']?>=?3\.\d+\.\d+\s*<?\s*\d+\.\d+\.\d+["']?''',
-      ),
+      RegExp(r'''sdk:\s*["']?>=?3\.\d+\.\d+\s*<?\s*\d+\.\d+\.\d+["']?'''),
       RegExp(r'''sdk:\s*["']?\^3\.\d+\.\d+["']?'''),
     ];
 
@@ -206,11 +204,7 @@ class UpgradeCommand {
     }
   }
 
-  void _generateScripts(
-    CliUi ui,
-    Directory targetDir, {
-    required bool force,
-  }) {
+  void _generateScripts(CliUi ui, Directory targetDir, {required bool force}) {
     final scripts = {
       'scripts/setup.sh': ScriptsTemplates.setupSh(),
       'scripts/setup.ps1': ScriptsTemplates.setupPs1(),

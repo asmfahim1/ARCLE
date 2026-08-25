@@ -1,3 +1,17 @@
+## 2.2.0
+
+### New Features
+
+- **New `arcle ci` command** — generate CI/CD pipelines for GitHub Actions (`arcle ci add github`) or GitLab CI (`arcle ci add gitlab`). Runs `dart analyze` + `dart format` on every push, with opt-in `flutter test` / `--coverage`, and optional `--build apk|appbundle` artifact upload. Also supports `arcle ci list` and `arcle ci remove <provider>`.
+
+### Fixes
+
+- **Wired up `arcle add locale` and `arcle delete locale`** — these commands existed in the codebase and were documented in the README but were never registered with the CLI's argument parser, so running them returned "Unknown command." They now work as documented, including the `arcle del locale` alias.
+
+### Release
+
+- Formal release consolidating the 2.1.5 changeset — `CardThemeData` theme fix and updated Codex/Gemini AI templates — with a full README and toolchain documentation pass.
+
 ## 2.1.5
 
 ### Fixes

@@ -25,11 +25,17 @@ void main() {
 
     test('parser supports all state options', () {
       expect(
-          CreateCommand.parser().parse(['--state', 'bloc'])['state'], 'bloc');
+        CreateCommand.parser().parse(['--state', 'bloc'])['state'],
+        'bloc',
+      );
       expect(
-          CreateCommand.parser().parse(['--state', 'getx'])['state'], 'getx');
-      expect(CreateCommand.parser().parse(['--state', 'riverpod'])['state'],
-          'riverpod');
+        CreateCommand.parser().parse(['--state', 'getx'])['state'],
+        'getx',
+      );
+      expect(
+        CreateCommand.parser().parse(['--state', 'riverpod'])['state'],
+        'riverpod',
+      );
     });
 
     test('parser rejects invalid state option', () {
@@ -51,8 +57,10 @@ void main() {
     });
 
     test('parser supports state-version option', () {
-      final results =
-          CreateCommand.parser().parse(['--state-version', '^1.0.0']);
+      final results = CreateCommand.parser().parse([
+        '--state-version',
+        '^1.0.0',
+      ]);
       expect(results['state-version'], '^1.0.0');
     });
 

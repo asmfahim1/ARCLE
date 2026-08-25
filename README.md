@@ -26,19 +26,21 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
 - **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
 
-## What's New In v2.1.x
+## What's New In v2.2.0
 
+- **New `arcle ci` command** — generate a CI/CD pipeline for GitHub Actions or GitLab CI in one command (`arcle ci add github` / `arcle ci add gitlab`), with opt-in test/coverage and APK/App Bundle build steps.
+- **Fixed `arcle add locale` / `arcle delete locale`** — these commands are now correctly wired into the CLI and work as documented.
+- **Theme template compatibility fix (v2.1.5)** — generated `AppTheme` now uses `CardThemeData` for light and dark themes so new projects match current Flutter material APIs.
+- **Updated AI agent config templates (v2.1.5)** — Codex and Gemini settings templates now use the newer model object shape, and the Gemini default model has been bumped to `gemini-3.5-flash`.
 - **Decoupled AI scaffolding** — `arcle create` now generates only the Flutter Clean Architecture structure. AI agent config (`.ai/`, `.claude/`, `.codex/`, `.gemini/`) is opt-in via the new `arcle configure-ai` command.
 - **Numbered prompt for state management** — interactive selection shows `1. BLoC / 2. GetX / 3. Riverpod`. The `--state` flag bypasses the prompt for CI/CD use.
-- **New `arcle configure-ai` command** (alias: `arcle agent-init`) — one-question interactive wizard that detects your state management from `arcle.yaml` and scaffolds the chosen AI agent context files.
-- **New `arcle review` command** (aliases: `arcle audit`, `arcle -r`) — pre-commit quality gate:
+- **`arcle configure-ai` command** (alias: `arcle agent-init`) — one-question interactive wizard that detects your state management from `arcle.yaml` and scaffolds the chosen AI agent context files.
+- **`arcle review` command** (aliases: `arcle audit`, `arcle -r`) — pre-commit quality gate:
   - `dart analyze` + `dart format` check (always on, fast)
   - Missing-tests scan scoped to files in the current git diff (warns without blocking)
   - `flutter test` (opt-in via `--test`)
   - `flutter test --coverage` with percentage report (opt-in via `--coverage`)
   - AI-assisted diff review via your configured agent binary (opt-in via `--ai`)
-- **Updated AI agent config templates (v2.1.5)** — Codex and Gemini settings templates now use the newer model object shape, and the Gemini default model has been bumped to `gemini-3.5-flash`.
-- **Theme template compatibility fix (v2.1.5)** — generated `AppTheme` now uses `CardThemeData` for light and dark themes so new projects match current Flutter material APIs.
 - **Bug fix (v2.1.3)** — removed ANSI raw-mode arrow-key menu that caused `StdinException` on Windows. State management selection uses a plain numbered prompt, consistent across all terminals.
 
 ## 📦 Installation
@@ -119,9 +121,15 @@ arcle verify --full              # run all checks at once
 # Localization — add / remove individual locales
 arcle add locale en              # Add English (sets up infra on first run)
 arcle add locale bn              # Add Bengali
-arcle add loc --fr               # Short form — add French
 arcle delete locale bn           # Remove Bengali locale
-arcle del loc --my               # Short form remove
+arcle del locale bn              # Short form remove
+
+# CI/CD pipeline generation
+arcle ci add github              # Add a GitHub Actions workflow (.github/workflows/ci.yml)
+arcle ci add gitlab              # Add a GitLab CI pipeline (.gitlab-ci.yml)
+arcle ci add github --test --coverage --build apk   # Full pipeline: analyze, format, test+coverage, build
+arcle ci list                    # Show which pipelines are configured
+arcle ci remove github           # Remove a pipeline
 ```
 
 ## 📝 Commands
@@ -144,8 +152,11 @@ arcle del loc --my               # Short form remove
 | `arcle gen-di` | Regenerate DI files only (BLoC) | `arcle di` |
 | `arcle build apk` | Build APK in debug or release mode | `arcle b`, `arcle br`, `arcle bd` |
 | `arcle gen-doc` | Generate project documentation | `arcle docs` |
-| `arcle add locale <code>` | Add a locale (e.g. `en`, `my`, `fr`) | `arcle add loc --<code>` |
-| `arcle delete locale <code>` | Remove a locale | `arcle del locale`, `arcle del loc --<code>` |
+| `arcle add locale <code>` | Add a locale (e.g. `en`, `my`, `fr`) | `arcle add loc <code>` |
+| `arcle delete locale <code>` | Remove a locale | `arcle del locale <code>` |
+| `arcle ci add <github\|gitlab>` | Add a CI/CD pipeline | |
+| `arcle ci list` | List configured CI/CD pipelines | |
+| `arcle ci remove <github\|gitlab>` | Remove a CI/CD pipeline | |
 
 ### `arcle review` flags
 

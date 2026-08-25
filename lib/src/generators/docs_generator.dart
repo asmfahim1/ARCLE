@@ -58,22 +58,37 @@ class DocsGenerator {
     final generatedDate = DateTime.now().toString().split(' ')[0];
 
     ui.info(
-        'Found ${features.length} features, ${dependencies.length} dependencies');
+      'Found ${features.length} features, ${dependencies.length} dependencies',
+    );
 
     if (format == 'word') {
-      _generateWordDoc(base, writer, name, version, safeName, safeVersion,
-          description: description,
-          features: features,
-          dependencies: dependencies,
-          endpoints: endpoints,
-          generatedDate: generatedDate);
+      _generateWordDoc(
+        base,
+        writer,
+        name,
+        version,
+        safeName,
+        safeVersion,
+        description: description,
+        features: features,
+        dependencies: dependencies,
+        endpoints: endpoints,
+        generatedDate: generatedDate,
+      );
     } else {
-      _generatePdfDoc(base, writer, name, version, safeName, safeVersion,
-          description: description,
-          features: features,
-          dependencies: dependencies,
-          endpoints: endpoints,
-          generatedDate: generatedDate);
+      _generatePdfDoc(
+        base,
+        writer,
+        name,
+        version,
+        safeName,
+        safeVersion,
+        description: description,
+        features: features,
+        dependencies: dependencies,
+        endpoints: endpoints,
+        generatedDate: generatedDate,
+      );
     }
   }
 
@@ -88,8 +103,8 @@ class DocsGenerator {
           // Check for domain/presentation/data subdirs to confirm it's a feature
           final hasStructure =
               Directory(_join(entity.path, 'domain')).existsSync() ||
-                  Directory(_join(entity.path, 'presentation')).existsSync() ||
-                  Directory(_join(entity.path, 'data')).existsSync();
+              Directory(_join(entity.path, 'presentation')).existsSync() ||
+              Directory(_join(entity.path, 'data')).existsSync();
           if (hasStructure) {
             features.add(_formatFeatureName(featureName));
           }
@@ -104,8 +119,12 @@ class DocsGenerator {
     // Convert snake_case to Title Case
     return name
         .split('_')
-        .map((word) =>
-            word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}')
+        .map(
+          (word) =>
+              word.isEmpty
+                  ? ''
+                  : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
         .join(' ');
   }
 
@@ -277,7 +296,10 @@ class DocsGenerator {
   }
 
   void _printDocSummary(
-      List<String> features, List<String> deps, List<String> endpoints) {
+    List<String> features,
+    List<String> deps,
+    List<String> endpoints,
+  ) {
     ui.section('📊 Documentation Summary');
     ui.info('• Features documented: ${features.length}');
     ui.info('• Dependencies listed: ${deps.length}');

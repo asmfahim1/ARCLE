@@ -12,32 +12,45 @@ class BuildCommand {
   final Console console;
 
   static ArgParser parser() {
-    final apkParser = ArgParser()
-      ..addFlag('release',
-          abbr: 'r', help: 'Build in release mode', negatable: false)
-      ..addFlag('debug',
-          abbr: 'd', help: 'Build in debug mode', negatable: false)
-      ..addOption(
-        'env',
-        help: 'Build environment passed as --dart-define=FLAVOR',
-        allowed: const ['prod', 'stag', 'local'],
-      )
-      ..addOption(
-        'version-name',
-        help: 'Override Flutter build-name / Android versionName',
-      )
-      ..addOption(
-        'version-code',
-        help: 'Override Flutter build-number / Android versionCode',
-      )
-      ..addOption(
-        'path',
-        abbr: 'p',
-        help: 'Directory of a Flutter project',
-        defaultsTo: Directory.current.path,
-      )
-      ..addFlag('interactive',
-          abbr: 'i', help: 'Prompt for any missing values', defaultsTo: true);
+    final apkParser =
+        ArgParser()
+          ..addFlag(
+            'release',
+            abbr: 'r',
+            help: 'Build in release mode',
+            negatable: false,
+          )
+          ..addFlag(
+            'debug',
+            abbr: 'd',
+            help: 'Build in debug mode',
+            negatable: false,
+          )
+          ..addOption(
+            'env',
+            help: 'Build environment passed as --dart-define=FLAVOR',
+            allowed: const ['prod', 'stag', 'local'],
+          )
+          ..addOption(
+            'version-name',
+            help: 'Override Flutter build-name / Android versionName',
+          )
+          ..addOption(
+            'version-code',
+            help: 'Override Flutter build-number / Android versionCode',
+          )
+          ..addOption(
+            'path',
+            abbr: 'p',
+            help: 'Directory of a Flutter project',
+            defaultsTo: Directory.current.path,
+          )
+          ..addFlag(
+            'interactive',
+            abbr: 'i',
+            help: 'Prompt for any missing values',
+            defaultsTo: true,
+          );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -150,12 +163,7 @@ class BuildCommand {
     }
 
     ui.success('APK built successfully!');
-    _renameApk(
-      targetDir,
-      mode,
-      ui,
-      env: env,
-    );
+    _renameApk(targetDir, mode, ui, env: env);
     return ExitCode.success.code;
   }
 
@@ -175,12 +183,7 @@ class BuildCommand {
     return null;
   }
 
-  void _renameApk(
-    Directory targetDir,
-    String mode,
-    CliUi ui, {
-    String? env,
-  }) {
+  void _renameApk(Directory targetDir, String mode, CliUi ui, {String? env}) {
     final apkFile = _findApkFile(targetDir, mode);
     if (apkFile == null) {
       ui.warn('APK not found at expected output locations; skipping rename.');
@@ -198,16 +201,18 @@ class BuildCommand {
     final version = _extractYamlValue(content, 'version');
     if (name == null || version == null) {
       ui.warn(
-          'Could not read name/version from pubspec.yaml; skipping rename.');
+        'Could not read name/version from pubspec.yaml; skipping rename.',
+      );
       return;
     }
 
     final safeName = _sanitizeFilePart(name);
     final safeVersion = _sanitizeFilePart(version.split('+').first);
     final safeEnv = env == null || env.isEmpty ? null : _sanitizeFilePart(env);
-    final newName = safeEnv == null
-        ? '${safeName}_v$safeVersion.apk'
-        : '${safeName}_${safeEnv}_v$safeVersion.apk';
+    final newName =
+        safeEnv == null
+            ? '${safeName}_v$safeVersion.apk'
+            : '${safeName}_${safeEnv}_v$safeVersion.apk';
     final newPath = _join(apkFile.parent.path, newName);
     final targetFile = File(newPath);
     if (targetFile.existsSync()) {
@@ -240,9 +245,13 @@ class BuildCommand {
     final currentName = parts.first.trim();
     final currentCode = parts.length > 1 ? parts[1].trim() : null;
     final nextName =
-        (versionName != null && versionName.isNotEmpty) ? versionName : currentName;
+        (versionName != null && versionName.isNotEmpty)
+            ? versionName
+            : currentName;
     final nextCode =
-        (versionCode != null && versionCode.isNotEmpty) ? versionCode : currentCode;
+        (versionCode != null && versionCode.isNotEmpty)
+            ? versionCode
+            : currentCode;
     final nextVersion =
         nextCode == null || nextCode.isEmpty ? nextName : '$nextName+$nextCode';
 
@@ -264,8 +273,9 @@ class BuildCommand {
   }
 
   bool _updatePersistentEnv(Directory targetDir, CliUi ui, String env) {
-    final envFactory =
-        File(_join(targetDir.path, 'lib/core/env/env_factory.dart'));
+    final envFactory = File(
+      _join(targetDir.path, 'lib/core/env/env_factory.dart'),
+    );
     if (!envFactory.existsSync()) {
       ui.error(
         'lib/core/env/env_factory.dart not found; cannot persist environment.',
@@ -274,8 +284,7 @@ class BuildCommand {
     }
 
     final content = envFactory.readAsStringSync();
-    final defaultValuePattern =
-        RegExp(r"defaultValue:\s*'(prod|stag|local)'");
+    final defaultValuePattern = RegExp(r"defaultValue:\s*'(prod|stag|local)'");
     if (!defaultValuePattern.hasMatch(content)) {
       ui.error(
         'Could not find FLAVOR defaultValue in lib/core/env/env_factory.dart.',

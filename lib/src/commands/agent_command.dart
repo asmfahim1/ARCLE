@@ -15,37 +15,41 @@ class AgentCommand {
   final Console console;
 
   static ArgParser parser() {
-    final parser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false);
+    final parser = ArgParser()..addFlag('help', abbr: 'h', negatable: false);
 
     // add subcommand
-    final addParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final addParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('add', addParser);
 
     // remove subcommand
-    final removeParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final removeParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('remove', removeParser);
 
     // switch subcommand
-    final switchParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final switchParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('switch', switchParser);
 
     // list subcommand
-    final listParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final listParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('list', listParser);
 
     // validate subcommand
-    final validateParser = ArgParser()
-      ..addFlag('help', abbr: 'h', negatable: false)
-      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final validateParser =
+        ArgParser()
+          ..addFlag('help', abbr: 'h', negatable: false)
+          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('validate', validateParser);
 
     return parser;
@@ -121,9 +125,7 @@ class AgentCommand {
     );
 
     if (!agentDir.existsSync()) {
-      ui.warn(
-        'Agent directory .$agentName/ not found — nothing to remove.',
-      );
+      ui.warn('Agent directory .$agentName/ not found — nothing to remove.');
       return ExitCode.success.code;
     }
 
@@ -204,9 +206,7 @@ class AgentCommand {
     final targetDir = Directory(cmd['path'] as String);
     ui.section('✅ Validating Agent Configurations');
 
-    final aiDir = Directory(
-      '${targetDir.path}${Platform.pathSeparator}.ai',
-    );
+    final aiDir = Directory('${targetDir.path}${Platform.pathSeparator}.ai');
     if (!aiDir.existsSync()) {
       ui.error('.ai/ directory not found. Run "arcle ai init" first.');
       return ExitCode.software.code;
@@ -242,19 +242,10 @@ class AgentCommand {
     return ExitCode.success.code;
   }
 
-  void _generateAgentConfig(
-    CliUi ui,
-    Directory targetDir,
-    String agentName,
-  ) {
+  void _generateAgentConfig(CliUi ui, Directory targetDir, String agentName) {
     switch (agentName) {
       case 'claude':
-        _writeFile(
-          ui,
-          targetDir,
-          '.claude/CLAUDE.md',
-          _claudePlaceholder(),
-        );
+        _writeFile(ui, targetDir, '.claude/CLAUDE.md', _claudePlaceholder());
         _writeFile(
           ui,
           targetDir,
@@ -277,12 +268,7 @@ class AgentCommand {
         );
         break;
       case 'gemini':
-        _writeFile(
-          ui,
-          targetDir,
-          '.gemini/GEMINI.md',
-          _geminiPlaceholder(),
-        );
+        _writeFile(ui, targetDir, '.gemini/GEMINI.md', _geminiPlaceholder());
         _writeFile(
           ui,
           targetDir,
@@ -307,12 +293,7 @@ class AgentCommand {
     }
   }
 
-  void _writeFile(
-    CliUi ui,
-    Directory base,
-    String relative,
-    String content,
-  ) {
+  void _writeFile(CliUi ui, Directory base, String relative, String content) {
     final norm = relative.replaceAll('/', Platform.pathSeparator);
     final file = File('${base.path}${Platform.pathSeparator}$norm');
     file.parent.createSync(recursive: true);
@@ -325,11 +306,11 @@ class AgentCommand {
   }
 
   String _agentDir(String agent) => switch (agent) {
-        'claude' => '.claude',
-        'codex' => '.codex',
-        'gemini' => '.gemini',
-        _ => '.custom-agent',
-      };
+    'claude' => '.claude',
+    'codex' => '.codex',
+    'gemini' => '.gemini',
+    _ => '.custom-agent',
+  };
 
   bool _isValidAgent(String name) => _supportedAgents.contains(name);
 

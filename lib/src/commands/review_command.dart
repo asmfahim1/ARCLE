@@ -14,29 +14,18 @@ class ReviewCommand {
   static ArgParser parser() {
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
-      ..addFlag(
-        'skip-analyze',
-        help: 'Skip dart analyze',
-        negatable: false,
-      )
-      ..addFlag(
-        'skip-format',
-        help: 'Skip dart format check',
-        negatable: false,
-      )
+      ..addFlag('skip-analyze', help: 'Skip dart analyze', negatable: false)
+      ..addFlag('skip-format', help: 'Skip dart format check', negatable: false)
       ..addFlag(
         'skip-missing-tests',
         help: 'Skip missing-tests scan',
         negatable: false,
       )
-      ..addFlag(
-        'test',
-        help: 'Run flutter test (opt-in)',
-        negatable: false,
-      )
+      ..addFlag('test', help: 'Run flutter test (opt-in)', negatable: false)
       ..addFlag(
         'coverage',
-        help: 'Run flutter test --coverage and report percentage (implies --test)',
+        help:
+            'Run flutter test --coverage and report percentage (implies --test)',
         negatable: false,
       )
       ..addFlag(
@@ -46,7 +35,8 @@ class ReviewCommand {
       )
       ..addFlag(
         'staged',
-        help: 'Diff only staged changes (git diff --staged); default: all uncommitted',
+        help:
+            'Diff only staged changes (git diff --staged); default: all uncommitted',
         negatable: false,
       )
       ..addOption(
@@ -86,21 +76,20 @@ class ReviewCommand {
 
     // ── dart analyze ─────────────────────────────────────────────────────────
     if (cmd['skip-analyze'] != true) {
-      final ok = await _runCheck(
-        ui, 'ANALYZE ', 'dart', const ['analyze'], targetDir,
-      );
+      final ok = await _runCheck(ui, 'ANALYZE ', 'dart', const [
+        'analyze',
+      ], targetDir);
       ok ? passed++ : failed++;
     }
 
     // ── dart format ──────────────────────────────────────────────────────────
     if (cmd['skip-format'] != true) {
-      final ok = await _runCheck(
-        ui,
-        'FORMAT  ',
-        'dart',
-        const ['format', '--output=none', '--set-exit-if-changed', '.'],
-        targetDir,
-      );
+      final ok = await _runCheck(ui, 'FORMAT  ', 'dart', const [
+        'format',
+        '--output=none',
+        '--set-exit-if-changed',
+        '.',
+      ], targetDir);
       ok ? passed++ : failed++;
     }
 
@@ -184,18 +173,15 @@ class ReviewCommand {
     }
   }
 
-  int _runMissingTestsScan(
-    CliUi ui,
-    Directory dir, {
-    required bool staged,
-  }) {
+  int _runMissingTestsScan(CliUi ui, Directory dir, {required bool staged}) {
     ui.step(
-        'TESTS   ', 'Scanning changed files for missing test counterparts...');
+      'TESTS   ',
+      'Scanning changed files for missing test counterparts...',
+    );
 
     final changedFiles = _getChangedDartFiles(dir, staged: staged);
     if (changedFiles == null) {
-      ui.warn(
-          'Not a git repository or git not available — skipping scan.');
+      ui.warn('Not a git repository or git not available — skipping scan.');
       return 0;
     }
 
@@ -229,9 +215,10 @@ class ReviewCommand {
 
   List<String>? _getChangedDartFiles(Directory dir, {required bool staged}) {
     try {
-      final args = staged
-          ? ['diff', '--staged', '--name-only']
-          : ['diff', 'HEAD', '--name-only'];
+      final args =
+          staged
+              ? ['diff', '--staged', '--name-only']
+              : ['diff', 'HEAD', '--name-only'];
       final result = Process.runSync(
         'git',
         args,
@@ -253,9 +240,10 @@ class ReviewCommand {
   String? _toTestPath(String libPath) {
     if (!libPath.startsWith('lib/')) return null;
     final withoutLib = libPath.substring('lib/'.length);
-    final withoutExt = withoutLib.endsWith('.dart')
-        ? withoutLib.substring(0, withoutLib.length - 5)
-        : withoutLib;
+    final withoutExt =
+        withoutLib.endsWith('.dart')
+            ? withoutLib.substring(0, withoutLib.length - 5)
+            : withoutLib;
     return 'test/${withoutExt}_test.dart';
   }
 
@@ -317,7 +305,8 @@ class ReviewCommand {
         if (output.isNotEmpty) {
           console.line('');
           console.line(
-              '  ── AI Review ($agent) ──────────────────────────────');
+            '  ── AI Review ($agent) ──────────────────────────────',
+          );
           for (final line in output.split('\n')) {
             console.line('  $line');
           }
@@ -325,11 +314,13 @@ class ReviewCommand {
         }
       } else {
         ui.warn(
-            '$agent returned non-zero exit — check that it is installed and authenticated.');
+          '$agent returned non-zero exit — check that it is installed and authenticated.',
+        );
       }
     } catch (_) {
       ui.warn(
-          'Could not run $agent — make sure it is installed and on your PATH.');
+        'Could not run $agent — make sure it is installed and on your PATH.',
+      );
     }
   }
 
@@ -341,7 +332,8 @@ class ReviewCommand {
     };
     for (final entry in candidates.entries) {
       final agentDir = Directory(
-          '${dir.path}${Platform.pathSeparator}${entry.key}');
+        '${dir.path}${Platform.pathSeparator}${entry.key}',
+      );
       if (agentDir.existsSync()) return entry.value;
     }
     return null;

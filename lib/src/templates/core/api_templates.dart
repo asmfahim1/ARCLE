@@ -2,9 +2,10 @@ import '../../state_management.dart';
 
 class ApiTemplates {
   static String dioClient(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     return '''
@@ -257,9 +258,10 @@ class BaseResponse<T> {
 ''';
 
   static String apiService(StateManagement state) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     return '''

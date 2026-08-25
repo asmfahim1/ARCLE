@@ -17,25 +17,26 @@ class DeleteCommand {
   final Console console;
 
   static ArgParser parser() {
-    final localeParser = ArgParser()
-      ..addOption(
-        'state',
-        abbr: 's',
-        allowed: const ['bloc', 'getx', 'riverpod'],
-        help: 'State management option (bloc, getx, riverpod)',
-      )
-      ..addOption(
-        'path',
-        abbr: 'p',
-        help: 'Directory of an ARCLE Flutter project',
-        defaultsTo: Directory.current.path,
-      )
-      ..addFlag(
-        'force',
-        abbr: 'f',
-        help: 'Skip confirmation prompt',
-        negatable: false,
-      );
+    final localeParser =
+        ArgParser()
+          ..addOption(
+            'state',
+            abbr: 's',
+            allowed: const ['bloc', 'getx', 'riverpod'],
+            help: 'State management option (bloc, getx, riverpod)',
+          )
+          ..addOption(
+            'path',
+            abbr: 'p',
+            help: 'Directory of an ARCLE Flutter project',
+            defaultsTo: Directory.current.path,
+          )
+          ..addFlag(
+            'force',
+            abbr: 'f',
+            help: 'Skip confirmation prompt',
+            negatable: false,
+          );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -65,9 +66,8 @@ class DeleteCommand {
 
   Future<int> _runDeleteLocale(ArgResults cmd) async {
     final ui = CliUi(console);
-    final langCode = cmd.rest.isNotEmpty
-        ? cmd.rest.first.trim().toLowerCase()
-        : null;
+    final langCode =
+        cmd.rest.isNotEmpty ? cmd.rest.first.trim().toLowerCase() : null;
 
     if (langCode == null || langCode.isEmpty) {
       ui.error('Missing locale code.');
@@ -158,10 +158,7 @@ class DeleteCommand {
     // 3. Update getx_localization.dart
     if (state == StateManagement.getx) {
       final getxFile = File(
-        _join(
-          targetDir.path,
-          'lib/core/localization/getx_localization.dart',
-        ),
+        _join(targetDir.path, 'lib/core/localization/getx_localization.dart'),
       );
       if (getxFile.existsSync()) {
         final original = getxFile.readAsStringSync();
@@ -176,8 +173,9 @@ class DeleteCommand {
     // 4. If assets/langs/ is now empty, remove pubspec entry
     final langsDir = Directory(_join(targetDir.path, 'assets/langs'));
     if (langsDir.existsSync()) {
-      final remaining =
-          langsDir.listSync().whereType<File>().where((f) => f.path.endsWith('.json'));
+      final remaining = langsDir.listSync().whereType<File>().where(
+        (f) => f.path.endsWith('.json'),
+      );
       if (remaining.isEmpty) {
         _removeLangsAsset(targetDir, ui);
       }
@@ -191,9 +189,7 @@ class DeleteCommand {
 
   String _removeSupportedLocale(String content, String langCode) {
     final lines = content.split('\n');
-    return lines
-        .where((l) => !l.contains("Locale('$langCode',"))
-        .join('\n');
+    return lines.where((l) => !l.contains("Locale('$langCode',")).join('\n');
   }
 
   String _updateIsSupported(
@@ -208,12 +204,13 @@ class DeleteCommand {
       final listMatch = RegExp(r'\[([^\]]*)\]').firstMatch(lines[i]);
       if (listMatch == null) continue;
 
-      final codes = listMatch
-          .group(1)!
-          .split(',')
-          .map((s) => s.trim().replaceAll("'", ''))
-          .where((s) => s.isNotEmpty)
-          .toList();
+      final codes =
+          listMatch
+              .group(1)!
+              .split(',')
+              .map((s) => s.trim().replaceAll("'", ''))
+              .where((s) => s.isNotEmpty)
+              .toList();
 
       if (add && !codes.contains(langCode)) {
         codes.add(langCode);
@@ -248,8 +245,8 @@ class DeleteCommand {
       if (!inSection) {
         if (trimmed.startsWith("'$localeKey':")) {
           inSection = true;
-          braceCount = '{'.allMatches(trimmed).length -
-              '}'.allMatches(trimmed).length;
+          braceCount =
+              '{'.allMatches(trimmed).length - '}'.allMatches(trimmed).length;
           continue; // skip this line (don't add to result)
         }
         result.add(line);
@@ -274,10 +271,11 @@ class DeleteCommand {
 
     final original = pubspecFile.readAsStringSync();
     final lines = original.split('\n');
-    final filtered = lines.where((l) {
-      final t = l.trim();
-      return t != '- assets/langs/' && t != '-assets/langs/';
-    }).toList();
+    final filtered =
+        lines.where((l) {
+          final t = l.trim();
+          return t != '- assets/langs/' && t != '-assets/langs/';
+        }).toList();
 
     if (filtered.length < lines.length) {
       pubspecFile.writeAsStringSync(filtered.join('\n'));
@@ -297,7 +295,6 @@ class DeleteCommand {
       'Usage:',
       '  arcle delete locale <code> [options]',
       '  arcle delete loc <code>    [options]   (short form)',
-      '  arcle delete loc --<code>  [options]   (flag short form)',
       '  arcle del    locale <code> [options]   (del alias)',
       '',
       'Options:',
@@ -308,7 +305,6 @@ class DeleteCommand {
       'Examples:',
       '  arcle delete locale en',
       '  arcle del locale bn',
-      '  arcle del loc --my',
     ].join('\n');
   }
 }

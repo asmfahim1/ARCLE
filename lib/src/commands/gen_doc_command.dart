@@ -36,12 +36,18 @@ class GenDocCommand {
         help: 'Directory of an existing Flutter project',
         defaultsTo: Directory.current.path,
       )
-      ..addFlag('force',
-          abbr: 'f',
-          help: 'Overwrite existing docs if they exist',
-          negatable: false)
-      ..addFlag('interactive',
-          abbr: 'i', help: 'Prompt for any missing values', defaultsTo: true);
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing docs if they exist',
+        negatable: false,
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Prompt for any missing values',
+        defaultsTo: true,
+      );
   }
 
   Future<int> run(ArgResults cmd) async {
@@ -94,7 +100,9 @@ class GenDocCommand {
     ui.step('PATH    ', targetDir.path);
     ui.step('STATE   ', '${state.label} ${_stateIcon(state)}');
     ui.step(
-        'FORMAT  ', docFormat == 'word' ? '📄 Word (.docx)' : '📑 PDF (.tex)');
+      'FORMAT  ',
+      docFormat == 'word' ? '📄 Word (.docx)' : '📑 PDF (.tex)',
+    );
     generator.generate(targetDir);
     return ExitCode.success.code;
   }

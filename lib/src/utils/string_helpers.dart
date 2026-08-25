@@ -29,13 +29,14 @@ class StringHelpers {
   static String toPascalCase(String input) {
     if (input.isEmpty) return input;
 
-    final words = input
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .split('_')
-        .where((word) => word.isNotEmpty)
-        .map((word) => _capitalizeFirst(word))
-        .toList();
+    final words =
+        input
+            .toLowerCase()
+            .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+            .split('_')
+            .where((word) => word.isNotEmpty)
+            .map((word) => _capitalizeFirst(word))
+            .toList();
 
     return words.join('');
   }

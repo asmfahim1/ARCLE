@@ -15,8 +15,10 @@ void main() {
     });
 
     test('parser supports custom path', () {
-      final results =
-          AutoGenDiCommand.parser().parse(['--path', '/custom/path']);
+      final results = AutoGenDiCommand.parser().parse([
+        '--path',
+        '/custom/path',
+      ]);
       expect(results['path'], '/custom/path');
     });
 

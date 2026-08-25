@@ -26,9 +26,13 @@ void main() {
 
     test('parser supports all format options', () {
       expect(
-          GenDocCommand.parser().parse(['--format', 'word'])['format'], 'word');
+        GenDocCommand.parser().parse(['--format', 'word'])['format'],
+        'word',
+      );
       expect(
-          GenDocCommand.parser().parse(['--format', 'pdf'])['format'], 'pdf');
+        GenDocCommand.parser().parse(['--format', 'pdf'])['format'],
+        'pdf',
+      );
     });
 
     test('parser supports help flag', () {
@@ -37,8 +41,12 @@ void main() {
     });
 
     test('parser supports short options', () {
-      final results =
-          GenDocCommand.parser().parse(['-p', '/custom/path', '-F', 'word']);
+      final results = GenDocCommand.parser().parse([
+        '-p',
+        '/custom/path',
+        '-F',
+        'word',
+      ]);
       expect(results['path'], '/custom/path');
       expect(results['format'], 'word');
     });

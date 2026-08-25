@@ -29,7 +29,8 @@ class RiverpodProvidersUpdater {
 
     if (!content.contains(importMarker)) {
       stderr(
-          'providers.dart markers not found; skipping Riverpod provider update.');
+        'providers.dart markers not found; skipping Riverpod provider update.',
+      );
       return;
     }
 

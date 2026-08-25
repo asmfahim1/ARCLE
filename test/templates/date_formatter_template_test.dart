@@ -11,9 +11,10 @@ void main() {
     });
 
     test('exposes formatter singleton and common UX methods', () {
-      final file = buildCommonProjectFiles(
-        StateManagement.riverpod,
-      )['lib/core/utils/date_formatter.dart'];
+      final file =
+          buildCommonProjectFiles(
+            StateManagement.riverpod,
+          )['lib/core/utils/date_formatter.dart'];
 
       expect(file, isNotNull);
       expect(file, contains('class DateFormatter'));

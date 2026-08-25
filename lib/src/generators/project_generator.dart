@@ -35,8 +35,11 @@ class ProjectGenerator {
 
   Console get console => ui.console;
 
-  Future<int> flutterCreate(String name, Directory baseDir,
-      {String? org}) async {
+  Future<int> flutterCreate(
+    String name,
+    Directory baseDir, {
+    String? org,
+  }) async {
     ui.step('FLUTTER ', 'Creating Flutter project...');
     final args = ['create', name];
     if (org != null && org.isNotEmpty) {
@@ -85,7 +88,8 @@ class ProjectGenerator {
     }
     if (result.exitCode != 0) {
       ui.error(
-          'Failed to install dependencies. Run "flutter pub get" manually.');
+        'Failed to install dependencies. Run "flutter pub get" manually.',
+      );
       return result.exitCode;
     }
     ui.success('All dependencies installed.');
@@ -217,11 +221,7 @@ class ProjectGenerator {
       onSkip: (_) {},
     );
 
-    writer.write(
-      targetDir,
-      'lib/core/di/app_di.dart',
-      DiTemplates.di(state),
-    );
+    writer.write(targetDir, 'lib/core/di/app_di.dart', DiTemplates.di(state));
     if (state == StateManagement.riverpod) {
       writer.write(
         targetDir,
@@ -255,8 +255,9 @@ class ProjectGenerator {
   }
 
   void _writeConfig(Directory base) {
-    final configFile =
-        File('${base.path}${Platform.pathSeparator}${ArcleConfig.filename}');
+    final configFile = File(
+      '${base.path}${Platform.pathSeparator}${ArcleConfig.filename}',
+    );
     if (configFile.existsSync() && !force) return;
     final config =
         ArcleConfig(state: state, createdAt: DateTime.now()).toYaml();
@@ -315,8 +316,9 @@ class ProjectGenerator {
   }
 
   void _updateAndroidGradle(Directory base) {
-    final androidDir =
-        Directory('${base.path}${Platform.pathSeparator}android');
+    final androidDir = Directory(
+      '${base.path}${Platform.pathSeparator}android',
+    );
     if (!androidDir.existsSync()) {
       ui.warn('Android folder not found; skipping Gradle updates.');
       return;
@@ -411,11 +413,9 @@ class ProjectGenerator {
 
     try {
       final isWindows = Platform.isWindows;
-      final result = Process.runSync(
-        isWindows ? 'where' : 'which',
-        ['flutter'],
-        runInShell: true,
-      );
+      final result = Process.runSync(isWindows ? 'where' : 'which', [
+        'flutter',
+      ], runInShell: true);
       if (result.exitCode != 0) return null;
       final output = result.stdout.toString().trim();
       if (output.isEmpty) return null;
@@ -432,8 +432,9 @@ class ProjectGenerator {
   }
 
   _AndroidBuildVersions? _readFlutterTemplateVersions(String flutterRoot) {
-    final templatesDir =
-        Directory(_join(flutterRoot, 'packages/flutter_tools/templates'));
+    final templatesDir = Directory(
+      _join(flutterRoot, 'packages/flutter_tools/templates'),
+    );
     if (!templatesDir.existsSync()) return null;
 
     final settingsFile = _findTemplateFile(
@@ -454,8 +455,10 @@ class ProjectGenerator {
     if (settingsFile != null) {
       final content = settingsFile.readAsStringSync();
       agpVersion = _extractPluginVersion(content, 'com.android.application');
-      kotlinVersion =
-          _extractPluginVersion(content, 'org.jetbrains.kotlin.android');
+      kotlinVersion = _extractPluginVersion(
+        content,
+        'org.jetbrains.kotlin.android',
+      );
     }
 
     final gradleWrapperFile = _findTemplateFile(
@@ -526,7 +529,9 @@ class ProjectGenerator {
   }
 
   String? _readPluginVersionFromSettings(
-      Directory androidDir, String pluginId) {
+    Directory androidDir,
+    String pluginId,
+  ) {
     final files = [
       File('${androidDir.path}${Platform.pathSeparator}settings.gradle'),
       File('${androidDir.path}${Platform.pathSeparator}settings.gradle.kts'),
@@ -567,9 +572,10 @@ class ProjectGenerator {
     final pattern = RegExp(r'distributionUrl=.*');
     final replacement =
         'distributionUrl=https\\://services.gradle.org/distributions/gradle-$gradleVersion-all.zip';
-    final updated = pattern.hasMatch(content)
-        ? content.replaceFirst(pattern, replacement)
-        : content;
+    final updated =
+        pattern.hasMatch(content)
+            ? content.replaceFirst(pattern, replacement)
+            : content;
     if (updated == content) return;
     file.writeAsStringSync(updated);
     ui.itemUpdated(
@@ -640,7 +646,9 @@ class ProjectGenerator {
 
     // Kotlin DSL uses `isCoreLibraryDesugaringEnabled = true`
     if (!_containsLinePattern(
-        lines, r'isCoreLibraryDesugaringEnabled\s*=\s*true')) {
+      lines,
+      r'isCoreLibraryDesugaringEnabled\s*=\s*true',
+    )) {
       changed = _ensureCoreLibraryDesugaringEnabledKotlin(lines) || changed;
     }
 
@@ -669,22 +677,22 @@ class ProjectGenerator {
 
   bool _ensureAndroidSdkVersionsGroovy(List<String> lines) {
     var changed = false;
-    changed = _replaceOrInsertAndroidLine(
+    changed =
+        _replaceOrInsertAndroidLine(
           lines,
-          patterns: [
-            r'^\s*compileSdk\s+\S+',
-            r'^\s*compileSdkVersion\s+\S+',
-          ],
+          patterns: [r'^\s*compileSdk\s+\S+', r'^\s*compileSdkVersion\s+\S+'],
           replacement: 'compileSdk 35',
         ) ||
         changed;
-    changed = _replaceOrInsertDefaultConfigLine(
+    changed =
+        _replaceOrInsertDefaultConfigLine(
           lines,
           patterns: [r'^\s*minSdk\s+\S+', r'^\s*minSdkVersion\s+\S+'],
           replacement: 'minSdk 21',
         ) ||
         changed;
-    changed = _replaceOrInsertDefaultConfigLine(
+    changed =
+        _replaceOrInsertDefaultConfigLine(
           lines,
           patterns: [r'^\s*targetSdk\s+\S+', r'^\s*targetSdkVersion\s+\S+'],
           replacement: 'targetSdk 35',
@@ -695,16 +703,15 @@ class ProjectGenerator {
 
   bool _ensureAndroidSdkVersionsKotlin(List<String> lines) {
     var changed = false;
-    changed = _replaceOrInsertAndroidLine(
+    changed =
+        _replaceOrInsertAndroidLine(
           lines,
-          patterns: [
-            r'^\s*compileSdk\s*=\s*\S+',
-            r'^\s*compileSdk\s+\S+',
-          ],
+          patterns: [r'^\s*compileSdk\s*=\s*\S+', r'^\s*compileSdk\s+\S+'],
           replacement: 'compileSdk = 35',
         ) ||
         changed;
-    changed = _replaceOrInsertDefaultConfigLine(
+    changed =
+        _replaceOrInsertDefaultConfigLine(
           lines,
           patterns: [
             r'^\s*minSdk\s*=\s*\S+',
@@ -714,7 +721,8 @@ class ProjectGenerator {
           replacement: 'minSdk = 21',
         ) ||
         changed;
-    changed = _replaceOrInsertDefaultConfigLine(
+    changed =
+        _replaceOrInsertDefaultConfigLine(
           lines,
           patterns: [
             r'^\s*targetSdk\s*=\s*\S+',
@@ -736,8 +744,9 @@ class ProjectGenerator {
       return true;
     }
 
-    final androidIndex =
-        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    final androidIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('android {'),
+    );
     if (androidIndex == -1) return false;
     final indent = _leadingWhitespace(lines[androidIndex]);
     lines.insert(androidIndex + 1, '$indent  $replacement');
@@ -753,16 +762,18 @@ class ProjectGenerator {
       return true;
     }
 
-    final defaultConfigIndex =
-        lines.indexWhere((line) => line.trim().startsWith('defaultConfig {'));
+    final defaultConfigIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('defaultConfig {'),
+    );
     if (defaultConfigIndex != -1) {
       final indent = _leadingWhitespace(lines[defaultConfigIndex]);
       lines.insert(defaultConfigIndex + 1, '$indent    $replacement');
       return true;
     }
 
-    final androidIndex =
-        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    final androidIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('android {'),
+    );
     if (androidIndex == -1) return false;
     final indent = _leadingWhitespace(lines[androidIndex]);
     lines.insertAll(androidIndex + 1, [
@@ -794,8 +805,9 @@ class ProjectGenerator {
   }
 
   bool _ensureCoreLibraryDesugaringEnabledKotlin(List<String> lines) {
-    final compileIndex =
-        lines.indexWhere((line) => line.trim().startsWith('compileOptions {'));
+    final compileIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('compileOptions {'),
+    );
     if (compileIndex != -1) {
       final indent = _leadingWhitespace(lines[compileIndex]);
       lines.insert(
@@ -805,8 +817,9 @@ class ProjectGenerator {
       return true;
     }
 
-    final androidIndex =
-        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    final androidIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('android {'),
+    );
     if (androidIndex == -1) return false;
     final indent = _leadingWhitespace(lines[androidIndex]);
     lines.insertAll(androidIndex + 1, [
@@ -818,13 +831,15 @@ class ProjectGenerator {
   }
 
   bool _ensureCoreLibraryDesugaringDependencyKotlin(List<String> lines) {
-    final depsIndex =
-        lines.indexWhere((line) => line.trim().startsWith('dependencies {'));
+    final depsIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('dependencies {'),
+    );
     if (depsIndex == -1) {
       lines.add('');
       lines.add('dependencies {');
       lines.add(
-          '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")');
+        '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")',
+      );
       lines.add('}');
       return true;
     }
@@ -837,8 +852,9 @@ class ProjectGenerator {
   }
 
   bool _ensureFlutterSourceKotlin(List<String> lines) {
-    final flutterIndex =
-        lines.indexWhere((line) => line.trim().startsWith('flutter {'));
+    final flutterIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('flutter {'),
+    );
     if (flutterIndex == -1) return false;
     final indent = _leadingWhitespace(lines[flutterIndex]);
     lines.insert(flutterIndex + 1, '$indent    source = "../.."');
@@ -851,8 +867,9 @@ class ProjectGenerator {
   }
 
   bool _ensureCoreLibraryDesugaringEnabled(List<String> lines) {
-    final compileIndex =
-        lines.indexWhere((line) => line.trim().startsWith('compileOptions {'));
+    final compileIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('compileOptions {'),
+    );
     if (compileIndex != -1) {
       final indent = _leadingWhitespace(lines[compileIndex]);
       lines.insert(
@@ -862,8 +879,9 @@ class ProjectGenerator {
       return true;
     }
 
-    final androidIndex =
-        lines.indexWhere((line) => line.trim().startsWith('android {'));
+    final androidIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('android {'),
+    );
     if (androidIndex == -1) return false;
     final indent = _leadingWhitespace(lines[androidIndex]);
     lines.insertAll(androidIndex + 1, [
@@ -875,13 +893,15 @@ class ProjectGenerator {
   }
 
   bool _ensureCoreLibraryDesugaringDependency(List<String> lines) {
-    final depsIndex =
-        lines.indexWhere((line) => line.trim().startsWith('dependencies {'));
+    final depsIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('dependencies {'),
+    );
     if (depsIndex == -1) {
       lines.add('');
       lines.add('dependencies {');
       lines.add(
-          "  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'");
+        "  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
+      );
       lines.add('}');
       return true;
     }
@@ -894,8 +914,9 @@ class ProjectGenerator {
   }
 
   bool _ensureFlutterSource(List<String> lines) {
-    final flutterIndex =
-        lines.indexWhere((line) => line.trim().startsWith('flutter {'));
+    final flutterIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('flutter {'),
+    );
     if (flutterIndex == -1) return false;
     final indent = _leadingWhitespace(lines[flutterIndex]);
     lines.insert(flutterIndex + 1, '$indent  source = "../.."');
@@ -1023,7 +1044,8 @@ end
       if (insertPoint != -1) {
         final permissionEntry =
             '\t<key>$key</key>\n\t<string>$value</string>\n';
-        content = content.substring(0, insertPoint) +
+        content =
+            content.substring(0, insertPoint) +
             permissionEntry +
             content.substring(insertPoint);
         changed = true;
@@ -1037,7 +1059,8 @@ end
 
     infoPlist.writeAsStringSync(content);
     ui.itemUpdated(
-        'ios${Platform.pathSeparator}Runner${Platform.pathSeparator}Info.plist');
+      'ios${Platform.pathSeparator}Runner${Platform.pathSeparator}Info.plist',
+    );
   }
 
   bool _containsLine(List<String> lines, String match) {
@@ -1101,8 +1124,9 @@ end
 
   String _addDevDependency(String content, String name, String version) {
     final lines = content.split('\n');
-    final depIndex =
-        lines.indexWhere((line) => line.trim() == 'dev_dependencies:');
+    final depIndex = lines.indexWhere(
+      (line) => line.trim() == 'dev_dependencies:',
+    );
     if (depIndex == -1) return content;
 
     final already = lines.any((line) => line.trimLeft().startsWith('$name:'));
@@ -1169,11 +1193,7 @@ end
       cleaned.add(line);
     }
 
-    final assetsPaths = [
-      'assets/images/',
-      'assets/icons/',
-      'assets/langs/',
-    ];
+    final assetsPaths = ['assets/images/', 'assets/icons/', 'assets/langs/'];
 
     final updatedLines = <String>[...cleaned];
     final updatedFlutterIndex = updatedLines.indexWhere(
@@ -1223,18 +1243,18 @@ end
       insertAfter = i + 1;
     }
 
-    final existing = updatedLines
-        .where((line) => line.trimLeft().startsWith('- '))
-        .map((line) => line.trim().substring(2))
-        .toSet();
+    final existing =
+        updatedLines
+            .where((line) => line.trimLeft().startsWith('- '))
+            .map((line) => line.trim().substring(2))
+            .toSet();
     final toAdd =
         assetsPaths.where((path) => !existing.contains(path)).toList();
     if (toAdd.isEmpty) return updatedLines.join('\n');
 
-    updatedLines.insertAll(
-      insertAfter,
-      [for (final path in toAdd) '$assetIndent- $path'],
-    );
+    updatedLines.insertAll(insertAfter, [
+      for (final path in toAdd) '$assetIndent- $path',
+    ]);
     return updatedLines.join('\n');
   }
 }

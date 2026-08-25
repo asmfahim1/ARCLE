@@ -21,25 +21,26 @@ class AddCommand {
   final Console console;
 
   static ArgParser parser() {
-    final localeParser = ArgParser()
-      ..addOption(
-        'state',
-        abbr: 's',
-        allowed: const ['bloc', 'getx', 'riverpod'],
-        help: 'State management option (bloc, getx, riverpod)',
-      )
-      ..addOption(
-        'path',
-        abbr: 'p',
-        help: 'Directory of an ARCLE Flutter project',
-        defaultsTo: Directory.current.path,
-      )
-      ..addFlag(
-        'force',
-        abbr: 'f',
-        help: 'Overwrite existing localization files',
-        negatable: false,
-      );
+    final localeParser =
+        ArgParser()
+          ..addOption(
+            'state',
+            abbr: 's',
+            allowed: const ['bloc', 'getx', 'riverpod'],
+            help: 'State management option (bloc, getx, riverpod)',
+          )
+          ..addOption(
+            'path',
+            abbr: 'p',
+            help: 'Directory of an ARCLE Flutter project',
+            defaultsTo: Directory.current.path,
+          )
+          ..addFlag(
+            'force',
+            abbr: 'f',
+            help: 'Overwrite existing localization files',
+            negatable: false,
+          );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -69,9 +70,8 @@ class AddCommand {
 
   Future<int> _runAddLocale(ArgResults cmd) async {
     final ui = CliUi(console);
-    final langCode = cmd.rest.isNotEmpty
-        ? cmd.rest.first.trim().toLowerCase()
-        : null;
+    final langCode =
+        cmd.rest.isNotEmpty ? cmd.rest.first.trim().toLowerCase() : null;
 
     if (langCode == null || langCode.isEmpty) {
       ui.error('Missing locale code.');
@@ -167,9 +167,7 @@ class AddCommand {
     required bool force,
     required CliUi ui,
   }) {
-    final locDir = Directory(
-      _join(targetDir.path, 'lib/core/localization'),
-    );
+    final locDir = Directory(_join(targetDir.path, 'lib/core/localization'));
     if (!locDir.existsSync()) locDir.createSync(recursive: true);
 
     _writeFile(
@@ -182,10 +180,7 @@ class AddCommand {
 
     if (state == StateManagement.getx) {
       _writeFile(
-        _join(
-          targetDir.path,
-          'lib/core/localization/getx_localization.dart',
-        ),
+        _join(targetDir.path, 'lib/core/localization/getx_localization.dart'),
         LocalizationTemplates.initialGetxLocalization(langCode, country),
         targetDir,
         force,
@@ -211,7 +206,9 @@ class AddCommand {
       final original = appStringsFile.readAsStringSync();
 
       if (original.contains("Locale('$langCode',")) {
-        ui.itemSkipped('lib/core/localization/app_strings.dart ($langCode already listed)');
+        ui.itemSkipped(
+          'lib/core/localization/app_strings.dart ($langCode already listed)',
+        );
       } else {
         var updated = _insertSupportedLocale(original, langCode, country);
         if (state != StateManagement.getx) {
@@ -224,10 +221,7 @@ class AddCommand {
 
     if (state == StateManagement.getx) {
       final getxFile = File(
-        _join(
-          targetDir.path,
-          'lib/core/localization/getx_localization.dart',
-        ),
+        _join(targetDir.path, 'lib/core/localization/getx_localization.dart'),
       );
       if (getxFile.existsSync()) {
         final localeKey = '${langCode}_$country';
@@ -325,12 +319,13 @@ class AddCommand {
       final listMatch = RegExp(r'\[([^\]]*)\]').firstMatch(lines[i]);
       if (listMatch == null) continue;
 
-      final codes = listMatch
-          .group(1)!
-          .split(',')
-          .map((s) => s.trim().replaceAll("'", ''))
-          .where((s) => s.isNotEmpty)
-          .toList();
+      final codes =
+          listMatch
+              .group(1)!
+              .split(',')
+              .map((s) => s.trim().replaceAll("'", ''))
+              .where((s) => s.isNotEmpty)
+              .toList();
 
       if (add && !codes.contains(langCode)) {
         codes.add(langCode);
@@ -473,9 +468,10 @@ class AddCommand {
   }
 
   String _relative(String base, String full) {
-    final b = base.endsWith(Platform.pathSeparator)
-        ? base
-        : '$base${Platform.pathSeparator}';
+    final b =
+        base.endsWith(Platform.pathSeparator)
+            ? base
+            : '$base${Platform.pathSeparator}';
     return full.startsWith(b) ? full.substring(b.length) : full;
   }
 
@@ -484,7 +480,6 @@ class AddCommand {
       'Usage:',
       '  arcle add locale <code> [options]',
       '  arcle add loc <code>    [options]   (short form)',
-      '  arcle add loc --<code>  [options]   (flag short form)',
       '',
       'Options:',
       '  -s, --state   bloc | getx | riverpod',
@@ -495,7 +490,6 @@ class AddCommand {
       '  arcle add locale en',
       '  arcle add locale bn',
       '  arcle add locale my               # Myanmar/Burmese',
-      '  arcle add loc --fr                # French (flag short form)',
     ].join('\n');
   }
 }

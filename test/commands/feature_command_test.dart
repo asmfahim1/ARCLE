@@ -19,32 +19,51 @@ void main() {
     });
 
     test('create subcommand supports state option', () {
-      final results =
-          FeatureCommand.parser().parse(['create', '--state', 'bloc', 'auth']);
+      final results = FeatureCommand.parser().parse([
+        'create',
+        '--state',
+        'bloc',
+        'auth',
+      ]);
       expect(results.command!['state'], 'bloc');
     });
 
     test('create subcommand supports all state options', () {
       expect(
-        FeatureCommand.parser()
-            .parse(['create', '--state', 'bloc', 'auth']).command!['state'],
+        FeatureCommand.parser().parse([
+          'create',
+          '--state',
+          'bloc',
+          'auth',
+        ]).command!['state'],
         'bloc',
       );
       expect(
-        FeatureCommand.parser()
-            .parse(['create', '--state', 'getx', 'auth']).command!['state'],
+        FeatureCommand.parser().parse([
+          'create',
+          '--state',
+          'getx',
+          'auth',
+        ]).command!['state'],
         'getx',
       );
       expect(
-        FeatureCommand.parser()
-            .parse(['create', '--state', 'riverpod', 'auth']).command!['state'],
+        FeatureCommand.parser().parse([
+          'create',
+          '--state',
+          'riverpod',
+          'auth',
+        ]).command!['state'],
         'riverpod',
       );
     });
 
     test('create subcommand supports force flag', () {
-      final results =
-          FeatureCommand.parser().parse(['create', '--force', 'auth']);
+      final results = FeatureCommand.parser().parse([
+        'create',
+        '--force',
+        'auth',
+      ]);
       expect(results.command!['force'], isTrue);
     });
 

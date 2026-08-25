@@ -9,21 +9,29 @@ class FeatureTemplates {
     final files = <String, String>{
       'lib/features/$snake/README.md': _readme(name),
       'lib/features/$snake/data/README.md': _layerReadme('Data'),
-      'lib/features/$snake/data/model/${snake}_model.dart':
-          _model(snake, className),
+      'lib/features/$snake/data/model/${snake}_model.dart': _model(
+        snake,
+        className,
+      ),
       'lib/features/$snake/data/source/${snake}_remote_source.dart':
           _remoteSource(state, snake, className),
       'lib/features/$snake/data/repository/${snake}_repository_impl.dart':
           _repositoryImpl(state, snake, className),
       'lib/features/$snake/domain/README.md': _layerReadme('Domain'),
-      'lib/features/$snake/domain/entity/${snake}_entity.dart':
-          _entity(snake, className),
+      'lib/features/$snake/domain/entity/${snake}_entity.dart': _entity(
+        snake,
+        className,
+      ),
       'lib/features/$snake/domain/repository/${snake}_repository.dart':
           _repositoryContract(snake, className),
-      'lib/features/$snake/domain/usecase/${snake}_usecase.dart':
-          _usecase(state, snake, className),
-      'lib/features/$snake/presentation/README.md':
-          _layerReadme('Presentation'),
+      'lib/features/$snake/domain/usecase/${snake}_usecase.dart': _usecase(
+        state,
+        snake,
+        className,
+      ),
+      'lib/features/$snake/presentation/README.md': _layerReadme(
+        'Presentation',
+      ),
       'lib/features/$snake/presentation/widgets/${snake}_card.dart':
           _cardWidget(snake, className),
     };
@@ -47,12 +55,18 @@ class FeatureTemplates {
     return {
       'lib/features/$snake/presentation/pages/${snake}_screen.dart':
           _blocScreen(snake, className),
-      'lib/features/$snake/presentation/bloc/${snake}_bloc.dart':
-          _blocBloc(snake, className),
-      'lib/features/$snake/presentation/bloc/${snake}_event.dart':
-          _blocEvent(snake, className),
-      'lib/features/$snake/presentation/bloc/${snake}_state.dart':
-          _blocState(snake, className),
+      'lib/features/$snake/presentation/bloc/${snake}_bloc.dart': _blocBloc(
+        snake,
+        className,
+      ),
+      'lib/features/$snake/presentation/bloc/${snake}_event.dart': _blocEvent(
+        snake,
+        className,
+      ),
+      'lib/features/$snake/presentation/bloc/${snake}_state.dart': _blocState(
+        snake,
+        className,
+      ),
     };
   }
 
@@ -68,7 +82,9 @@ class FeatureTemplates {
   }
 
   static Map<String, String> _riverpodPresentation(
-      String snake, String className) {
+    String snake,
+    String className,
+  ) {
     return {
       'lib/features/$snake/presentation/pages/${snake}_screen.dart':
           _riverpodScreen(snake, className),
@@ -142,9 +158,10 @@ abstract class ${className}Repository {
     String snake,
     String className,
   ) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno =
         state == StateManagement.bloc ? '@lazySingleton\n' : '';
     // Use the snake name to preserve word boundaries for endpoints.
@@ -179,13 +196,18 @@ class ${className}RemoteSource {
   }
 
   static String _repositoryImpl(
-      StateManagement state, String snake, String className) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
-    final injectableAnno = state == StateManagement.bloc
-        ? '@LazySingleton(as: ${className}Repository)\n'
-        : '';
+    StateManagement state,
+    String snake,
+    String className,
+  ) {
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
+    final injectableAnno =
+        state == StateManagement.bloc
+            ? '@LazySingleton(as: ${className}Repository)\n'
+            : '';
     return '''
 import '../../../../core/response_handler/api_failure.dart';
 import '../../../../core/utils/result.dart';
@@ -217,10 +239,14 @@ class ${className}RepositoryImpl implements ${className}Repository {
   }
 
   static String _usecase(
-      StateManagement state, String snake, String className) {
-    final injectableImport = state == StateManagement.bloc
-        ? "import 'package:injectable/injectable.dart';\n"
-        : '';
+    StateManagement state,
+    String snake,
+    String className,
+  ) {
+    final injectableImport =
+        state == StateManagement.bloc
+            ? "import 'package:injectable/injectable.dart';\n"
+            : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 import '../../../../core/utils/result.dart';

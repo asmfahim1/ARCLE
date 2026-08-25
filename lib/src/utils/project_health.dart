@@ -110,7 +110,8 @@ class ProjectHealthValidator {
           severity: ProjectIssueSeverity.warning,
           code: 'invalid_arcle_config',
           message: 'arcle.yaml exists but could not be parsed.',
-          fixDescription: 'Rewrite arcle.yaml with a valid state and timestamp.',
+          fixDescription:
+              'Rewrite arcle.yaml with a valid state and timestamp.',
         ),
       );
     }
@@ -160,11 +161,7 @@ class ProjectHealthValidator {
 
     Future<void> checkTool(String tool) async {
       try {
-        final result = await Process.run(
-          tool,
-          ['--version'],
-          runInShell: true,
-        );
+        final result = await Process.run(tool, ['--version'], runInShell: true);
         if (result.exitCode != 0) {
           issues.add(
             ProjectHealthIssue(
@@ -201,10 +198,9 @@ class ProjectHealthValidator {
     ];
 
     for (final relativePath in requiredPaths) {
-      final entityType = FileSystemEntity.typeSync(_join(
-        targetDir.path,
-        relativePath,
-      ));
+      final entityType = FileSystemEntity.typeSync(
+        _join(targetDir.path, relativePath),
+      );
       if (entityType == FileSystemEntityType.notFound) {
         issues.add(
           ProjectHealthIssue(
@@ -238,9 +234,12 @@ class ProjectHealthValidator {
 
     switch (state) {
       case StateManagement.bloc:
-        requiredDependencies.addAll(
-          ['get_it', 'injectable', 'equatable', 'flutter_bloc'],
-        );
+        requiredDependencies.addAll([
+          'get_it',
+          'injectable',
+          'equatable',
+          'flutter_bloc',
+        ]);
         break;
       case StateManagement.getx:
         requiredDependencies.add('get');
@@ -295,9 +294,7 @@ class ProjectHealthValidator {
     StateManagement state,
   ) {
     final issues = <ProjectHealthIssue>[];
-    final requiredFiles = <String>[
-      'lib/core/di/app_di.dart',
-    ];
+    final requiredFiles = <String>['lib/core/di/app_di.dart'];
 
     switch (state) {
       case StateManagement.bloc:
@@ -323,9 +320,10 @@ class ProjectHealthValidator {
             severity: ProjectIssueSeverity.warning,
             code: 'missing_${_issueSafe(relativePath)}',
             message: 'Missing expected ARCLE file: $relativePath',
-            fixDescription: relativePath.startsWith('lib/core/di/')
-                ? 'Regenerate ARCLE DI files.'
-                : null,
+            fixDescription:
+                relativePath.startsWith('lib/core/di/')
+                    ? 'Regenerate ARCLE DI files.'
+                    : null,
           ),
         );
       }
@@ -337,8 +335,10 @@ class ProjectHealthValidator {
   StateManagement? _readConfigState(File configFile) {
     if (!configFile.existsSync()) return null;
     final content = configFile.readAsStringSync();
-    final match = RegExp(r'^\s*state\s*:\s*(.+)\s*$', multiLine: true)
-        .firstMatch(content);
+    final match = RegExp(
+      r'^\s*state\s*:\s*(.+)\s*$',
+      multiLine: true,
+    ).firstMatch(content);
     if (match == null) return null;
     return StateManagement.fromInput(match.group(1)!.trim());
   }

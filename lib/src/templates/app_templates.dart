@@ -69,20 +69,23 @@ Future<void> bootstrap() async {
 
   static String app(StateManagement state) {
     final stateImports = switch (state) {
-      StateManagement.bloc => "import 'package:flutter_bloc/flutter_bloc.dart';\n"
-          "import '../core/di/injection.dart';\n"
-          "import '../core/di/bloc_providers.dart';\n"
-          "import '../features/settings/presentation/app_settings_cubit.dart';\n"
-          "import '../features/settings/presentation/app_settings_state.dart';\n",
-      StateManagement.getx => "import 'package:get/get.dart';\n"
-          "import '../features/settings/presentation/app_settings_controller.dart';\n"
-          "import '../core/localization/getx_localization.dart';\n",
+      StateManagement.bloc =>
+        "import 'package:flutter_bloc/flutter_bloc.dart';\n"
+            "import '../core/di/injection.dart';\n"
+            "import '../core/di/bloc_providers.dart';\n"
+            "import '../features/settings/presentation/app_settings_cubit.dart';\n"
+            "import '../features/settings/presentation/app_settings_state.dart';\n",
+      StateManagement.getx =>
+        "import 'package:get/get.dart';\n"
+            "import '../features/settings/presentation/app_settings_controller.dart';\n"
+            "import '../core/localization/getx_localization.dart';\n",
       StateManagement.riverpod =>
         "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
             "import '../features/settings/presentation/app_settings_provider.dart';\n",
     };
 
-    final routeImports = "import '../core/route_handler/app_router.dart';\n"
+    final routeImports =
+        "import '../core/route_handler/app_router.dart';\n"
         "import '../core/route_handler/app_routes.dart';\n";
 
     final appBody = switch (state) {

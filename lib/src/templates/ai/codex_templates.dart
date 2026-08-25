@@ -1,8 +1,7 @@
 import '../../state_management.dart';
 
 class CodexTemplates {
-  static String instructionsMd(String projectName, StateManagement state) =>
-      '''
+  static String instructionsMd(String projectName, StateManagement state) => '''
 # Codex Instructions — $projectName
 
 This file provides context and instructions for OpenAI Codex when working on this project.

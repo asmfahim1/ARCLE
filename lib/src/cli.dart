@@ -1,8 +1,11 @@
 import 'package:args/args.dart';
 import 'package:io/io.dart';
+import 'commands/add_command.dart';
 import 'commands/build_command.dart';
+import 'commands/ci_command.dart';
 import 'commands/configure_ai_command.dart';
 import 'commands/create_command.dart';
+import 'commands/delete_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/feature_command.dart';
 import 'commands/auto_gen_di_command.dart';
@@ -65,16 +68,25 @@ class Cli {
         return ConfigureAiCommand(console).run(cmd);
       case 'review':
         return ReviewCommand(console).run(cmd);
+      case 'ci':
+        return CiCommand(console).run(cmd);
+      case 'add':
+        return AddCommand(console).run(cmd);
+      case 'delete':
+        return DeleteCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
-        final suggestion =
-            CommandSuggester().suggest(cmd.name!, _commandNames());
+        final suggestion = CommandSuggester().suggest(
+          cmd.name!,
+          _commandNames(),
+        );
         if (suggestion != null) {
           ui.info('Did you mean: ${console.bold('arcle $suggestion')}?');
         }
         console.line('');
         ui.info(
-            'Run ${console.bold('arcle --help')} to see available commands.');
+          'Run ${console.bold('arcle --help')} to see available commands.',
+        );
         return ExitCode.usage.code;
     }
   }
@@ -100,6 +112,7 @@ class Cli {
       'ver': 'verify',
       'audit': 'review',
       'agent-init': 'configure-ai',
+      'del': 'delete',
     };
 
     final shortcutReplacement = shortcutAliases[args.first];
@@ -133,6 +146,9 @@ class Cli {
     parser.addCommand('verify', VerifyCommand.parser());
     parser.addCommand('configure-ai', ConfigureAiCommand.parser());
     parser.addCommand('review', ReviewCommand.parser());
+    parser.addCommand('ci', CiCommand.parser());
+    parser.addCommand('add', AddCommand.parser());
+    parser.addCommand('delete', DeleteCommand.parser());
     return parser;
   }
 
@@ -163,6 +179,10 @@ class Cli {
       'agent-init',
       'review',
       'audit',
+      'ci',
+      'add',
+      'delete',
+      'del',
     ];
   }
 
@@ -200,6 +220,10 @@ class Cli {
       '         alias: agent-init',
       '    🔍  review           Pre-commit quality gate (analyze, format, missing tests)',
       '         alias: audit, -r',
+      '    🚀  ci add <target>  Add a CI/CD pipeline (github, gitlab)',
+      '    🌍  add locale <c>   Add a locale to the project',
+      '    🗑️   delete locale   Remove a locale from the project',
+      '         alias: del',
       '',
       '  DI COMMAND DIFFERENCES',
       '    ─────────────────────────────────────────────────────────────',
@@ -225,6 +249,10 @@ class Cli {
       '    arcle -r                             # Shortcut for review',
       '    arcle build apk --release            # Build release APK',
       '    arcle br                             # Shortcut for build apk --release',
+      '    arcle ci add github                  # Add a GitHub Actions pipeline',
+      '    arcle ci add gitlab --coverage        # Add a GitLab CI pipeline with coverage',
+      '    arcle add locale bn                  # Add a locale',
+      '    arcle delete locale bn               # Remove a locale',
       '',
       '  DI COMMAND EXAMPLES',
       '    arcle gen-di                         # Quick DI update (manual build)',

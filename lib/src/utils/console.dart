@@ -1,7 +1,8 @@
 import 'dart:io';
 
 class Console {
-  Console({bool? enableColor}) : _enableColor = enableColor ?? stdout.supportsAnsiEscapes;
+  Console({bool? enableColor})
+    : _enableColor = enableColor ?? stdout.supportsAnsiEscapes;
 
   final bool _enableColor;
 

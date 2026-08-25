@@ -7,24 +7,76 @@ class LocalizationTemplates {
   /// Falls back to the language code uppercased for unknown codes.
   static String countryCode(String langCode) {
     const codes = <String, String>{
-      'en': 'US', 'bn': 'BD', 'my': 'MM', 'ar': 'SA',
-      'fr': 'FR', 'de': 'DE', 'es': 'ES', 'zh': 'CN',
-      'hi': 'IN', 'ja': 'JP', 'ko': 'KR', 'pt': 'BR',
-      'ru': 'RU', 'it': 'IT', 'tr': 'TR', 'vi': 'VN',
-      'th': 'TH', 'id': 'ID', 'ms': 'MY', 'ur': 'PK',
-      'nl': 'NL', 'pl': 'PL', 'uk': 'UA', 'fa': 'IR',
-      'he': 'IL', 'sw': 'KE', 'ro': 'RO', 'cs': 'CZ',
-      'hu': 'HU', 'el': 'GR', 'fi': 'FI', 'sv': 'SE',
-      'da': 'DK', 'nb': 'NO', 'sk': 'SK', 'bg': 'BG',
-      'hr': 'HR', 'sr': 'RS', 'lt': 'LT', 'lv': 'LV',
-      'et': 'EE', 'sl': 'SI', 'ka': 'GE', 'az': 'AZ',
-      'kk': 'KZ', 'uz': 'UZ', 'af': 'ZA', 'sq': 'AL',
-      'hy': 'AM', 'be': 'BY', 'bs': 'BA', 'mk': 'MK',
-      'mn': 'MN', 'ne': 'NP', 'si': 'LK', 'tl': 'PH',
-      'ta': 'IN', 'te': 'IN', 'ml': 'IN', 'kn': 'IN',
-      'gu': 'IN', 'pa': 'PK', 'am': 'ET', 'so': 'SO',
-      'km': 'KH', 'lo': 'LA', 'bo': 'CN', 'ky': 'KG',
-      'tg': 'TJ', 'tk': 'TM',
+      'en': 'US',
+      'bn': 'BD',
+      'my': 'MM',
+      'ar': 'SA',
+      'fr': 'FR',
+      'de': 'DE',
+      'es': 'ES',
+      'zh': 'CN',
+      'hi': 'IN',
+      'ja': 'JP',
+      'ko': 'KR',
+      'pt': 'BR',
+      'ru': 'RU',
+      'it': 'IT',
+      'tr': 'TR',
+      'vi': 'VN',
+      'th': 'TH',
+      'id': 'ID',
+      'ms': 'MY',
+      'ur': 'PK',
+      'nl': 'NL',
+      'pl': 'PL',
+      'uk': 'UA',
+      'fa': 'IR',
+      'he': 'IL',
+      'sw': 'KE',
+      'ro': 'RO',
+      'cs': 'CZ',
+      'hu': 'HU',
+      'el': 'GR',
+      'fi': 'FI',
+      'sv': 'SE',
+      'da': 'DK',
+      'nb': 'NO',
+      'sk': 'SK',
+      'bg': 'BG',
+      'hr': 'HR',
+      'sr': 'RS',
+      'lt': 'LT',
+      'lv': 'LV',
+      'et': 'EE',
+      'sl': 'SI',
+      'ka': 'GE',
+      'az': 'AZ',
+      'kk': 'KZ',
+      'uz': 'UZ',
+      'af': 'ZA',
+      'sq': 'AL',
+      'hy': 'AM',
+      'be': 'BY',
+      'bs': 'BA',
+      'mk': 'MK',
+      'mn': 'MN',
+      'ne': 'NP',
+      'si': 'LK',
+      'tl': 'PH',
+      'ta': 'IN',
+      'te': 'IN',
+      'ml': 'IN',
+      'kn': 'IN',
+      'gu': 'IN',
+      'pa': 'PK',
+      'am': 'ET',
+      'so': 'SO',
+      'km': 'KH',
+      'lo': 'LA',
+      'bo': 'CN',
+      'ky': 'KG',
+      'tg': 'TJ',
+      'tk': 'TM',
     };
     return codes[langCode.toLowerCase()] ?? langCode.toUpperCase();
   }
@@ -76,10 +128,7 @@ class LocalizationTemplates {
     return _initialDefaultAppStrings(langCode, country);
   }
 
-  static String _initialDefaultAppStrings(
-    String langCode,
-    String country,
-  ) =>
+  static String _initialDefaultAppStrings(String langCode, String country) =>
       '''
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -181,7 +230,6 @@ class Language extends Translations {
       };
 }
 ''';
-
 
   static String appStrings(StateManagement state) {
     if (state == StateManagement.getx) {

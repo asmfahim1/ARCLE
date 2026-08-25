@@ -23,9 +23,10 @@ class FirstRunTracker {
       return '$appData${Platform.pathSeparator}arcle${Platform.pathSeparator}first_run';
     }
     final home = env['HOME'] ?? env['USERPROFILE'];
-    final base = (home != null && home.trim().isNotEmpty)
-        ? home
-        : Directory.current.path;
+    final base =
+        (home != null && home.trim().isNotEmpty)
+            ? home
+            : Directory.current.path;
     return '$base${Platform.pathSeparator}.arcle${Platform.pathSeparator}first_run';
   }
 }

@@ -13,7 +13,7 @@ import '../utils/state_picker.dart';
 
 class DoctorCommand {
   DoctorCommand(this.console, {ProjectHealthValidator? validator})
-      : validator = validator ?? ProjectHealthValidator();
+    : validator = validator ?? ProjectHealthValidator();
 
   final Console console;
   final ProjectHealthValidator validator;
@@ -192,10 +192,8 @@ class DoctorCommand {
       }
     }
 
-    final config = ArcleConfig(
-      state: state,
-      createdAt: DateTime.now(),
-    ).toYaml();
+    final config =
+        ArcleConfig(state: state, createdAt: DateTime.now()).toYaml();
     file.writeAsStringSync(config);
     ui.itemUpdated(ArcleConfig.filename);
   }

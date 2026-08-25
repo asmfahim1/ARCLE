@@ -46,8 +46,9 @@ class ConfigureAiCommand {
     final targetDir = Directory(cmd['path'] as String);
     final force = cmd['force'] as bool;
 
-    final pubspec =
-        File('${targetDir.path}${Platform.pathSeparator}pubspec.yaml');
+    final pubspec = File(
+      '${targetDir.path}${Platform.pathSeparator}pubspec.yaml',
+    );
     if (!pubspec.existsSync()) {
       ui.error('No pubspec.yaml found. Run from a Flutter project directory.');
       ui.info('Usage: arcle configure-ai [--path <project_dir>]');
@@ -71,8 +72,7 @@ class ConfigureAiCommand {
       }
     }
 
-    final aiDir =
-        Directory('${targetDir.path}${Platform.pathSeparator}.ai');
+    final aiDir = Directory('${targetDir.path}${Platform.pathSeparator}.ai');
     if (aiDir.existsSync() && !force) {
       ui.warn('.ai/ already exists. Use --force to overwrite.');
       console.line('');
@@ -106,8 +106,10 @@ class ConfigureAiCommand {
 
     final files = <String, String>{
       '.ai/settings.yaml': AgentTemplates.settingsYaml(state),
-      '.ai/project-context.md':
-          AgentTemplates.projectContext(projectName, state),
+      '.ai/project-context.md': AgentTemplates.projectContext(
+        projectName,
+        state,
+      ),
       '.ai/architecture-rules.md': AgentTemplates.architectureRules(state),
       '.ai/coding-rules.md': AgentTemplates.codingRules(state),
       '.ai/security-rules.md': AgentTemplates.securityRules(),
@@ -119,18 +121,18 @@ class ConfigureAiCommand {
     };
 
     if (writeClaude) {
-      files['.claude/CLAUDE.md'] =
-          ClaudeTemplates.claudeMd(projectName, state);
+      files['.claude/CLAUDE.md'] = ClaudeTemplates.claudeMd(projectName, state);
       files['.claude/settings.json'] = ClaudeTemplates.claudeSettings();
     }
     if (writeCodex) {
-      files['.codex/instructions.md'] =
-          CodexTemplates.instructionsMd(projectName, state);
+      files['.codex/instructions.md'] = CodexTemplates.instructionsMd(
+        projectName,
+        state,
+      );
       files['.codex/settings.json'] = CodexTemplates.codexSettings(state);
     }
     if (writeGemini) {
-      files['.gemini/GEMINI.md'] =
-          GeminiTemplates.geminiMd(projectName, state);
+      files['.gemini/GEMINI.md'] = GeminiTemplates.geminiMd(projectName, state);
       files['.gemini/settings.json'] = GeminiTemplates.geminiSettings(state);
     }
 
@@ -149,10 +151,10 @@ class ConfigureAiCommand {
     required CliUi ui,
   }) {
     for (final entry in files.entries) {
-      final relativePath =
-          entry.key.replaceAll('/', Platform.pathSeparator);
+      final relativePath = entry.key.replaceAll('/', Platform.pathSeparator);
       final file = File(
-          '${targetDir.path}${Platform.pathSeparator}$relativePath');
+        '${targetDir.path}${Platform.pathSeparator}$relativePath',
+      );
       if (file.existsSync() && !force) {
         ui.itemSkipped(entry.key);
         continue;

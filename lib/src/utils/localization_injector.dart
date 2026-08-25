@@ -16,7 +16,9 @@ class LocalizationInjector {
     }
 
     // Inject into every JSON file found under assets/langs/
-    final langsDir = Directory('${base.path}${Platform.pathSeparator}assets${Platform.pathSeparator}langs');
+    final langsDir = Directory(
+      '${base.path}${Platform.pathSeparator}assets${Platform.pathSeparator}langs',
+    );
     if (!langsDir.existsSync()) return;
 
     for (final entity in langsDir.listSync()) {

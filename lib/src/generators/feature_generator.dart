@@ -37,17 +37,23 @@ class FeatureGenerator {
       writer.write(base, entry.key, entry.value);
     }
 
-    RouteUpdater(stdout: ui.log, stderr: ui.logError)
-        .addFeatureRoute(base, safeName, state);
+    RouteUpdater(
+      stdout: ui.log,
+      stderr: ui.logError,
+    ).addFeatureRoute(base, safeName, state);
 
     if (state == StateManagement.bloc) {
-      BlocProvidersUpdater(stdout: ui.log, stderr: ui.logError)
-          .addFeatureBlocProvider(base, safeName);
+      BlocProvidersUpdater(
+        stdout: ui.log,
+        stderr: ui.logError,
+      ).addFeatureBlocProvider(base, safeName);
     }
 
     if (state == StateManagement.riverpod) {
-      RiverpodProvidersUpdater(stdout: ui.log, stderr: ui.logError)
-          .addFeatureProviders(base, safeName);
+      RiverpodProvidersUpdater(
+        stdout: ui.log,
+        stderr: ui.logError,
+      ).addFeatureProviders(base, safeName);
     }
 
     EndpointInjector.inject(base, safeName);

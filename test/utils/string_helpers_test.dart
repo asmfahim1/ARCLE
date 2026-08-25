@@ -5,31 +5,43 @@ void main() {
   group('StringHelpers', () {
     group('snakeCase', () {
       test('converts camelCase to snake_case', () {
-        expect(StringHelpers.snakeCase('myAwesomeVariable'),
-            'my_awesome_variable');
+        expect(
+          StringHelpers.snakeCase('myAwesomeVariable'),
+          'my_awesome_variable',
+        );
         expect(StringHelpers.snakeCase('myVariable'), 'my_variable');
       });
 
       test('converts PascalCase to snake_case', () {
-        expect(StringHelpers.snakeCase('MyAwesomeVariable'),
-            'my_awesome_variable');
         expect(
-            StringHelpers.snakeCase('ProfileQuotation'), 'profile_quotation');
+          StringHelpers.snakeCase('MyAwesomeVariable'),
+          'my_awesome_variable',
+        );
+        expect(
+          StringHelpers.snakeCase('ProfileQuotation'),
+          'profile_quotation',
+        );
       });
 
       test('handles hyphens', () {
-        expect(StringHelpers.snakeCase('my-awesome-variable'),
-            'my_awesome_variable');
+        expect(
+          StringHelpers.snakeCase('my-awesome-variable'),
+          'my_awesome_variable',
+        );
       });
 
       test('handles spaces', () {
-        expect(StringHelpers.snakeCase('my awesome variable'),
-            'my_awesome_variable');
+        expect(
+          StringHelpers.snakeCase('my awesome variable'),
+          'my_awesome_variable',
+        );
       });
 
       test('handles special characters', () {
-        expect(StringHelpers.snakeCase('my@awesome#variable'),
-            'myawesomevariable');
+        expect(
+          StringHelpers.snakeCase('my@awesome#variable'),
+          'myawesomevariable',
+        );
       });
 
       test('handles empty string', () {
@@ -43,15 +55,19 @@ void main() {
 
     group('toPascalCase', () {
       test('converts snake_case to PascalCase', () {
-        expect(StringHelpers.toPascalCase('profile_quotation'),
-            'ProfileQuotation');
+        expect(
+          StringHelpers.toPascalCase('profile_quotation'),
+          'ProfileQuotation',
+        );
         expect(StringHelpers.toPascalCase('my_variable'), 'MyVariable');
       });
 
       test('converts camelCase to PascalCase (lowercases and recaps)', () {
         expect(StringHelpers.toPascalCase('myVariable'), 'Myvariable');
         expect(
-            StringHelpers.toPascalCase('profileQuotation'), 'Profilequotation');
+          StringHelpers.toPascalCase('profileQuotation'),
+          'Profilequotation',
+        );
       });
 
       test('converts hyphenated strings to PascalCase', () {
@@ -59,8 +75,10 @@ void main() {
       });
 
       test('handles spaces', () {
-        expect(StringHelpers.toPascalCase('my awesome feature'),
-            'MyAwesomeFeature');
+        expect(
+          StringHelpers.toPascalCase('my awesome feature'),
+          'MyAwesomeFeature',
+        );
       });
 
       test('handles empty string', () {
@@ -75,9 +93,13 @@ void main() {
     group('toSnakeCase', () {
       test('converts PascalCase to snake_case', () {
         expect(
-            StringHelpers.toSnakeCase('ProfileQuotation'), 'profile_quotation');
-        expect(StringHelpers.toSnakeCase('MyAwesomeFeature'),
-            'my_awesome_feature');
+          StringHelpers.toSnakeCase('ProfileQuotation'),
+          'profile_quotation',
+        );
+        expect(
+          StringHelpers.toSnakeCase('MyAwesomeFeature'),
+          'my_awesome_feature',
+        );
       });
 
       test('converts camelCase to snake_case', () {
@@ -96,13 +118,17 @@ void main() {
     group('toCamelCase', () {
       test('converts snake_case to camelCase', () {
         expect(
-            StringHelpers.toCamelCase('profile_quotation'), 'profileQuotation');
+          StringHelpers.toCamelCase('profile_quotation'),
+          'profileQuotation',
+        );
         expect(StringHelpers.toCamelCase('user_profile'), 'userProfile');
       });
 
       test('converts PascalCase to camelCase (lowercases first)', () {
         expect(
-            StringHelpers.toCamelCase('ProfileQuotation'), 'profilequotation');
+          StringHelpers.toCamelCase('ProfileQuotation'),
+          'profilequotation',
+        );
         expect(StringHelpers.toCamelCase('MyVariable'), 'myvariable');
       });
 
@@ -121,8 +147,10 @@ void main() {
 
     group('toDisplayName', () {
       test('converts snake_case to display name', () {
-        expect(StringHelpers.toDisplayName('profile_quotation'),
-            'Profile Quotation');
+        expect(
+          StringHelpers.toDisplayName('profile_quotation'),
+          'Profile Quotation',
+        );
       });
 
       test('converts hyphenated to display name', () {
@@ -181,13 +209,17 @@ void main() {
 
     group('removeSpecialChars', () {
       test('removes special characters', () {
-        expect(StringHelpers.removeSpecialChars('hello@world#test'),
-            'helloworldtest');
+        expect(
+          StringHelpers.removeSpecialChars('hello@world#test'),
+          'helloworldtest',
+        );
       });
 
       test('preserves alphanumeric', () {
-        expect(StringHelpers.removeSpecialChars('hello123world456'),
-            'hello123world456');
+        expect(
+          StringHelpers.removeSpecialChars('hello123world456'),
+          'hello123world456',
+        );
       });
 
       test('handles empty string', () {
@@ -197,13 +229,17 @@ void main() {
 
     group('aliases', () {
       test('pascalCase is alias for toPascalCase', () {
-        expect(StringHelpers.pascalCase('my_var'),
-            StringHelpers.toPascalCase('my_var'));
+        expect(
+          StringHelpers.pascalCase('my_var'),
+          StringHelpers.toPascalCase('my_var'),
+        );
       });
 
       test('camelCase is alias for toCamelCase', () {
-        expect(StringHelpers.camelCase('my_var'),
-            StringHelpers.toCamelCase('my_var'));
+        expect(
+          StringHelpers.camelCase('my_var'),
+          StringHelpers.toCamelCase('my_var'),
+        );
       });
     });
   });

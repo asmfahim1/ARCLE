@@ -22,17 +22,23 @@ class CliUi {
       compact: false,
     );
     console.line('');
-    console.line(console.color(
+    console.line(
+      console.color(
         '  👋 Welcome! Looks like this is your first time using Arcle.',
-        ConsoleColor.green));
+        ConsoleColor.green,
+      ),
+    );
     console.line('');
     console.line(console.bold('  💡 Quick Start:'));
     console.line(
-        '     ${console.color('→', ConsoleColor.cyan)} arcle create my_app    Create a new Flutter project');
+      '     ${console.color('→', ConsoleColor.cyan)} arcle create my_app    Create a new Flutter project',
+    );
     console.line(
-        '     ${console.color('→', ConsoleColor.cyan)} arcle feature login    Add a feature module');
+      '     ${console.color('→', ConsoleColor.cyan)} arcle feature login    Add a feature module',
+    );
     console.line(
-        '     ${console.color('→', ConsoleColor.cyan)} arcle --help           See all commands');
+      '     ${console.color('→', ConsoleColor.cyan)} arcle --help           See all commands',
+    );
     console.line('');
   }
 
@@ -44,9 +50,12 @@ class CliUi {
     final name = item.label.padRight(8);
     console.line('  $icon $name │ ${_description(item)}');
     console.line('');
-    console.line(console.color(
+    console.line(
+      console.color(
         '  💡 Riverpod is the only supported state management in this release.',
-        ConsoleColor.yellow));
+        ConsoleColor.yellow,
+      ),
+    );
     console.line('');
   }
 
@@ -86,8 +95,12 @@ class CliUi {
     console.error('  ${console.color('✗', ConsoleColor.red)}  $message');
   }
 
-  void progress(String label, int percent,
-      {String message = '', int width = 24}) {
+  void progress(
+    String label,
+    int percent, {
+    String message = '',
+    int width = 24,
+  }) {
     final clamped = percent.clamp(0, 100);
     final filled = ((clamped / 100) * width).round();
     final bar =
@@ -95,7 +108,8 @@ class CliUi {
     final suffix = message.trim().isEmpty ? '' : ' → ${message.trim()}';
     final icon = clamped >= 100 ? '✓' : '◐';
     console.write(
-        '\r  ${_tag(label, ConsoleColor.cyan)} $bar $clamped% $icon$suffix');
+      '\r  ${_tag(label, ConsoleColor.cyan)} $bar $clamped% $icon$suffix',
+    );
     if (clamped >= 100) {
       console.write('\n');
     }
@@ -115,7 +129,8 @@ class CliUi {
 
   void itemSkipped(String path) {
     console.line(
-        '    ${console.color('○', ConsoleColor.yellow)} $path ${console.color('(exists)', ConsoleColor.yellow)}');
+      '    ${console.color('○', ConsoleColor.yellow)} $path ${console.color('(exists)', ConsoleColor.yellow)}',
+    );
   }
 
   void nextSteps(List<String> steps, {String? projectPath}) {
@@ -124,13 +139,17 @@ class CliUi {
     console.line('');
     for (var i = 0; i < steps.length; i++) {
       console.line(
-          '   ${console.color('${i + 1})', ConsoleColor.cyan)} ${steps[i]}');
+        '   ${console.color('${i + 1})', ConsoleColor.cyan)} ${steps[i]}',
+      );
     }
     console.line('');
     if (projectPath != null) {
-      console.line(console.color(
+      console.line(
+        console.color(
           '   📖 Check documentation/ for architecture overview',
-          ConsoleColor.yellow));
+          ConsoleColor.yellow,
+        ),
+      );
       console.line('');
     }
   }
@@ -182,16 +201,22 @@ class CliUi {
   }) {
     final border = console.color('║', ConsoleColor.cyan);
     console.line('');
-    console.line(console.color(
+    console.line(
+      console.color(
         '  ╔══════════════════════════════════════════════════════════╗',
-        ConsoleColor.cyan));
+        ConsoleColor.cyan,
+      ),
+    );
     console.line('  $border  ${console.bold(title.padRight(55))} $border');
     if (subtitle != null && subtitle.trim().isNotEmpty) {
       console.line('  $border  ${subtitle.padRight(56)}$border');
     }
-    console.line(console.color(
+    console.line(
+      console.color(
         '  ╚══════════════════════════════════════════════════════════╝',
-        ConsoleColor.cyan));
+        ConsoleColor.cyan,
+      ),
+    );
   }
 
   String _tag(String label, ConsoleColor color) {

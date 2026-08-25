@@ -47,8 +47,9 @@ void main() {
       final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
 
       try {
-        final configFile =
-            File('${tempDir.path}${Platform.pathSeparator}arcle.yaml');
+        final configFile = File(
+          '${tempDir.path}${Platform.pathSeparator}arcle.yaml',
+        );
         configFile.writeAsStringSync('''state: bloc
 state_option: 1
 created_at: 2026-03-14T10:00:00.000
@@ -69,8 +70,9 @@ created_at: 2026-03-14T10:00:00.000
       final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
 
       try {
-        final configFile =
-            File('${tempDir.path}${Platform.pathSeparator}arcle.yaml');
+        final configFile = File(
+          '${tempDir.path}${Platform.pathSeparator}arcle.yaml',
+        );
         configFile.writeAsStringSync('invalid: data\n');
 
         final config = ArcleConfig.readFrom(tempDir);
@@ -85,8 +87,9 @@ created_at: 2026-03-14T10:00:00.000
       final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
 
       try {
-        final configFile =
-            File('${tempDir.path}${Platform.pathSeparator}arcle.yaml');
+        final configFile = File(
+          '${tempDir.path}${Platform.pathSeparator}arcle.yaml',
+        );
         configFile.writeAsStringSync('''# This is a comment
 state: getx
 state_option: 2

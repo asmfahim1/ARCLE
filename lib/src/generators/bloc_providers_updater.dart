@@ -23,7 +23,9 @@ class BlocProvidersUpdater {
     const importMarker = '// arcle:feature_imports';
     const providerMarker = '// arcle:feature_providers';
     if (!content.contains(importMarker) || !content.contains(providerMarker)) {
-      stderr('bloc_providers.dart markers not found; skipping bloc provider update.');
+      stderr(
+        'bloc_providers.dart markers not found; skipping bloc provider update.',
+      );
       return;
     }
 
@@ -53,7 +55,8 @@ class BlocProvidersUpdater {
       );
     }
 
-    final providerLine = "    BlocProvider<${className}Bloc>("
+    final providerLine =
+        "    BlocProvider<${className}Bloc>("
         "create: (_) => ${className}Bloc(getIt<${className}UseCase>())),";
     if (!content.contains(providerLine)) {
       content = content.replaceFirst(

@@ -31,16 +31,8 @@ class VerifyCommand {
         help: 'Directory of an ARCLE Flutter project',
         defaultsTo: Directory.current.path,
       )
-      ..addFlag(
-        'skip-analyze',
-        help: 'Skip flutter analyze',
-        negatable: false,
-      )
-      ..addFlag(
-        'skip-test',
-        help: 'Skip flutter test',
-        negatable: false,
-      )
+      ..addFlag('skip-analyze', help: 'Skip flutter analyze', negatable: false)
+      ..addFlag('skip-test', help: 'Skip flutter test', negatable: false)
       ..addFlag(
         'skip-codegen',
         help: 'Skip build_runner check for BLoC projects',
@@ -48,7 +40,8 @@ class VerifyCommand {
       )
       ..addFlag(
         'include-boilerplate-tests',
-        help: 'Include ARCLE-generated widget boilerplate tests during flutter test',
+        help:
+            'Include ARCLE-generated widget boilerplate tests during flutter test',
         negatable: false,
       )
       ..addFlag(
@@ -63,17 +56,20 @@ class VerifyCommand {
       )
       ..addFlag(
         'check-assets',
-        help: 'Check that all asset paths declared in pubspec.yaml exist on disk',
+        help:
+            'Check that all asset paths declared in pubspec.yaml exist on disk',
         negatable: false,
       )
       ..addFlag(
         'check-l10n',
-        help: 'Check that each feature has a localization key in the translation files',
+        help:
+            'Check that each feature has a localization key in the translation files',
         negatable: false,
       )
       ..addFlag(
         'full',
-        help: 'Run all checks including --check-features, --check-assets and --check-l10n',
+        help:
+            'Run all checks including --check-features, --check-assets and --check-l10n',
         negatable: false,
       )
       ..addFlag(
@@ -117,13 +113,10 @@ class VerifyCommand {
     var failed = false;
 
     if (cmd['skip-analyze'] != true) {
-      failed = !await _runStep(
-        ui,
-        'ANALYZE ',
-        'flutter',
-        const ['analyze'],
-        targetDir,
-      ) ||
+      failed =
+          !await _runStep(ui, 'ANALYZE ', 'flutter', const [
+            'analyze',
+          ], targetDir) ||
           failed;
     }
 
@@ -135,25 +128,20 @@ class VerifyCommand {
       if (testArgs == null) {
         ui.warn('No non-boilerplate tests selected; skipping flutter test.');
       } else {
-        failed = !await _runStep(
-          ui,
-          'TEST    ',
-          'flutter',
-          testArgs,
-          targetDir,
-        ) ||
+        failed =
+            !await _runStep(ui, 'TEST    ', 'flutter', testArgs, targetDir) ||
             failed;
       }
     }
 
     if (state == StateManagement.bloc && cmd['skip-codegen'] != true) {
-      failed = !await _runStep(
-        ui,
-        'CODEGEN ',
-        'dart',
-        const ['run', 'build_runner', 'build', '--delete-conflicting-outputs'],
-        targetDir,
-      ) ||
+      failed =
+          !await _runStep(ui, 'CODEGEN ', 'dart', const [
+            'run',
+            'build_runner',
+            'build',
+            '--delete-conflicting-outputs',
+          ], targetDir) ||
           failed;
     }
 
@@ -186,11 +174,11 @@ class VerifyCommand {
 
   Future<bool> _run16KbCheck(CliUi ui, Directory targetDir) async {
     ui.step('16KB    ', 'flutter build apk --release');
-    final buildResult = await _runProcess(
-      'flutter',
-      const ['build', 'apk', '--release'],
-      targetDir,
-    );
+    final buildResult = await _runProcess('flutter', const [
+      'build',
+      'apk',
+      '--release',
+    ], targetDir);
     if (buildResult.exitCode != 0) {
       _printFailureOutput(ui, buildResult);
       ui.error('16 KB check failed because release APK build failed.');
@@ -291,13 +279,14 @@ class VerifyCommand {
       return null;
     }
 
-    final allTests = testDir
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((file) => file.path.endsWith('_test.dart'))
-        .map((file) => _relativePath(targetDir.path, file.path))
-        .toList()
-      ..sort();
+    final allTests =
+        testDir
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((file) => file.path.endsWith('_test.dart'))
+            .map((file) => _relativePath(targetDir.path, file.path))
+            .toList()
+          ..sort();
 
     if (allTests.isEmpty) {
       return null;
@@ -307,9 +296,10 @@ class VerifyCommand {
       return ['test', ...allTests];
     }
 
-    final selectedTests = allTests
-        .where((path) => !_generatedBoilerplateTests.contains(path))
-        .toList();
+    final selectedTests =
+        allTests
+            .where((path) => !_generatedBoilerplateTests.contains(path))
+            .toList();
 
     if (selectedTests.isEmpty) {
       return null;
@@ -321,9 +311,8 @@ class VerifyCommand {
   String _relativePath(String basePath, String fullPath) {
     final normalizedBase = basePath.replaceAll('\\', '/');
     final normalizedFull = fullPath.replaceAll('\\', '/');
-    final baseWithSlash = normalizedBase.endsWith('/')
-        ? normalizedBase
-        : '$normalizedBase/';
+    final baseWithSlash =
+        normalizedBase.endsWith('/') ? normalizedBase : '$normalizedBase/';
     if (normalizedFull.startsWith(baseWithSlash)) {
       return normalizedFull.substring(baseWithSlash.length);
     }
@@ -334,18 +323,20 @@ class VerifyCommand {
     try {
       final bytes = apkFile.readAsBytesSync();
       final entries = _readZipEntries(bytes);
-      final nativeEntries = entries
-          .where((entry) =>
-              entry.fileName.startsWith('lib/') &&
-              entry.fileName.endsWith('.so'))
-          .toList()
-        ..sort((a, b) => a.fileName.compareTo(b.fileName));
+      final nativeEntries =
+          entries
+              .where(
+                (entry) =>
+                    entry.fileName.startsWith('lib/') &&
+                    entry.fileName.endsWith('.so'),
+              )
+              .toList()
+            ..sort((a, b) => a.fileName.compareTo(b.fileName));
 
       if (nativeEntries.isEmpty) {
-        return _SixteenKbReport(
-          _SixteenKbStatus.unknown,
-          const ['No native .so libraries were found in the release APK.'],
-        );
+        return _SixteenKbReport(_SixteenKbStatus.unknown, const [
+          'No native .so libraries were found in the release APK.',
+        ]);
       }
 
       final details = <String>[
@@ -357,7 +348,9 @@ class VerifyCommand {
       for (final entry in nativeEntries) {
         final issues = <String>[];
         if (entry.dataOffset % 16384 != 0) {
-          issues.add('APK entry data offset ${entry.dataOffset} is not 16 KB aligned');
+          issues.add(
+            'APK entry data offset ${entry.dataOffset} is not 16 KB aligned',
+          );
         }
 
         if (entry.compressionMethod != 0) {
@@ -371,7 +364,9 @@ class VerifyCommand {
           libraryBytes = _extractZipEntry(bytes, entry);
         } catch (error) {
           hasUnknown = true;
-          details.add('UNKNOWN ${entry.fileName}: could not read library bytes ($error)');
+          details.add(
+            'UNKNOWN ${entry.fileName}: could not read library bytes ($error)',
+          );
           continue;
         }
 
@@ -399,10 +394,9 @@ class VerifyCommand {
       }
       return _SixteenKbReport(_SixteenKbStatus.pass, details);
     } catch (error) {
-      return _SixteenKbReport(
-        _SixteenKbStatus.unknown,
-        ['Could not inspect APK for 16 KB compatibility: $error'],
-      );
+      return _SixteenKbReport(_SixteenKbStatus.unknown, [
+        'Could not inspect APK for 16 KB compatibility: $error',
+      ]);
     }
   }
 
@@ -414,8 +408,10 @@ class VerifyCommand {
     }
 
     final totalEntries = data.getUint16(eocdOffset + 10, Endian.little);
-    final centralDirectoryOffset =
-        data.getUint32(eocdOffset + 16, Endian.little);
+    final centralDirectoryOffset = data.getUint32(
+      eocdOffset + 16,
+      Endian.little,
+    );
 
     final entries = <_ZipEntry>[];
     var offset = centralDirectoryOffset;
@@ -423,7 +419,8 @@ class VerifyCommand {
       final signature = data.getUint32(offset, Endian.little);
       if (signature != 0x02014b50) {
         throw FormatException(
-            'Invalid ZIP central directory signature at offset $offset');
+          'Invalid ZIP central directory signature at offset $offset',
+        );
       }
 
       final compressionMethod = data.getUint16(offset + 10, Endian.little);
@@ -433,19 +430,23 @@ class VerifyCommand {
       final extraFieldLength = data.getUint16(offset + 30, Endian.little);
       final fileCommentLength = data.getUint16(offset + 32, Endian.little);
       final localHeaderOffset = data.getUint32(offset + 42, Endian.little);
-      final fileNameBytes =
-          bytes.sublist(offset + 46, offset + 46 + fileNameLength);
+      final fileNameBytes = bytes.sublist(
+        offset + 46,
+        offset + 46 + fileNameLength,
+      );
       final fileName = String.fromCharCodes(fileNameBytes);
       final dataOffset = _zipEntryDataOffset(data, localHeaderOffset);
 
-      entries.add(_ZipEntry(
-        fileName: fileName,
-        compressionMethod: compressionMethod,
-        compressedSize: compressedSize,
-        uncompressedSize: uncompressedSize,
-        localHeaderOffset: localHeaderOffset,
-        dataOffset: dataOffset,
-      ));
+      entries.add(
+        _ZipEntry(
+          fileName: fileName,
+          compressionMethod: compressionMethod,
+          compressedSize: compressedSize,
+          uncompressedSize: uncompressedSize,
+          localHeaderOffset: localHeaderOffset,
+          dataOffset: dataOffset,
+        ),
+      );
 
       offset += 46 + fileNameLength + extraFieldLength + fileCommentLength;
     }
@@ -455,7 +456,8 @@ class VerifyCommand {
 
   int _findEndOfCentralDirectory(List<int> bytes) {
     final minOffset = bytes.length >= 22 ? bytes.length - 22 : 0;
-    final lowerBound = bytes.length > 0x10000 + 22 ? bytes.length - 0x10000 - 22 : 0;
+    final lowerBound =
+        bytes.length > 0x10000 + 22 ? bytes.length - 0x10000 - 22 : 0;
     for (var offset = minOffset; offset >= lowerBound; offset--) {
       if (bytes[offset] == 0x50 &&
           bytes[offset + 1] == 0x4b &&
@@ -471,12 +473,17 @@ class VerifyCommand {
     final signature = data.getUint32(localHeaderOffset, Endian.little);
     if (signature != 0x04034b50) {
       throw FormatException(
-          'Invalid ZIP local header signature at offset $localHeaderOffset');
+        'Invalid ZIP local header signature at offset $localHeaderOffset',
+      );
     }
-    final fileNameLength =
-        data.getUint16(localHeaderOffset + 26, Endian.little);
-    final extraFieldLength =
-        data.getUint16(localHeaderOffset + 28, Endian.little);
+    final fileNameLength = data.getUint16(
+      localHeaderOffset + 26,
+      Endian.little,
+    );
+    final extraFieldLength = data.getUint16(
+      localHeaderOffset + 28,
+      Endian.little,
+    );
     return localHeaderOffset + 30 + fileNameLength + extraFieldLength;
   }
 
@@ -545,7 +552,9 @@ class VerifyCommand {
       }
       final phoff64 = data.getUint64(32, endian);
       if (phoff64 > bytes.length) {
-        return const _ElfCheckResult(error: 'ELF64 program header offset is invalid');
+        return const _ElfCheckResult(
+          error: 'ELF64 program header offset is invalid',
+        );
       }
       phoff = phoff64.toInt();
       phentsize = data.getUint16(54, endian);
@@ -583,7 +592,8 @@ class VerifyCommand {
         final align64 = data.getUint64(entryOffset + 48, endian);
         if (offset64 > bytes.length || vaddr64 > 0x7fffffffffffffff) {
           return _ElfCheckResult(
-            error: 'program header $i contains values that are too large to inspect',
+            error:
+                'program header $i contains values that are too large to inspect',
           );
         }
         offset = offset64.toInt();
@@ -608,11 +618,7 @@ class VerifyCommand {
 
   // ─── Feature structure check ───────────────────────────────────────────────
 
-  bool _runFeatureCheck(
-    CliUi ui,
-    Directory targetDir,
-    StateManagement state,
-  ) {
+  bool _runFeatureCheck(CliUi ui, Directory targetDir, StateManagement state) {
     ui.step('FEATURES', 'Checking feature module completeness...');
     final featuresDir = Directory(_join(targetDir.path, 'lib/features'));
     if (!featuresDir.existsSync()) {
@@ -620,11 +626,9 @@ class VerifyCommand {
       return true;
     }
 
-    final features = featuresDir
-        .listSync()
-        .whereType<Directory>()
-        .toList()
-      ..sort((a, b) => a.path.compareTo(b.path));
+    final features =
+        featuresDir.listSync().whereType<Directory>().toList()
+          ..sort((a, b) => a.path.compareTo(b.path));
 
     if (features.isEmpty) {
       ui.info('No feature modules found.');
@@ -633,9 +637,7 @@ class VerifyCommand {
 
     var allPassed = true;
     for (final featureDir in features) {
-      final name = featureDir.uri.pathSegments
-          .where((s) => s.isNotEmpty)
-          .last;
+      final name = featureDir.uri.pathSegments.where((s) => s.isNotEmpty).last;
       final missing = _missingFeatureFiles(featureDir, name, state);
       if (missing.isEmpty) {
         ui.success('feature/$name — complete');
@@ -728,7 +730,9 @@ class VerifyCommand {
     }
 
     if (allPassed) {
-      ui.success('All declared asset paths exist (${assetPaths.length} checked).');
+      ui.success(
+        'All declared asset paths exist (${assetPaths.length} checked).',
+      );
     } else {
       ui.error('Some declared asset paths are missing.');
     }
@@ -759,7 +763,8 @@ class VerifyCommand {
           continue;
         }
         if (inAssets) {
-          if (trimmed.isNotEmpty && !trimmed.startsWith('-') &&
+          if (trimmed.isNotEmpty &&
+              !trimmed.startsWith('-') &&
               !trimmed.startsWith('#')) {
             inAssets = false;
             continue;
@@ -776,11 +781,7 @@ class VerifyCommand {
 
   // ─── Localization key check ────────────────────────────────────────────────
 
-  bool _runL10nCheck(
-    CliUi ui,
-    Directory targetDir,
-    StateManagement state,
-  ) {
+  bool _runL10nCheck(CliUi ui, Directory targetDir, StateManagement state) {
     ui.step('L10N    ', 'Checking localization key coverage...');
     final featuresDir = Directory(_join(targetDir.path, 'lib/features'));
     if (!featuresDir.existsSync()) {
@@ -788,12 +789,13 @@ class VerifyCommand {
       return true;
     }
 
-    final features = featuresDir
-        .listSync()
-        .whereType<Directory>()
-        .map((d) => d.uri.pathSegments.where((s) => s.isNotEmpty).last)
-        .toList()
-      ..sort();
+    final features =
+        featuresDir
+            .listSync()
+            .whereType<Directory>()
+            .map((d) => d.uri.pathSegments.where((s) => s.isNotEmpty).last)
+            .toList()
+          ..sort();
 
     if (features.isEmpty) {
       ui.info('No feature modules found.');

@@ -29,8 +29,9 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
     'lib/core/api_client/dio_client.dart': ApiTemplates.dioClient(state),
     'lib/core/api_client/api_service.dart': ApiTemplates.apiService(state),
     'lib/core/api_client/base_response.dart': ApiTemplates.apiResponse(),
-    'lib/core/localization/app_strings.dart':
-        LocalizationTemplates.appStrings(state),
+    'lib/core/localization/app_strings.dart': LocalizationTemplates.appStrings(
+      state,
+    ),
     'assets/images/.gitkeep': '',
     'assets/icons/.gitkeep': '',
     'lib/core/utils/constants.dart': ConstantsTemplates.appConstants(),
@@ -70,16 +71,16 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
     'lib/core/env/stag_env.dart': EnvTemplates.envStag(),
     'lib/core/env/local_env.dart': EnvTemplates.envLocal(),
     'lib/core/env/env_factory.dart': EnvTemplates.envFactory(),
-    'lib/core/session_manager/pref_manager.dart':
-        ServicesTemplates.prefManager(state),
+    'lib/core/session_manager/pref_manager.dart': ServicesTemplates.prefManager(
+      state,
+    ),
     'lib/core/session_manager/session_manager.dart':
         ServicesTemplates.sessionManager(state),
     'lib/core/response_handler/response_handler.dart':
         CoreTemplates.responseHandler(),
     'lib/core/error_handler/error_handler.dart': CoreTemplates.errorHandler(),
     'lib/core/route_handler/app_routes.dart': RouteTemplates.routes(),
-    'lib/core/route_handler/app_route_observer.dart':
-        RouteTemplates.observer(),
+    'lib/core/route_handler/app_route_observer.dart': RouteTemplates.observer(),
     'lib/core/route_handler/app_router.dart': RouteTemplates.router(state),
     'lib/core/theme_handler/app_theme.dart': ThemeTemplates.themeHandler(),
     'lib/core/notifications/notification_service.dart':
@@ -88,13 +89,13 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
         ServicesTemplates.permissionService(state),
     'lib/core/utils/logger.dart': UtilsTemplates.utilsLogger(),
     'lib/core/utils/date_formatter.dart': UtilsTemplates.utilsDateFormatter(),
-    'lib/core/response_handler/api_failure.dart':
-        UtilsTemplates.utilsFailure(),
+    'lib/core/response_handler/api_failure.dart': UtilsTemplates.utilsFailure(),
     'lib/core/utils/result.dart': UtilsTemplates.utilsResult(),
     'lib/core/utils/app_validators.dart': UtilsTemplates.appValidators(),
     'lib/core/utils/validators.dart': UtilsTemplates.utilsValidators(),
-    'test/features/auth/login_screen_test.dart':
-        TestsTemplates.loginScreenTest(state),
+    'test/features/auth/login_screen_test.dart': TestsTemplates.loginScreenTest(
+      state,
+    ),
     'test/features/users/user_model_test.dart': TestsTemplates.userModelTest(),
     'test/widget_test.dart': TestsTemplates.widgetTest(state),
   };

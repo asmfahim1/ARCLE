@@ -29,15 +29,23 @@ class InitCommand {
         help: 'Directory of an existing Flutter project',
         defaultsTo: Directory.current.path,
       )
-      ..addOption('state-version',
-          help:
-              'Version constraint for the selected state package (default: any)')
-      ..addFlag('force',
-          abbr: 'f',
-          help: 'Overwrite existing files if they exist',
-          negatable: false)
-      ..addFlag('interactive',
-          abbr: 'i', help: 'Prompt for any missing values', defaultsTo: true);
+      ..addOption(
+        'state-version',
+        help:
+            'Version constraint for the selected state package (default: any)',
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing files if they exist',
+        negatable: false,
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Prompt for any missing values',
+        defaultsTo: true,
+      );
   }
 
   Future<int> run(ArgResults cmd) async {
@@ -47,10 +55,9 @@ class InitCommand {
       return ExitCode.success.code;
     }
 
-    final state = StatePicker(console).resolve(
-      cmd['state'] as String?,
-      interactive: cmd['interactive'] as bool,
-    );
+    final state = StatePicker(
+      console,
+    ).resolve(cmd['state'] as String?, interactive: cmd['interactive'] as bool);
     if (state == null) {
       ui.error('No state management selected.');
       ui.info('Run with --state bloc|getx|riverpod to be explicit.');
@@ -58,9 +65,9 @@ class InitCommand {
     }
 
     final targetDir = Directory(cmd['path'] as String);
-    final projectName = targetDir.uri.pathSegments
-        .where((s) => s.isNotEmpty)
-        .lastOrNull ?? 'my_app';
+    final projectName =
+        targetDir.uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ??
+        'my_app';
     final generator = ProjectGenerator(
       ui: ui,
       state: state,
@@ -75,10 +82,12 @@ class InitCommand {
     await generator.scaffold(targetDir);
     ui.success('✨ Clean architecture scaffolded successfully!');
     ui.info(
-        'Your project is now organized with data/domain/presentation layers.');
+      'Your project is now organized with data/domain/presentation layers.',
+    );
     ui.info('✅ Android: Gradle configured (SDK 21-35, desugaring enabled)');
     ui.info(
-        '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready');
+      '✅ iOS: Podfile configured (deployment target 13.0+), Info.plist ready',
+    );
     return ExitCode.success.code;
   }
 

@@ -259,12 +259,14 @@ class AppSettingsState {
 
   static String settingsScreen(StateManagement state) {
     final stateImport = switch (state) {
-      StateManagement.bloc => "import 'app_settings_cubit.dart';\n"
-          "import 'app_settings_state.dart';\n"
-          "import 'package:flutter_bloc/flutter_bloc.dart';\n"
-          "import '../../../core/di/injection.dart';\n",
-      StateManagement.getx => "import 'app_settings_controller.dart';\n"
-          "import 'package:get/get.dart';\n",
+      StateManagement.bloc =>
+        "import 'app_settings_cubit.dart';\n"
+            "import 'app_settings_state.dart';\n"
+            "import 'package:flutter_bloc/flutter_bloc.dart';\n"
+            "import '../../../core/di/injection.dart';\n",
+      StateManagement.getx =>
+        "import 'app_settings_controller.dart';\n"
+            "import 'package:get/get.dart';\n",
       StateManagement.riverpod =>
         "import 'package:flutter_riverpod/flutter_riverpod.dart';\n"
             "import 'app_settings_provider.dart';\n",
@@ -275,9 +277,10 @@ class AppSettingsState {
       StateManagement.getx => _getxSettingsBody(),
       StateManagement.riverpod => _riverpodSettingsBody(),
     };
-    final title = state == StateManagement.getx
-        ? "Text('settings'.tr)"
-        : "Text(context.tr('settings'))";
+    final title =
+        state == StateManagement.getx
+            ? "Text('settings'.tr)"
+            : "Text(context.tr('settings'))";
 
     return '''
 import 'package:flutter/material.dart';
@@ -352,12 +355,14 @@ Consumer(
         state == StateManagement.getx ? "import 'package:get/get.dart';\n" : '';
     final themeText =
         state == StateManagement.getx ? "'theme'.tr" : "context.tr('theme')";
-    final darkModeText = state == StateManagement.getx
-        ? "'dark_mode'.tr"
-        : "context.tr('dark_mode')";
-    final languageText = state == StateManagement.getx
-        ? "'language'.tr"
-        : "context.tr('language')";
+    final darkModeText =
+        state == StateManagement.getx
+            ? "'dark_mode'.tr"
+            : "context.tr('dark_mode')";
+    final languageText =
+        state == StateManagement.getx
+            ? "'language'.tr"
+            : "context.tr('language')";
     return '''
 import 'package:flutter/material.dart';
 $getxImport
@@ -419,8 +424,9 @@ class SettingsBody extends StatelessWidget {
 
   static Map<String, String> files(StateManagement state) {
     final map = <String, String>{
-      'lib/features/settings/presentation/settings_screen.dart':
-          settingsScreen(state),
+      'lib/features/settings/presentation/settings_screen.dart': settingsScreen(
+        state,
+      ),
       'lib/features/settings/presentation/settings_body.dart':
           settingsBodyWidget(state),
     };
