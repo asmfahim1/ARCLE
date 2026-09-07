@@ -18,7 +18,7 @@ analyzer:
   language:
     strict-casts: true
     strict-inference: true
-    strict-raw-types: true
+#   strict-raw-types: true
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"

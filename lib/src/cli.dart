@@ -12,6 +12,7 @@ import 'commands/auto_gen_di_command.dart';
 import 'commands/gen_di_command.dart';
 import 'commands/gen_doc_command.dart';
 import 'commands/init_command.dart';
+import 'commands/organize_command.dart';
 import 'commands/review_command.dart';
 import 'commands/verify_command.dart';
 import 'ui/cli_ui.dart';
@@ -68,6 +69,8 @@ class Cli {
         return ConfigureAiCommand(console).run(cmd);
       case 'review':
         return ReviewCommand(console).run(cmd);
+      case 'organize':
+        return OrganizeCommand(console).run(cmd);
       case 'ci':
         return CiCommand(console).run(cmd);
       case 'add':
@@ -97,8 +100,6 @@ class Cli {
     final shortcutAliases = <String, List<String>>{
       '--b--r': ['build', 'apk', '--release'],
       '--b--d': ['build', 'apk', '--debug'],
-      'br': ['build', 'apk', '--release'],
-      'bd': ['build', 'apk', '--debug'],
     };
     final commandAliases = <String, String>{
       'new': 'create',
@@ -146,6 +147,7 @@ class Cli {
     parser.addCommand('verify', VerifyCommand.parser());
     parser.addCommand('configure-ai', ConfigureAiCommand.parser());
     parser.addCommand('review', ReviewCommand.parser());
+    parser.addCommand('organize', OrganizeCommand.parser());
     parser.addCommand('ci', CiCommand.parser());
     parser.addCommand('add', AddCommand.parser());
     parser.addCommand('delete', DeleteCommand.parser());
@@ -169,8 +171,6 @@ class Cli {
       'di',
       'build',
       'b',
-      'br',
-      'bd',
       'gen-doc',
       'docs',
       'verify',
@@ -178,6 +178,7 @@ class Cli {
       'configure-ai',
       'agent-init',
       'review',
+      'organize',
       'audit',
       'ci',
       'add',
@@ -219,6 +220,7 @@ class Cli {
       '    ⚙️   configure-ai    Add AI agent context to an existing project',
       '         alias: agent-init',
       '    🔍  review           Pre-commit quality gate (analyze, format, missing tests)',
+      '    🧹  organize imports Organize full package imports',
       '         alias: audit, -r',
       '    🚀  ci add <target>  Add a CI/CD pipeline (github, gitlab)',
       '    🌍  add locale <c>   Add a locale to the project',
@@ -245,10 +247,10 @@ class Cli {
       '    arcle feature payments               # Generate a feature',
       '    arcle configure-ai                   # Add AI agent context after create',
       '    arcle review                         # Quick pre-commit check',
-      '    arcle review --test --ai             # Full review with tests and AI',
-      '    arcle -r                             # Shortcut for review',
+      '    arcle review                         # Full review + coverage + AI report',
+      '    arcle -r                             # Shortcut for full review',
+      '    arcle organize imports              # Organize package imports',
       '    arcle build apk --release            # Build release APK',
-      '    arcle br                             # Shortcut for build apk --release',
       '    arcle ci add github                  # Add a GitHub Actions pipeline',
       '    arcle ci add gitlab --coverage        # Add a GitLab CI pipeline with coverage',
       '    arcle add locale bn                  # Add a locale',

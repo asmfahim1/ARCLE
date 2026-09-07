@@ -79,23 +79,23 @@ class BuildCommand {
     final versionName = (apkCmd['version-name'] as String?)?.trim();
     final versionCode = (apkCmd['version-code'] as String?)?.trim();
 
-    String mode;
+    List<String> modes;
     if (isRelease && isDebug) {
       ui.error('Cannot specify both --release and --debug.');
       return ExitCode.usage.code;
     } else if (isRelease) {
-      mode = 'release';
+      modes = ['release'];
     } else if (isDebug) {
-      mode = 'debug';
+      modes = ['debug'];
     } else {
       // Prompt for mode if neither flag is provided
-      final promptedMode = _promptMode(ui, interactive);
-      if (promptedMode == null) {
+      final promptedModes = _promptModes(ui, interactive);
+      if (promptedModes == null) {
         ui.error('No build mode selected.');
         ui.info('Use --release or --debug flag.');
         return ExitCode.usage.code;
       }
-      mode = promptedMode;
+      modes = promptedModes;
     }
 
     final targetDir = Directory(apkCmd['path'] as String);
@@ -105,80 +105,132 @@ class BuildCommand {
       ui.error('--version-code must be an integer.');
       return ExitCode.usage.code;
     }
-    if ((versionName != null && versionName.isNotEmpty) ||
-        (versionCode != null && versionCode.isNotEmpty)) {
+    var selectedVersionName = versionName;
+    var selectedVersionCode = versionCode;
+    if (selectedVersionName == null &&
+        selectedVersionCode == null &&
+        interactive) {
+      final version = _promptVersion(ui, targetDir);
+      if (version == null) {
+        ui.error('No version selected.');
+        return ExitCode.usage.code;
+      }
+      selectedVersionName = version.$1;
+      selectedVersionCode = version.$2;
+    }
+    if ((selectedVersionName != null && selectedVersionName.isNotEmpty) ||
+        (selectedVersionCode != null && selectedVersionCode.isNotEmpty)) {
       final updated = _updatePubspecVersion(
         targetDir,
         ui,
-        versionName: versionName,
-        versionCode: versionCode,
+        versionName: selectedVersionName,
+        versionCode: selectedVersionCode,
       );
       if (!updated) {
         return ExitCode.software.code;
       }
     }
-    if (env != null && env.isNotEmpty) {
-      final updated = _updatePersistentEnv(targetDir, ui, env);
-      if (!updated) {
+    for (final mode in modes) {
+      final buildEnv = env ?? (mode == 'release' ? 'prod' : 'stag');
+      if (!_updatePersistentEnv(targetDir, ui, buildEnv)) {
         return ExitCode.software.code;
       }
-    }
-
-    ui.section('Building APK');
-    ui.step('MODE    ', mode == 'release' ? 'Release' : 'Debug');
-    ui.step('PROJECT ', targetDir.path);
-    if (env != null && env.isNotEmpty) {
-      ui.step('ENV     ', env);
-    }
-    if (versionName != null && versionName.isNotEmpty) {
-      ui.step('VERNAME ', versionName);
-    }
-    if (versionCode != null && versionCode.isNotEmpty) {
-      ui.step('VERCODE ', versionCode);
-    }
-    ui.info('ARCLE is building APK in $mode mode...');
-    ui.info('This may take a few minutes...');
-
-    final args = ['build', 'apk', '--$mode'];
-    if (env != null && env.isNotEmpty) {
-      args.add('--dart-define=FLAVOR=$env');
-    }
-    final result = await Process.run(
-      'flutter',
-      args,
-      workingDirectory: targetDir.path,
-      runInShell: true,
-    );
-
-    // Only show output if there are errors
-    if (result.exitCode != 0) {
-      if (result.stdout.toString().trim().isNotEmpty) {
-        ui.raw(result.stdout.toString().trim());
+      ui.section('Building APK');
+      ui.step('MODE    ', mode == 'release' ? 'Release' : 'Debug');
+      ui.step('PROJECT ', targetDir.path);
+      ui.step('ENV     ', buildEnv);
+      if (selectedVersionName != null && selectedVersionName.isNotEmpty) {
+        ui.step('VERNAME ', selectedVersionName);
       }
-      if (result.stderr.toString().trim().isNotEmpty) {
-        ui.raw(result.stderr.toString().trim());
+      if (selectedVersionCode != null && selectedVersionCode.isNotEmpty) {
+        ui.step('VERCODE ', selectedVersionCode);
       }
-      ui.error('Build failed. Check the output above for errors.');
-      return result.exitCode;
-    }
+      ui.info('ARCLE is building APK in $mode mode...');
+      ui.info('This may take a few minutes...');
 
-    ui.success('APK built successfully!');
-    _renameApk(targetDir, mode, ui, env: env);
+      final args = [
+        'build',
+        'apk',
+        '--$mode',
+        '--dart-define=FLAVOR=$buildEnv',
+      ];
+      final result = await Process.run(
+        'flutter',
+        args,
+        workingDirectory: targetDir.path,
+        runInShell: true,
+      );
+      if (result.exitCode != 0) {
+        if (result.stdout.toString().trim().isNotEmpty) {
+          ui.raw(result.stdout.toString().trim());
+        }
+        if (result.stderr.toString().trim().isNotEmpty) {
+          ui.raw(result.stderr.toString().trim());
+        }
+        ui.error('Build failed. Check the output above for errors.');
+        return result.exitCode;
+      }
+      ui.success('APK built successfully!');
+      _renameApk(targetDir, mode, ui, env: buildEnv);
+    }
     return ExitCode.success.code;
   }
 
-  String? _promptMode(CliUi ui, bool interactive) {
+  List<String>? _promptModes(CliUi ui, bool interactive) {
     if (!interactive) return null;
     ui.section('🎯 Select Build Mode');
-    ui.raw('  1) 🔧 Debug   - Fast builds, includes debug symbols');
-    ui.raw('  2) 🚀 Release - Optimized, ready for distribution');
+    ui.raw('  1) Build APK in debug (env = stag)');
+    ui.raw('  2) Build APK for release (env = prod)');
+    ui.raw('  3) Build APK for both (debug = stag, release = prod)');
     ui.raw('');
     for (var attempt = 0; attempt < 3; attempt++) {
-      final input = console.prompt('  Select mode (1/2) [2]: ')?.trim();
-      if (input == null || input.isEmpty) return 'release';
-      if (input == '1' || input.toLowerCase() == 'debug') return 'debug';
-      if (input == '2' || input.toLowerCase() == 'release') return 'release';
-      ui.warn('Invalid selection. Please choose 1, 2, debug, or release.');
+      final input = console.prompt('  Select option (1/2/3) [2]: ')?.trim();
+      if (input == null || input.isEmpty || input == '2') return ['release'];
+      if (input == '1' || input.toLowerCase() == 'debug') return ['debug'];
+      if (input == '3' || input.toLowerCase() == 'both') {
+        return ['debug', 'release'];
+      }
+      ui.warn('Invalid selection. Please choose 1, 2, or 3.');
+    }
+    return null;
+  }
+
+  (String, String?)? _promptVersion(CliUi ui, Directory targetDir) {
+    final pubspec = File(_join(targetDir.path, 'pubspec.yaml'));
+    if (!pubspec.existsSync()) return null;
+    final current = _extractYamlValue(pubspec.readAsStringSync(), 'version');
+    if (current == null || current.isEmpty) return null;
+    final parts = current.split('+');
+    final currentName = parts.first.trim();
+    final currentCode = parts.length > 1 ? parts[1].trim() : null;
+    ui.section('Select Version');
+    ui.raw('  1) Current version ($current)');
+    ui.raw('  2) Type your custom version name');
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final choice = console.prompt('  Select option (1/2) [1]: ')?.trim();
+      if (choice == null || choice.isEmpty || choice == '1') {
+        return (currentName, currentCode);
+      }
+      if (choice == '2') {
+        final custom =
+            console.prompt('  Type your custom version name: ')?.trim();
+        if (custom == null || custom.isEmpty) {
+          ui.warn('Version name cannot be empty.');
+          continue;
+        }
+        final customParts = custom.split('+');
+        final name = customParts.first.trim();
+        final code =
+            customParts.length > 1 ? customParts[1].trim() : currentCode;
+        if (name.isEmpty || (code != null && int.tryParse(code) == null)) {
+          ui.warn(
+            'Use a valid version name and optional numeric version code.',
+          );
+          continue;
+        }
+        return (name, code);
+      }
+      ui.warn('Invalid selection. Please choose 1 or 2.');
     }
     return null;
   }
@@ -211,8 +263,8 @@ class BuildCommand {
     final safeEnv = env == null || env.isEmpty ? null : _sanitizeFilePart(env);
     final newName =
         safeEnv == null
-            ? '${safeName}_v$safeVersion.apk'
-            : '${safeName}_${safeEnv}_v$safeVersion.apk';
+            ? '${safeName}_V$safeVersion.apk'
+            : '${safeName}_${safeEnv}_V$safeVersion.apk';
     final newPath = _join(apkFile.parent.path, newName);
     final targetFile = File(newPath);
     if (targetFile.existsSync()) {
@@ -359,7 +411,7 @@ class BuildCommand {
       '  -i, --interactive  Prompt for any missing values (default: true)',
       '',
       'Examples:',
-      '  arcle build apk              # Interactive mode selection',
+      '  arcle build apk              # Interactive mode and version selection',
       '  arcle build apk --release    # Build release APK',
       '  arcle build apk --debug      # Build debug APK',
       '  arcle build apk --release --env prod --version-name 1.2.0 --version-code 12',

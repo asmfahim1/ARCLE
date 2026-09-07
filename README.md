@@ -26,7 +26,7 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
 - **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
 
-## What's New In v2.2.0
+## What's New In v2.3.0
 
 - **New `arcle ci` command** — generate a CI/CD pipeline for GitHub Actions or GitLab CI in one command (`arcle ci add github` / `arcle ci add gitlab`), with opt-in test/coverage and APK/App Bundle build steps.
 - **Fixed `arcle add locale` / `arcle delete locale`** — these commands are now correctly wired into the CLI and work as documented.
@@ -87,11 +87,12 @@ arcle configure-ai               # interactive wizard — Claude / Codex / Gemin
 arcle agent-init                 # alias
 
 # Pre-commit quality gate
-arcle review                     # analyze + format + missing-tests scan (fast)
-arcle review --test              # also run flutter test
-arcle review --coverage          # flutter test --coverage + report %
-arcle review --ai                # AI-assisted diff review
+arcle review                     # full review + coverage + AI report
 arcle -r                         # shortcut
+
+# Organize imports
+arcle organize imports           # convert to package imports and sort imports
+arcle organize imports --check   # preview import changes
 
 # Add a feature
 arcle feature auth
@@ -100,11 +101,7 @@ arcle feat auth                  # alias
 # Build APK
 arcle build apk --debug
 arcle build apk --release
-arcle br                         # shortcut for release
-arcle bd                         # shortcut for debug
-
-# Persist version + environment before build
-arcle build apk --release --env prod --version-name 1.2.0 --version-code 12
+arcle build apk                    # choose debug/staging, release/production, or both interactively
 
 # Validate project health
 arcle doctor
@@ -112,11 +109,6 @@ arcle doctor --fix
 
 # Structural verification
 arcle verify
-arcle verify --check-features    # check feature layer completeness
-arcle verify --check-assets      # check pubspec asset paths exist
-arcle verify --check-l10n        # check feature translation key coverage
-arcle verify --check-16kb        # build release APK + static 16 KB page-size checks
-arcle verify --full              # run all checks at once
 
 # Localization — add / remove individual locales
 arcle add locale en              # Add English (sets up infra on first run)
@@ -138,19 +130,15 @@ arcle ci remove github           # Remove a pipeline
 |---|---|---|
 | `arcle create <name>` | Create a new Flutter project with Clean Architecture | `arcle new` |
 | `arcle init` | Scaffold Clean Architecture in an existing project | `arcle setup` |
-| `arcle feature <name>` | Generate feature data/domain/presentation layers | `arcle feat` |
+| `arcle feature <name>` | Generate feature layers plus `<name>_plan.md` and `<name>_history.md` | `arcle feat` |
 | `arcle configure-ai` | Add AI agent context files to an existing project | `arcle agent-init` |
 | `arcle review` | Pre-commit quality gate (analyze, format, missing tests) | `arcle audit`, `arcle -r` |
+| `arcle organize imports` | Convert relative imports to package imports and organize them | |
 | `arcle doctor` | Validate ARCLE project health and safe repairs | `arcle health` |
-| `arcle verify` | Run analyze/test/codegen verification | `arcle ver` |
-| `arcle verify --check-features` | Check every feature module has all required ARCLE layer files | |
-| `arcle verify --check-assets` | Check every pubspec.yaml asset path exists on disk | |
-| `arcle verify --check-l10n` | Check every feature has its translation key | |
-| `arcle verify --check-16kb` | Build a release APK and run static 16 KB page-size checks | |
-| `arcle verify --full` | Run all structural checks in a single pass | |
+| `arcle verify` | Run all verification checks and save `docs/report.md` | `arcle ver` |
 | `arcle auto-gen-di` | Regenerate DI and refresh dependencies (BLoC) | `arcle autodi` |
 | `arcle gen-di` | Regenerate DI files only (BLoC) | `arcle di` |
-| `arcle build apk` | Build APK in debug or release mode | `arcle b`, `arcle br`, `arcle bd` |
+| `arcle build apk` | Build debug/staging, release/production, or both APKs interactively | `arcle b` |
 | `arcle gen-doc` | Generate project documentation | `arcle docs` |
 | `arcle add locale <code>` | Add a locale (e.g. `en`, `my`, `fr`) | `arcle add loc <code>` |
 | `arcle delete locale <code>` | Remove a locale | `arcle del locale <code>` |
@@ -165,9 +153,11 @@ arcle ci remove github           # Remove a pipeline
 | `--skip-analyze` | on | Skip `dart analyze` |
 | `--skip-format` | on | Skip `dart format` check |
 | `--skip-missing-tests` | on | Skip missing-tests scan |
-| `--test` | **off** | Run `flutter test` (opt-in) |
-| `--coverage` | off | Run `flutter test --coverage` + show % (implies `--test`) |
-| `--ai` | off | AI-assisted diff review via configured agent |
+| `--test` | **on** | Compatibility flag; tests run by default |
+| `--coverage` | **on** | Compatibility flag; coverage runs by default |
+| `--ai` | **on** | Compatibility flag; AI review runs by default |
+| `--skip-test` | off | Skip tests and coverage |
+| `--skip-ai` | off | Skip AI-assisted review |
 | `--staged` | off | Diff only staged changes (`git diff --staged`) |
 | `--path` | cwd | Target project directory |
 

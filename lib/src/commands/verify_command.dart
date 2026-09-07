@@ -10,6 +10,7 @@ import '../ui/cli_ui.dart';
 import '../utils/arcle_config.dart';
 import '../utils/console.dart';
 import '../utils/state_picker.dart';
+import '../utils/report_writer.dart';
 
 class VerifyCommand {
   VerifyCommand(this.console);
@@ -111,6 +112,7 @@ class VerifyCommand {
     }
 
     var failed = false;
+    final report = <String>[];
 
     if (cmd['skip-analyze'] != true) {
       failed =
@@ -118,6 +120,7 @@ class VerifyCommand {
             'analyze',
           ], targetDir) ||
           failed;
+      report.add('Analyze: ${failed ? 'failed' : 'passed'}');
     }
 
     if (cmd['skip-test'] != true) {
@@ -131,6 +134,7 @@ class VerifyCommand {
         failed =
             !await _runStep(ui, 'TEST    ', 'flutter', testArgs, targetDir) ||
             failed;
+        report.add('Tests: ${failed ? 'failed' : 'passed'}');
       }
     }
 
@@ -143,25 +147,38 @@ class VerifyCommand {
             '--delete-conflicting-outputs',
           ], targetDir) ||
           failed;
+      report.add('Code generation: ${failed ? 'failed' : 'passed'}');
     }
 
-    if (cmd['check-16kb'] == true) {
+    final fullCheck = true;
+
+    if (cmd['check-16kb'] == true || fullCheck) {
       failed = !await _run16KbCheck(ui, targetDir) || failed;
+      report.add('16 KB check: ${failed ? 'failed' : 'passed'}');
     }
-
-    final fullCheck = cmd['full'] == true;
 
     if ((cmd['check-features'] == true || fullCheck) && state != null) {
       failed = !_runFeatureCheck(ui, targetDir, state) || failed;
+      report.add('Feature structure check: ${failed ? 'failed' : 'passed'}');
     }
 
     if (cmd['check-assets'] == true || fullCheck) {
       failed = !_runAssetCheck(ui, targetDir) || failed;
+      report.add('Asset check: ${failed ? 'failed' : 'passed'}');
     }
 
     if ((cmd['check-l10n'] == true || fullCheck) && state != null) {
       failed = !_runL10nCheck(ui, targetDir, state) || failed;
+      report.add('Localization check: ${failed ? 'failed' : 'passed'}');
     }
+
+    ReportWriter.write(targetDir, 'verify', [
+      'Path: `${targetDir.path}`',
+      'State management: ${state?.label ?? 'unknown'}',
+      ...report,
+      'Summary: ${failed ? 'failed' : 'passed'}',
+    ]);
+    ui.success('Report saved to docs/report.md');
 
     if (failed) {
       ui.error('Verification failed.');
@@ -897,11 +914,7 @@ class VerifyCommand {
       parser().usage,
       '',
       'Examples:',
-      '  arcle verify                        # analyze + test',
-      '  arcle verify --check-features       # check feature layer completeness',
-      '  arcle verify --check-assets         # check pubspec asset paths exist',
-      '  arcle verify --check-l10n           # check feature localization keys',
-      '  arcle verify --full                 # run all checks',
+      '  arcle verify                        # run all verification checks',
     ].join('\n');
   }
 }

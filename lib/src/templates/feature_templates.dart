@@ -7,8 +7,8 @@ class FeatureTemplates {
     final className = StringHelpers.pascalCase(name);
 
     final files = <String, String>{
-      'lib/features/$snake/README.md': _readme(name),
-      'lib/features/$snake/data/README.md': _layerReadme('Data'),
+      'lib/features/$snake/${snake}_plan.md': _plan(name),
+      'lib/features/$snake/${snake}_history.md': _history(name),
       'lib/features/$snake/data/model/${snake}_model.dart': _model(
         snake,
         className,
@@ -17,7 +17,6 @@ class FeatureTemplates {
           _remoteSource(state, snake, className),
       'lib/features/$snake/data/repository/${snake}_repository_impl.dart':
           _repositoryImpl(state, snake, className),
-      'lib/features/$snake/domain/README.md': _layerReadme('Domain'),
       'lib/features/$snake/domain/entity/${snake}_entity.dart': _entity(
         snake,
         className,
@@ -28,9 +27,6 @@ class FeatureTemplates {
         state,
         snake,
         className,
-      ),
-      'lib/features/$snake/presentation/README.md': _layerReadme(
-        'Presentation',
       ),
       'lib/features/$snake/presentation/widgets/${snake}_card.dart':
           _cardWidget(snake, className),
@@ -95,16 +91,31 @@ class FeatureTemplates {
     };
   }
 
-  static String _readme(String name) => '''
-# $name
+  static String _plan(String name) => '''
+# $name Feature Plan
 
-Describe the feature, responsibilities, and flows here.
+## Purpose
+
+Describe the feature, its responsibilities, and the user flows it supports.
+
+## Implementation plan
+
+- [ ] Define the domain entities and repository contract.
+- [ ] Implement the data sources, models, and repository.
+- [ ] Build the presentation flow and connect routing/DI.
+- [ ] Add tests and localization coverage.
 ''';
 
-  static String _layerReadme(String title) => '''
-# $title Layer
+  static String _history(String name) => '''
+# $name Feature History
 
-Add $title layer files here.
+Track meaningful changes to this feature here.
+
+## Change log
+
+### Initial scaffold
+
+- Feature scaffold created by ARCLE.
 ''';
 
   static String _model(String snake, String className) => '''

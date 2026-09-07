@@ -57,43 +57,24 @@ class DioClient {
           options.headers['Authorization'] = 'Bearer \$token';
         }
         
-        final url = options.uri.toString();
-        AppLogger.network(
-          'HTTP Request',
-          tag: 'HTTP',
-          data: {
-            'method': options.method,
-            'url': url,
-            'requestBody': options.data,
-          },
-        );
-        
         return handler.next(options);
       },
       onResponse: (response, handler) {
-        final url = response.requestOptions.uri.toString();
-        AppLogger.network(
-          'HTTP Response',
-          tag: 'HTTP',
-          data: {
-            'method': response.requestOptions.method,
-            'url': url,
-            'response': response.data,
-          },
+        final options = response.requestOptions;
+        AppLogger.apiCall(
+          url: options.uri.toString(),
+          endpoint: options.path,
+          requestBody: options.data,
+          responseBody: response.data,
         );
         return handler.next(response);
       },
       onError: (DioException e, handler) async {
-        final url = e.requestOptions.uri.toString();
-        AppLogger.network(
-          'HTTP Error',
-          tag: 'HTTP',
-          data: {
-            'method': e.requestOptions.method,
-            'url': url,
-            'requestBody': e.requestOptions.data,
-            'response': e.response?.data,
-          },
+        AppLogger.apiCall(
+          url: e.requestOptions.uri.toString(),
+          endpoint: e.requestOptions.path,
+          requestBody: e.requestOptions.data,
+          responseBody: e.response?.data,
         );
         
         if (e.response?.statusCode == 401) {
@@ -129,13 +110,12 @@ class DioClient {
       // return true;
       
       return false;
-    } catch (e) {
-      AppLogger.error('Token refresh failed', tag: 'AUTH', error: e);
+    } catch (_) {
       return false;
     }
   }
   
-  Future<Response> _retry(RequestOptions options) async {
+  Future<Response<dynamic>> _retry(RequestOptions options) async {
     final token = await _sessionManager.getToken();
     options.headers['Authorization'] = 'Bearer \$token';
     return _dio.fetch(options);
@@ -296,7 +276,7 @@ class ApiService {
   Dio get _dio => _client.instance;
 
   /// GET request
-  Future<Response> get(
+  Future<Response<dynamic>> get(
     String path, {
     Map<String, dynamic>? query,
     Map<String, dynamic>? headers,
@@ -311,7 +291,7 @@ class ApiService {
   }
 
   /// POST request
-  Future<Response> post(
+  Future<Response<dynamic>> post(
     String path, {
     dynamic data,
     Map<String, dynamic>? query,
@@ -328,7 +308,7 @@ class ApiService {
   }
 
   /// PUT request
-  Future<Response> put(
+  Future<Response<dynamic>> put(
     String path, {
     dynamic data,
     Map<String, dynamic>? query,
@@ -343,7 +323,7 @@ class ApiService {
   }
   
   /// PATCH request
-  Future<Response> patch(
+  Future<Response<dynamic>> patch(
     String path, {
     dynamic data,
     Map<String, dynamic>? query,
@@ -358,7 +338,7 @@ class ApiService {
   }
 
   /// DELETE request
-  Future<Response> delete(
+  Future<Response<dynamic>> delete(
     String path, {
     dynamic data,
     Map<String, dynamic>? query,
@@ -373,7 +353,7 @@ class ApiService {
   }
 
   /// Upload file(s) with multipart form data
-  Future<Response> upload(
+  Future<Response<dynamic>> upload(
     String path,
     Map<String, dynamic> data, {
     void Function(int sent, int total)? onProgress,
@@ -413,7 +393,7 @@ class ApiService {
   }
   
   /// Download file
-  Future<Response> download(
+  Future<Response<dynamic>> download(
     String path,
     String savePath, {
     void Function(int received, int total)? onProgress,

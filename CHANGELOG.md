@@ -1,3 +1,21 @@
+## 2.3.0
+
+### Improvements
+
+- Feature generation now creates only `<feature>_plan.md` and `<feature>_history.md` inside each feature module.
+- `arcle build apk` now supports debug/staging, release/production, or both builds with interactive version selection and environment-aware APK names.
+- Added `arcle organize imports` to convert project-relative imports to full `package:` imports, remove duplicates, and sort imports. Use `--check` to preview changes.
+- `arcle review` now runs the complete review workflow by default: analyze, format, missing-test scan, tests with coverage, and AI review when configured.
+- `arcle verify` now runs all verification checks by default, including feature structure, assets, localization, code generation, and 16 KB APK validation.
+- Added automatic command reports at `docs/report.md`; the `docs` directory is created when necessary, with separate review and verify report content.
+- API logging now prints one focused request record containing only the full URL, endpoint, request body, and response body with highlighted labels.
+- Updated generated Dio API signatures to use explicit generic types such as `Response<dynamic>`, preventing `strict-raw-types` warnings.
+
+### CLI Cleanup
+
+- Removed the `arcle br` and `arcle bd` APK shortcut commands in favor of the interactive `arcle build apk` workflow.
+- Simplified README and CLI help examples so the main review and verification commands are easier to remember.
+
 ## 2.2.0
 
 ### New Features

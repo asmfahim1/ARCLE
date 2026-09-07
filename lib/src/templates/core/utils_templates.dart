@@ -53,6 +53,27 @@ class AppLogger {
   static void network(String message, {String? tag, Object? data}) {
     _log(LogLevel.network, message, tag: tag ?? 'NETWORK', data: data);
   }
+
+  /// Print the complete API exchange using only the fields useful for debugging.
+  static void apiCall({
+    required String url,
+    required String endpoint,
+    Object? requestBody,
+    Object? responseBody,
+  }) {
+    if (!_enableLogging || !kDebugMode) return;
+    const color = '\\x1B[36m';
+    const reset = '\\x1B[0m';
+    final buffer = StringBuffer()
+      ..writeln('========== API CALL ==========')
+      ..writeln('\${color}** URL **\${reset} \$url')
+      ..writeln('\${color}** Endpoint **\${reset} \$endpoint')
+      ..writeln('\${color}** Request Body **\${reset} \$requestBody')
+      ..writeln('\${color}** Response Body **\${reset} \$responseBody')
+      ..writeln('==============================');
+    // ignore: avoid_print
+    print(buffer.toString());
+  }
   
   static void _log(
     LogLevel level,
@@ -353,7 +374,7 @@ sealed class AppFailure {
   }
   
   /// Create failure from HTTP response (non-2xx).
-  factory AppFailure.fromResponse(Response response) {
+  factory AppFailure.fromResponse(Response<dynamic> response) {
     final statusCode = response.statusCode;
     final parsed = _parseErrorPayload(response.data);
     final message = parsed.message ?? _fallbackMessage(statusCode) ?? 'Something went wrong';

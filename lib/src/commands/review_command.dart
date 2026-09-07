@@ -5,6 +5,7 @@ import 'package:io/io.dart';
 
 import '../ui/cli_ui.dart';
 import '../utils/console.dart';
+import '../utils/report_writer.dart';
 
 class ReviewCommand {
   ReviewCommand(this.console);
@@ -21,18 +22,27 @@ class ReviewCommand {
         help: 'Skip missing-tests scan',
         negatable: false,
       )
-      ..addFlag('test', help: 'Run flutter test (opt-in)', negatable: false)
+      ..addFlag(
+        'test',
+        help: 'Compatibility flag; tests run by default',
+        negatable: false,
+      )
+      ..addFlag(
+        'skip-test',
+        help: 'Skip flutter test and coverage',
+        negatable: false,
+      )
       ..addFlag(
         'coverage',
-        help:
-            'Run flutter test --coverage and report percentage (implies --test)',
+        help: 'Compatibility flag; coverage runs by default',
         negatable: false,
       )
       ..addFlag(
         'ai',
-        help: 'Run AI-assisted review using the configured agent',
+        help: 'Compatibility flag; AI review runs by default',
         negatable: false,
       )
+      ..addFlag('skip-ai', help: 'Skip AI-assisted review', negatable: false)
       ..addFlag(
         'staged',
         help:
@@ -57,9 +67,9 @@ class ReviewCommand {
 
     final targetDir = Directory(cmd['path'] as String);
     final staged = cmd['staged'] as bool;
-    final runTest = (cmd['test'] as bool) || (cmd['coverage'] as bool);
-    final runCoverage = cmd['coverage'] as bool;
-    final runAi = cmd['ai'] as bool;
+    // A plain `arcle review` runs the complete review workflow. The flags are
+    // retained as compatibility options; skip-* flags remain available to
+    // reduce the workflow when needed.
 
     if (!targetDir.existsSync()) {
       ui.error('Directory not found: ${targetDir.path}');
@@ -73,6 +83,7 @@ class ReviewCommand {
     var passed = 0;
     var failed = 0;
     var warnings = 0;
+    final report = <String>[];
 
     // ── dart analyze ─────────────────────────────────────────────────────────
     if (cmd['skip-analyze'] != true) {
@@ -80,6 +91,7 @@ class ReviewCommand {
         'analyze',
       ], targetDir);
       ok ? passed++ : failed++;
+      report.add('Analyze: ${ok ? 'passed' : 'failed'}');
     }
 
     // ── dart format ──────────────────────────────────────────────────────────
@@ -91,6 +103,7 @@ class ReviewCommand {
         '.',
       ], targetDir);
       ok ? passed++ : failed++;
+      report.add('Format check: ${ok ? 'passed' : 'failed'}');
     }
 
     // ── missing-tests scan ───────────────────────────────────────────────────
@@ -98,26 +111,28 @@ class ReviewCommand {
       final w = _runMissingTestsScan(ui, targetDir, staged: staged);
       warnings += w;
       if (w == 0) passed++;
+      report.add('Missing-tests scan: ${w == 0 ? 'passed' : '$w warning(s)'}');
     }
 
     // ── flutter test ─────────────────────────────────────────────────────────
-    if (runTest) {
-      final testArgs =
-          runCoverage ? const ['test', '--coverage'] : const ['test'];
+    if (cmd['skip-test'] != true) {
+      const testArgs = ['test', '--coverage'];
       final ok = await _runCheck(
         ui,
-        runCoverage ? 'COVERAGE' : 'TEST    ',
+        'COVERAGE',
         'flutter',
         testArgs,
         targetDir,
       );
       ok ? passed++ : failed++;
-      if (runCoverage && ok) _reportCoverage(ui, targetDir);
+      report.add('Tests with coverage: ${ok ? 'passed' : 'failed'}');
+      if (ok) _reportCoverage(ui, targetDir);
     }
 
     // ── AI review ────────────────────────────────────────────────────────────
-    if (runAi) {
+    if (cmd['skip-ai'] != true) {
       await _runAiReview(ui, targetDir, staged: staged);
+      report.add('AI review: executed when an agent was configured');
     }
 
     // ── summary ──────────────────────────────────────────────────────────────
@@ -139,6 +154,13 @@ class ReviewCommand {
     } else {
       ui.success('Review passed. Ready to commit.');
     }
+    ReportWriter.write(targetDir, 'review', [
+      'Path: `${targetDir.path}`',
+      'Mode: ${staged ? 'staged changes only' : 'all uncommitted changes'}',
+      ...report,
+      'Summary: ${parts.join(', ')}',
+    ]);
+    ui.success('Report saved to docs/report.md');
     return ExitCode.success.code;
   }
 
@@ -367,16 +389,13 @@ class ReviewCommand {
       '  arcle -r      [options]',
       '',
       'Pre-commit quality gate: analyze, format, missing-tests scan.',
-      'Use --test to also run flutter test, --ai for AI-assisted diff review.',
+      'Runs analyze, format, missing-tests, coverage, and AI review by default.',
       '',
       'Options:',
       parser().usage,
       '',
       'Examples:',
-      '  arcle review                  # analyze + format + missing-tests (fast)',
-      '  arcle review --test           # also run flutter test',
-      '  arcle review --coverage       # flutter test --coverage + report %',
-      '  arcle review --ai             # AI-assisted diff review',
+      '  arcle review                  # full review + coverage + AI review',
       '  arcle review --ai --staged    # review only staged changes',
       '  arcle -r                      # shortcut',
     ].join('\n');
