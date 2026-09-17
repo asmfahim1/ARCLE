@@ -26,6 +26,13 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
 - **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
 
+## What's New In v2.3.1
+
+- **Theme system now covers the common widgets** — generated `AppTheme` adds `checkboxTheme`, `radioTheme`, `switchTheme`, `textButtonTheme`, `dialogTheme`, `bottomSheetTheme`, `floatingActionButtonTheme`, `progressIndicatorTheme`, `tabBarTheme`, `tooltipTheme`, and `textSelectionTheme` for light and dark modes.
+- **`CommonButton`, `CommonTextField`, `CommonDropdown`, `CommonCheckbox`, `CommonSnackbar`, `CommonAppBar`, `CommonBottomSheet` follow `AppTheme`/`AppColors` by default** — no more hardcoded `Colors.blue`/`grey`/`white` fallbacks; editing `app_colors.dart` now cascades through every common widget, with optional per-call overrides still available.
+- **`CommonDropdown` rebuilt on `DropdownButtonFormField`** so it shares the same input-decoration styling as `CommonTextField`.
+- **Removed dead code** — a duplicate, unused `AppTheme` implementation (using deprecated `MaterialStatePropertyAll`) and several other unreferenced template methods were deleted from the CLI's internals.
+
 ## What's New In v2.3.0
 
 - **New `arcle ci` command** — generate a CI/CD pipeline for GitHub Actions or GitLab CI in one command (`arcle ci add github` / `arcle ci add gitlab`), with opt-in test/coverage and APK/App Bundle build steps.

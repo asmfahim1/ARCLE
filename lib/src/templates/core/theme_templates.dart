@@ -55,6 +55,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brandPrimaryLight,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.disabled,
+          disabledForegroundColor: Colors.white70,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -62,9 +64,69 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.brandPrimaryLight,
+          disabledForegroundColor: AppColors.disabled,
           side: const BorderSide(color: AppColors.brandPrimaryLight),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.brandPrimaryLight,
+          disabledForegroundColor: AppColors.disabled,
+        ),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled;
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryLight;
+          return Colors.transparent;
+        }),
+        checkColor: const WidgetStatePropertyAll(Colors.white),
+        side: const BorderSide(color: AppColors.lightBorder, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled;
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryLight;
+          return AppColors.lightTextSecondary;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled;
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryLight;
+          return Colors.white;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled.withValues(alpha: 0.4);
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryLight.withValues(alpha: 0.5);
+          return AppColors.lightBorder;
+        }),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.brandPrimaryLight,
+        foregroundColor: Colors.white,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.brandPrimaryLight,
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: AppColors.brandPrimaryLight,
+        unselectedLabelColor: AppColors.lightTextSecondary,
+        indicatorColor: AppColors.brandPrimaryLight,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: AppColors.darkSurface,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColors.brandPrimaryLight,
+        selectionColor: AppColors.brandPrimaryLight.withValues(alpha: 0.3),
+        selectionHandleColor: AppColors.brandPrimaryLight,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -104,6 +166,18 @@ class AppTheme {
       drawerTheme: const DrawerThemeData(
         backgroundColor: AppColors.lightSurface,
         scrimColor: AppColors.overlay,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titleTextStyle: _textTheme.titleMedium?.copyWith(color: AppColors.lightTextPrimary),
+        contentTextStyle: _textTheme.bodyMedium?.copyWith(color: AppColors.lightTextPrimary),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.lightSurface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,
@@ -161,6 +235,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brandPrimaryDark,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.disabled,
+          disabledForegroundColor: Colors.black45,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -168,9 +244,69 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.brandPrimaryDark,
+          disabledForegroundColor: AppColors.disabled,
           side: const BorderSide(color: AppColors.brandPrimaryDark),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.brandPrimaryDark,
+          disabledForegroundColor: AppColors.disabled,
+        ),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled;
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryDark;
+          return Colors.transparent;
+        }),
+        checkColor: const WidgetStatePropertyAll(Colors.black),
+        side: const BorderSide(color: AppColors.darkBorder, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled;
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryDark;
+          return AppColors.darkTextSecondary;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled;
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryDark;
+          return Colors.white;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return AppColors.disabled.withValues(alpha: 0.4);
+          if (states.contains(WidgetState.selected)) return AppColors.brandPrimaryDark.withValues(alpha: 0.5);
+          return AppColors.darkBorder;
+        }),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.brandPrimaryDark,
+        foregroundColor: Colors.white,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.brandPrimaryDark,
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: AppColors.brandPrimaryDark,
+        unselectedLabelColor: AppColors.darkTextSecondary,
+        indicatorColor: AppColors.brandPrimaryDark,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: AppColors.lightSurface,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        textStyle: const TextStyle(color: AppColors.lightTextPrimary, fontSize: 12),
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: AppColors.brandPrimaryDark,
+        selectionColor: AppColors.brandPrimaryDark.withValues(alpha: 0.3),
+        selectionHandleColor: AppColors.brandPrimaryDark,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -210,6 +346,18 @@ class AppTheme {
       drawerTheme: const DrawerThemeData(
         backgroundColor: AppColors.darkSurface,
         scrimColor: AppColors.overlay,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titleTextStyle: _textTheme.titleMedium?.copyWith(color: AppColors.darkTextPrimary),
+        contentTextStyle: _textTheme.bodyMedium?.copyWith(color: AppColors.darkTextPrimary),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.darkSurface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.darkBorder,

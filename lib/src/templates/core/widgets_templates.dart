@@ -44,9 +44,10 @@ class CommonButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.backgroundColor,
+    this.foregroundColor,
     this.width,
     this.height = 48,
-    this.borderRadius = 8,
+    this.borderRadius,
     this.isLoading = false,
     this.isEnabled = true,
   });
@@ -54,31 +55,50 @@ class CommonButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
   final Color? backgroundColor;
+  final Color? foregroundColor;
   final double? width;
   final double height;
-  final double borderRadius;
+  final double? borderRadius;
   final bool isLoading;
   final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baseStyle = theme.elevatedButtonTheme.style ?? const ButtonStyle();
+
     return SizedBox(
       width: width ?? double.infinity,
       height: height,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isEnabled ? backgroundColor ?? Colors.blue : Colors.grey,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
+        // Colors/padding come from AppTheme.elevatedButtonTheme by default.
+        // Pass [backgroundColor]/[foregroundColor]/[borderRadius] to override per call.
+        style: baseStyle.copyWith(
+          backgroundColor: backgroundColor != null
+              ? WidgetStatePropertyAll(backgroundColor)
+              : null,
+          foregroundColor: foregroundColor != null
+              ? WidgetStatePropertyAll(foregroundColor)
+              : null,
+          shape: borderRadius != null
+              ? WidgetStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(borderRadius!),
+                  ),
+                )
+              : null,
         ),
         onPressed: isEnabled && !isLoading ? onPressed : null,
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 20,
                 width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    foregroundColor ?? theme.colorScheme.onPrimary,
+                  ),
+                ),
               )
             : Text(label),
       ),
@@ -116,6 +136,8 @@ class CommonTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fill color, borders and padding come from AppTheme.inputDecorationTheme.
+    // Leave `decoration` borders unset here so theme changes apply automatically.
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
@@ -125,9 +147,6 @@ class CommonTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         labelText: labelText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
       ),
       validator: validator,
       onChanged: onChanged,
@@ -147,19 +166,30 @@ class CommonDropdown<T> extends StatelessWidget {
     required this.onChanged,
     this.value,
     this.hint,
+    this.labelText,
+    this.validator,
   });
 
   final List<T> items;
   final T? value;
   final String Function(T) itemLabel;
-  final Function(T?) onChanged;
+  final ValueChanged<T?> onChanged;
   final String? hint;
+  final String? labelText;
+  final String? Function(T?)? validator;
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<T>(
+    // Border, fill color and dropdown menu surface come from
+    // AppTheme.inputDecorationTheme, so it stays visually in sync with
+    // CommonTextField automatically.
+    return DropdownButtonFormField<T>(
       value: value,
-      hint: Text(hint ?? 'Select'),
+      isExpanded: true,
+      decoration: InputDecoration(
+        hintText: hint ?? 'Select',
+        labelText: labelText,
+      ),
       items: items.map((item) {
         return DropdownMenuItem<T>(
           value: item,
@@ -167,6 +197,7 @@ class CommonDropdown<T> extends StatelessWidget {
         );
       }).toList(),
       onChanged: onChanged,
+      validator: validator,
     );
   }
 }
@@ -191,16 +222,18 @@ class CommonCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fill/check colors come from AppTheme.checkboxTheme unless [activeColor]
+    // is explicitly passed.
     return Row(
       children: [
         Checkbox(
           value: value,
           onChanged: onChanged,
-          activeColor: activeColor ?? Colors.blue,
+          activeColor: activeColor,
         ),
         if (label != null)
           Expanded(
-            child: Text(label!),
+            child: Text(label!, style: Theme.of(context).textTheme.bodyMedium),
           ),
       ],
     );
@@ -210,8 +243,11 @@ class CommonCheckbox extends StatelessWidget {
 
   static String commonSnackbar() => '''
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class CommonSnackbar {
+  // Default background/text colors come from AppTheme.snackBarTheme.
+  // [backgroundColor]/[textColor] let a call site override just this one snackbar.
   static void show(
     BuildContext context, {
     required String message,
@@ -219,13 +255,15 @@ class CommonSnackbar {
     Color? backgroundColor,
     Color? textColor,
   }) {
+    final snackBarTheme = Theme.of(context).snackBarTheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: textColor ?? Colors.white),
+          style: (snackBarTheme.contentTextStyle ?? const TextStyle())
+              .copyWith(color: textColor),
         ),
-        backgroundColor: backgroundColor ?? Colors.grey[800],
+        backgroundColor: backgroundColor ?? snackBarTheme.backgroundColor,
         duration: duration,
       ),
     );
@@ -235,14 +273,24 @@ class CommonSnackbar {
     BuildContext context, {
     required String message,
   }) {
-    show(context, message: message, backgroundColor: Colors.red);
+    show(
+      context,
+      message: message,
+      backgroundColor: AppColors.error,
+      textColor: Colors.white,
+    );
   }
 
   static void success(
     BuildContext context, {
     required String message,
   }) {
-    show(context, message: message, backgroundColor: Colors.green);
+    show(
+      context,
+      message: message,
+      backgroundColor: AppColors.success,
+      textColor: Colors.white,
+    );
   }
 }
 ''';
@@ -270,12 +318,9 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // backgroundColor/titleStyle default to AppTheme.appBarTheme when null.
     return AppBar(
-      title: Text(
-        title,
-        style: titleStyle ??
-            const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-      ),
+      title: Text(title, style: titleStyle),
       backgroundColor: backgroundColor,
       automaticallyImplyLeading: showBackButton,
       leading: showBackButton
@@ -314,10 +359,13 @@ class CommonBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomSheetTheme = Theme.of(context).bottomSheetTheme;
     return Container(
       height: height ?? 300,
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white,
+        color: backgroundColor ??
+            bottomSheetTheme.backgroundColor ??
+            Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
@@ -329,7 +377,7 @@ class CommonBottomSheet extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           Expanded(

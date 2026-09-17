@@ -1,3 +1,17 @@
+## 2.3.1
+
+### Theme System Improvements
+
+- Generated `AppTheme` now covers `checkboxTheme`, `radioTheme`, `switchTheme`, `textButtonTheme`, `dialogTheme`, `bottomSheetTheme`, `floatingActionButtonTheme`, `progressIndicatorTheme`, `tabBarTheme`, `tooltipTheme`, and `textSelectionTheme` for both light and dark modes, all driven from `AppColors`.
+- Button styles now define `disabledBackgroundColor`/`disabledForegroundColor` so disabled states are theme-driven instead of hardcoded per widget.
+- `CommonButton`, `CommonTextField`, `CommonDropdown`, `CommonCheckbox`, `CommonSnackbar`, `CommonAppBar`, and `CommonBottomSheet` no longer hardcode fallback colors (`Colors.blue`/`grey`/`white`/`red`/`green`) — they now inherit from `AppTheme`/`AppColors` by default while still accepting optional per-call overrides.
+- `CommonDropdown` is now built on `DropdownButtonFormField`, so it automatically shares the same `inputDecorationTheme` styling as `CommonTextField` instead of rendering unstyled.
+- Result: editing `lib/core/utils/app_colors.dart` now cascades consistently through every common widget, in both light and dark mode, without further per-widget edits.
+
+### CLI Cleanup
+
+- Removed a large block of dead, unreferenced template code from `core_templates.dart`, including a duplicate/outdated `AppTheme` implementation that used deprecated `MaterialStatePropertyAll` APIs and was never wired into project generation.
+
 ## 2.3.0
 
 ### Improvements
