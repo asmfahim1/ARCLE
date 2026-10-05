@@ -32,30 +32,6 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **New `arcle history add` command** — logs AI/human work to root and feature `docs/HISTORY.md` in one call: `arcle history add --feature login --summary "Implemented login API" --agent claude`.
 - **AI agents now self-report progress** — `arcle configure-ai` writes a work-tracking rule into `CLAUDE.md`, `.codex/instructions.md`, and `GEMINI.md` so Claude Code, Codex, and Gemini call `arcle history add` after finishing work, keeping both root and per-feature history accurate.
 
-## What's New In v2.3.1
-
-- **Theme system now covers the common widgets** — generated `AppTheme` adds `checkboxTheme`, `radioTheme`, `switchTheme`, `textButtonTheme`, `dialogTheme`, `bottomSheetTheme`, `floatingActionButtonTheme`, `progressIndicatorTheme`, `tabBarTheme`, `tooltipTheme`, and `textSelectionTheme` for light and dark modes.
-- **`CommonButton`, `CommonTextField`, `CommonDropdown`, `CommonCheckbox`, `CommonSnackbar`, `CommonAppBar`, `CommonBottomSheet` follow `AppTheme`/`AppColors` by default** — no more hardcoded `Colors.blue`/`grey`/`white` fallbacks; editing `app_colors.dart` now cascades through every common widget, with optional per-call overrides still available.
-- **`CommonDropdown` rebuilt on `DropdownButtonFormField`** so it shares the same input-decoration styling as `CommonTextField`.
-- **Removed dead code** — a duplicate, unused `AppTheme` implementation (using deprecated `MaterialStatePropertyAll`) and several other unreferenced template methods were deleted from the CLI's internals.
-
-## What's New In v2.3.0
-
-- **New `arcle ci` command** — generate a CI/CD pipeline for GitHub Actions or GitLab CI in one command (`arcle ci add github` / `arcle ci add gitlab`), with opt-in test/coverage and APK/App Bundle build steps.
-- **Fixed `arcle add locale` / `arcle delete locale`** — these commands are now correctly wired into the CLI and work as documented.
-- **Theme template compatibility fix (v2.1.5)** — generated `AppTheme` now uses `CardThemeData` for light and dark themes so new projects match current Flutter material APIs.
-- **Updated AI agent config templates (v2.1.5)** — Codex and Gemini settings templates now use the newer model object shape, and the Gemini default model has been bumped to `gemini-3.5-flash`.
-- **Decoupled AI scaffolding** — `arcle create` now generates only the Flutter Clean Architecture structure. AI agent config (`.ai/`, `.claude/`, `.codex/`, `.gemini/`) is opt-in via the new `arcle configure-ai` command.
-- **Numbered prompt for state management** — interactive selection shows `1. BLoC / 2. GetX / 3. Riverpod`. The `--state` flag bypasses the prompt for CI/CD use.
-- **`arcle configure-ai` command** (alias: `arcle agent-init`) — one-question interactive wizard that detects your state management from `arcle.yaml` and scaffolds the chosen AI agent context files.
-- **`arcle review` command** (aliases: `arcle audit`, `arcle -r`) — pre-commit quality gate:
-  - `dart analyze` + `dart format` check (always on, fast)
-  - Missing-tests scan scoped to files in the current git diff (warns without blocking)
-  - `flutter test` (opt-in via `--test`)
-  - `flutter test --coverage` with percentage report (opt-in via `--coverage`)
-  - AI-assisted diff review via your configured agent binary (opt-in via `--ai`)
-- **Bug fix (v2.1.3)** — removed ANSI raw-mode arrow-key menu that caused `StdinException` on Windows. State management selection uses a plain numbered prompt, consistent across all terminals.
-
 ## 📦 Installation
 
 ### Option 1: Activate globally (Recommended)
