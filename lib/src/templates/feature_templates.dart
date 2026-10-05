@@ -1,5 +1,6 @@
 import '../state_management.dart';
 import '../utils/string_helpers.dart';
+import 'project_docs_templates.dart';
 
 class FeatureTemplates {
   static Map<String, String> files(StateManagement state, String name) {
@@ -7,8 +8,10 @@ class FeatureTemplates {
     final className = StringHelpers.pascalCase(name);
 
     final files = <String, String>{
-      'lib/features/$snake/${snake}_plan.md': _plan(name),
-      'lib/features/$snake/${snake}_history.md': _history(name),
+      'lib/features/$snake/docs/${snake}_plan.md':
+          ProjectDocsTemplates.featurePlan(name),
+      'lib/features/$snake/docs/${snake}_history.md':
+          ProjectDocsTemplates.featureHistory(name),
       'lib/features/$snake/data/model/${snake}_model.dart': _model(
         snake,
         className,
@@ -90,33 +93,6 @@ class FeatureTemplates {
           _riverpodState(snake, className),
     };
   }
-
-  static String _plan(String name) => '''
-# $name Feature Plan
-
-## Purpose
-
-Describe the feature, its responsibilities, and the user flows it supports.
-
-## Implementation plan
-
-- [ ] Define the domain entities and repository contract.
-- [ ] Implement the data sources, models, and repository.
-- [ ] Build the presentation flow and connect routing/DI.
-- [ ] Add tests and localization coverage.
-''';
-
-  static String _history(String name) => '''
-# $name Feature History
-
-Track meaningful changes to this feature here.
-
-## Change log
-
-### Initial scaffold
-
-- Feature scaffold created by ARCLE.
-''';
 
   static String _model(String snake, String className) => '''
 import '../../domain/entity/${snake}_entity.dart';

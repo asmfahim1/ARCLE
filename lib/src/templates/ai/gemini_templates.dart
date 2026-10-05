@@ -26,6 +26,20 @@ lib/
 - No secrets in source code
 - Use Logger instead of print()
 - See .ai/ directory for full rules
+
+## Work Tracking
+
+After finishing any unit of work, log it:
+
+```bash
+arcle history add --summary "<what changed>" --agent gemini
+# or, when the work is scoped to one feature:
+arcle history add --feature <feature_name> --summary "<what changed>" --agent gemini
+```
+
+This updates root `docs/HISTORY.md` and, with `--feature`, the feature's own
+`lib/features/<feature_name>/docs/<feature_name>_history.md`. Check
+`docs/PLAN.md` for project context before starting new work.
 ''';
 
   static String geminiSettings(StateManagement state) => r'''

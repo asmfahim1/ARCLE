@@ -7,6 +7,7 @@ import '../templates/ai/agent_templates.dart';
 import '../templates/ai/claude_templates.dart';
 import '../templates/ai/codex_templates.dart';
 import '../templates/ai/gemini_templates.dart';
+import '../templates/project_docs_templates.dart';
 import '../templates/scripts/scripts_templates.dart';
 import '../ui/cli_ui.dart';
 import '../utils/arcle_config.dart';
@@ -105,6 +106,8 @@ class ConfigureAiCommand {
     final writeGemini = agentIndex == 2 || agentIndex == 3;
 
     final files = <String, String>{
+      'docs/PLAN.md': ProjectDocsTemplates.rootPlan(projectName),
+      'docs/HISTORY.md': ProjectDocsTemplates.rootHistory(projectName),
       '.ai/settings.yaml': AgentTemplates.settingsYaml(state),
       '.ai/project-context.md': AgentTemplates.projectContext(
         projectName,

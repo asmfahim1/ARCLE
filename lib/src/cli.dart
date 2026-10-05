@@ -11,6 +11,7 @@ import 'commands/feature_command.dart';
 import 'commands/auto_gen_di_command.dart';
 import 'commands/gen_di_command.dart';
 import 'commands/gen_doc_command.dart';
+import 'commands/history_command.dart';
 import 'commands/init_command.dart';
 import 'commands/organize_command.dart';
 import 'commands/review_command.dart';
@@ -77,6 +78,8 @@ class Cli {
         return AddCommand(console).run(cmd);
       case 'delete':
         return DeleteCommand(console).run(cmd);
+      case 'history':
+        return HistoryCommand(console).run(cmd);
       default:
         ui.error('Unknown command: ${cmd.name}');
         final suggestion = CommandSuggester().suggest(
@@ -151,6 +154,7 @@ class Cli {
     parser.addCommand('ci', CiCommand.parser());
     parser.addCommand('add', AddCommand.parser());
     parser.addCommand('delete', DeleteCommand.parser());
+    parser.addCommand('history', HistoryCommand.parser());
     return parser;
   }
 
@@ -184,6 +188,7 @@ class Cli {
       'add',
       'delete',
       'del',
+      'history',
     ];
   }
 
@@ -226,6 +231,7 @@ class Cli {
       '    🌍  add locale <c>   Add a locale to the project',
       '    🗑️   delete locale   Remove a locale from the project',
       '         alias: del',
+      '    📝  history add     Log AI/human work to docs/HISTORY.md',
       '',
       '  DI COMMAND DIFFERENCES',
       '    ─────────────────────────────────────────────────────────────',
@@ -255,6 +261,8 @@ class Cli {
       '    arcle ci add gitlab --coverage        # Add a GitLab CI pipeline with coverage',
       '    arcle add locale bn                  # Add a locale',
       '    arcle delete locale bn               # Remove a locale',
+      '    arcle history add --summary "Fixed login" --agent claude',
+      '                                          # Log work to docs/HISTORY.md',
       '',
       '  DI COMMAND EXAMPLES',
       '    arcle gen-di                         # Quick DI update (manual build)',

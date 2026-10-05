@@ -18,6 +18,20 @@ Layers: data → domain ← presentation
 - See `.ai/architecture-rules.md` for layer rules
 - See `.ai/security-rules.md` for security requirements
 
+## Work Tracking
+
+After finishing any unit of work, log it so the user can track progress:
+
+```bash
+arcle history add --summary "<what changed>" --agent codex
+# or, when the work is scoped to one feature:
+arcle history add --feature <feature_name> --summary "<what changed>" --agent codex
+```
+
+This updates root `docs/HISTORY.md` and, with `--feature`, the feature's own
+`lib/features/<feature_name>/docs/<feature_name>_history.md`. Check
+`docs/PLAN.md` for project context before starting new work.
+
 ## Constraints
 
 - Do NOT add secrets to source code

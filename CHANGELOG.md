@@ -1,3 +1,13 @@
+## 2.3.2
+
+### Documentation & Work Tracking
+
+- `arcle create`, `arcle init`, and `arcle configure-ai` now seed a root `docs/PLAN.md` and `docs/HISTORY.md` for whole-project planning and a chronological work log.
+- `arcle feature <name>` now generates `lib/features/<name>/docs/<name>_plan.md` and `lib/features/<name>/docs/<name>_history.md` — keeping each feature's docs grouped in a `docs/` folder while still naming the files after the feature, so it stays obvious which feature a file belongs to.
+- Added `arcle history add --summary "<text>" [--feature <name>] [--agent claude|codex|gemini|human]` to append work-tracking rows to root `docs/HISTORY.md` and, when `--feature` is given, to that feature's `docs/HISTORY.md` too.
+- `arcle configure-ai` now writes the work-tracking rule into `CLAUDE.md`, `.codex/instructions.md`, and `GEMINI.md`, instructing agents to run `arcle history add` after finishing a unit of work, and allow-lists `arcle history add` in the generated Claude Code `settings.json`.
+- Generating a feature now automatically logs a "Feature scaffolded" entry to root `docs/HISTORY.md` so project history stays accurate even without AI involvement.
+
 ## 2.3.1
 
 ### Theme System Improvements
