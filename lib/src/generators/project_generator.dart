@@ -6,6 +6,7 @@ import 'package:arcle/src/templates/core/di_templates.dart';
 import 'package:io/io.dart';
 
 import '../state_management.dart';
+import '../templates/project_docs_templates.dart';
 import '../ui/cli_ui.dart';
 import '../utils/arcle_config.dart';
 import '../utils/console.dart';
@@ -251,7 +252,17 @@ class ProjectGenerator {
   }
 
   Map<String, String> _buildFiles() {
-    return buildProjectFiles(state, projectName: projectName);
+    final files = buildProjectFiles(state, projectName: projectName);
+    final docsName = projectName.isEmpty ? 'my_app' : projectName;
+    files.putIfAbsent(
+      'docs/PLAN.md',
+      () => ProjectDocsTemplates.rootPlan(docsName),
+    );
+    files.putIfAbsent(
+      'docs/HISTORY.md',
+      () => ProjectDocsTemplates.rootHistory(docsName),
+    );
+    return files;
   }
 
   void _writeConfig(Directory base) {

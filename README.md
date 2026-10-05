@@ -26,6 +26,12 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
 - **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
 
+## What's New In v2.3.2
+
+- **Project & feature documentation folders** — `arcle create`, `arcle init`, and `arcle configure-ai` now seed a root `docs/PLAN.md` + `docs/HISTORY.md`, and `arcle feature <name>` seeds `lib/features/<name>/docs/<name>_plan.md` + `<name>_history.md` so each feature's docs stay clearly named and grouped in their own `docs/` folder.
+- **New `arcle history add` command** — logs AI/human work to root and feature `docs/HISTORY.md` in one call: `arcle history add --feature login --summary "Implemented login API" --agent claude`.
+- **AI agents now self-report progress** — `arcle configure-ai` writes a work-tracking rule into `CLAUDE.md`, `.codex/instructions.md`, and `GEMINI.md` so Claude Code, Codex, and Gemini call `arcle history add` after finishing work, keeping both root and per-feature history accurate.
+
 ## What's New In v2.3.1
 
 - **Theme system now covers the common widgets** — generated `AppTheme` adds `checkboxTheme`, `radioTheme`, `switchTheme`, `textButtonTheme`, `dialogTheme`, `bottomSheetTheme`, `floatingActionButtonTheme`, `progressIndicatorTheme`, `tabBarTheme`, `tooltipTheme`, and `textSelectionTheme` for light and dark modes.
@@ -137,8 +143,9 @@ arcle ci remove github           # Remove a pipeline
 |---|---|---|
 | `arcle create <name>` | Create a new Flutter project with Clean Architecture | `arcle new` |
 | `arcle init` | Scaffold Clean Architecture in an existing project | `arcle setup` |
-| `arcle feature <name>` | Generate feature layers plus `<name>_plan.md` and `<name>_history.md` | `arcle feat` |
-| `arcle configure-ai` | Add AI agent context files to an existing project | `arcle agent-init` |
+| `arcle feature <name>` | Generate feature layers plus `docs/<name>_plan.md` and `docs/<name>_history.md` for the feature | `arcle feat` |
+| `arcle configure-ai` | Add AI agent context files, plus root `docs/PLAN.md`/`docs/HISTORY.md`, to a project | `arcle agent-init` |
+| `arcle history add` | Log AI/human work to root and feature `docs/HISTORY.md` | |
 | `arcle review` | Pre-commit quality gate (analyze, format, missing tests) | `arcle audit`, `arcle -r` |
 | `arcle organize imports` | Convert relative imports to package imports and organize them | |
 | `arcle doctor` | Validate ARCLE project health and safe repairs | `arcle health` |
@@ -204,6 +211,32 @@ This writes:
 - `scripts/` — setup and doctor scripts for your team
 
 State management is read from `arcle.yaml` automatically. Use `--force` to overwrite existing config.
+
+## 📚 Documentation & Work Tracking
+
+`arcle create` / `arcle init` / `arcle configure-ai` all seed a root `docs/` folder, and every `arcle feature <name>` adds its own `docs/` folder too:
+
+```
+my_awesome_app/
+├── docs/
+│   ├── PLAN.md                 ← whole-project plan
+│   └── HISTORY.md               ← whole-project work log (newest entries on top)
+└── lib/features/login/
+    └── docs/
+        ├── login_plan.md        ← this feature's plan
+        └── login_history.md      ← this feature's work log
+```
+
+Feature docs are named after the feature (`<name>_plan.md` / `<name>_history.md`) so it's always clear which feature a file belongs to, even when several files are open side by side.
+
+When an AI agent is configured via `arcle configure-ai`, its instruction file (`CLAUDE.md`, `.codex/instructions.md`, or `GEMINI.md`) tells it to log work as it goes:
+
+```bash
+arcle history add --summary "Fixed login crash" --agent claude
+arcle history add --feature login --summary "Implemented login API" --agent claude
+```
+
+The first form appends a row to root `docs/HISTORY.md`; adding `--feature <name>` also appends to that feature's `lib/features/<name>/docs/<name>_history.md`, so you get the full project history at the root and per-feature history inside each feature module.
 
 ## ✅ Requirements
 

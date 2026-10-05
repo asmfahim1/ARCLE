@@ -46,6 +46,23 @@ Read `.ai/coding-rules.md` for naming conventions and standards.
 
 Read `.ai/security-rules.md` before handling tokens, secrets, or user data.
 
+## Work Tracking
+
+After finishing any unit of work (a feature, a bug fix, a refactor), log it:
+
+```bash
+arcle history add --summary "<what changed>" --agent claude
+# or, when the work is scoped to one feature:
+arcle history add --feature <feature_name> --summary "<what changed>" --agent claude
+```
+
+This appends a row to root `docs/HISTORY.md` and, with `--feature`, to
+`lib/features/<feature_name>/docs/<feature_name>_history.md` as well — so the
+user can see full project history at the root and per-feature history inside
+each feature module. Check `docs/PLAN.md` (and the feature's own
+`<feature_name>_plan.md`/`<feature_name>_history.md` under its `docs/`
+folder) for context before starting new work.
+
 ## Do Not
 
 - ❌ Add hardcoded API keys or secrets to source files
@@ -72,7 +89,8 @@ Read `.ai/security-rules.md` before handling tokens, secrets, or user data.
       "Bash(flutter analyze)",
       "Bash(flutter pub get)",
       "Bash(dart format .)",
-      "Bash(flutter test)"
+      "Bash(flutter test)",
+      "Bash(arcle history add*)"
     ],
     "deny": [
       "Bash(rm -rf *)",

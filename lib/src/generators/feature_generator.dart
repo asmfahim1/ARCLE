@@ -6,6 +6,7 @@ import '../ui/cli_ui.dart';
 import '../utils/endpoint_injector.dart';
 import '../utils/file_writer.dart';
 import '../utils/localization_injector.dart';
+import '../utils/history_writer.dart';
 import '../utils/string_helpers.dart';
 import 'bloc_providers_updater.dart';
 import 'riverpod_providers_updater.dart';
@@ -58,6 +59,13 @@ class FeatureGenerator {
 
     EndpointInjector.inject(base, safeName);
     LocalizationInjector.inject(base, safeName, state);
+
+    HistoryWriter.appendRoot(
+      base,
+      summary: 'Feature "$safeName" scaffolded.',
+      feature: safeName,
+    );
+
     ui.raw('');
     ui.success('✨ Feature "$safeName" created with all layers!');
     ui.info('Includes: data/domain/presentation + routing + DI wiring');
