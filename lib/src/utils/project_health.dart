@@ -220,8 +220,10 @@ class ProjectHealthValidator {
     StateManagement state,
   ) {
     final issues = <ProjectHealthIssue>[];
+    final hasHttp = RegExp(r'^\s*http\s*:', multiLine: true).hasMatch(pubspecContent);
+    final networkDep = hasHttp ? 'http' : 'dio';
     final requiredDependencies = <String>[
-      'dio',
+      networkDep,
       'shared_preferences',
       'permission_handler',
       'dartz',

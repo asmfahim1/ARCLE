@@ -19,22 +19,34 @@ import '../../templates/features/demo_templates.dart';
 import '../../templates/features/settings_templates.dart';
 import '../../templates/tests_templates.dart';
 
-Map<String, String> buildCommonProjectFiles(StateManagement state) {
+Map<String, String> buildCommonProjectFiles(
+  StateManagement state, {
+  String projectName = 'my_app',
+  NetworkClient network = NetworkClient.dio,
+}) {
   final files = <String, String>{
     'analysis_options.yaml': AnalysisTemplates.analysisOptions(),
     'lib/bootstrap.dart': AppTemplates.bootstrap(state),
-    'lib/app/app.dart': AppTemplates.app(state),
+    'lib/app/app.dart': AppTemplates.app(state, projectName: projectName),
     'lib/main.dart': AppTemplates.mainEntry(),
     'lib/core/README.md': ReadmeTemplates.coreReadme(),
-    'lib/core/api_client/dio_client.dart': ApiTemplates.dioClient(state),
-    'lib/core/api_client/api_service.dart': ApiTemplates.apiService(state),
+    if (network.isHttp)
+      'lib/core/api_client/http_client.dart': ApiTemplates.httpClient(state)
+    else
+      'lib/core/api_client/dio_client.dart': ApiTemplates.dioClient(state),
+    'lib/core/api_client/api_service.dart': ApiTemplates.apiService(
+      state,
+      network,
+    ),
     'lib/core/api_client/base_response.dart': ApiTemplates.apiResponse(),
     'lib/core/localization/app_strings.dart': LocalizationTemplates.appStrings(
       state,
     ),
     'assets/images/.gitkeep': '',
     'assets/icons/.gitkeep': '',
-    'lib/core/utils/constants.dart': ConstantsTemplates.appConstants(),
+    'lib/core/utils/constants.dart': ConstantsTemplates.appConstants(
+      projectName: projectName,
+    ),
     'lib/core/utils/endpoints.dart': ConstantsTemplates.apiEndpoints(),
     'lib/core/utils/enums.dart': ConstantsTemplates.appEnums(),
     'lib/core/utils/app_assets.dart': ConstantsTemplates.appAssets(),
@@ -65,7 +77,7 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
         WidgetsTemplates.commonImageContainer(state),
     'lib/core/common_widgets/paginated_list_view.dart':
         WidgetsTemplates.paginatedListView(),
-    'lib/core/di/app_di.dart': DiTemplates.di(state),
+    'lib/core/di/app_di.dart': DiTemplates.di(state, network),
     'lib/core/env/env.dart': EnvTemplates.envBase(),
     'lib/core/env/prod_env.dart': EnvTemplates.envProd(),
     'lib/core/env/stag_env.dart': EnvTemplates.envStag(),
@@ -77,7 +89,7 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
     'lib/core/session_manager/session_manager.dart':
         ServicesTemplates.sessionManager(state),
     'lib/core/response_handler/response_handler.dart':
-        CoreTemplates.responseHandler(),
+        CoreTemplates.responseHandler(network),
     'lib/core/error_handler/error_handler.dart': CoreTemplates.errorHandler(),
     'lib/core/route_handler/app_routes.dart': RouteTemplates.routes(),
     'lib/core/route_handler/app_route_observer.dart': RouteTemplates.observer(),
@@ -89,7 +101,9 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
         ServicesTemplates.permissionService(state),
     'lib/core/utils/logger.dart': UtilsTemplates.utilsLogger(),
     'lib/core/utils/date_formatter.dart': UtilsTemplates.utilsDateFormatter(),
-    'lib/core/response_handler/api_failure.dart': UtilsTemplates.utilsFailure(),
+    'lib/core/response_handler/api_failure.dart': UtilsTemplates.utilsFailure(
+      network,
+    ),
     'lib/core/utils/result.dart': UtilsTemplates.utilsResult(),
     'lib/core/utils/app_validators.dart': UtilsTemplates.appValidators(),
     'lib/core/utils/validators.dart': UtilsTemplates.utilsValidators(),
@@ -101,7 +115,7 @@ Map<String, String> buildCommonProjectFiles(StateManagement state) {
   };
 
   files.addAll(SettingsTemplates.files(state));
-  files.addAll(DemoTemplates.files(state));
+  files.addAll(DemoTemplates.files(state, network));
   files['test/features/settings/settings_screen_test.dart'] =
       TestsTemplates.settingsScreenTest(state);
 

@@ -109,5 +109,38 @@ created_at: 2026-03-14T10:00:00.000
     test('filename constant is correct', () {
       expect(ArcleConfig.filename, 'arcle.yaml');
     });
+
+    test('toYaml writes the selected network client', () {
+      final config = ArcleConfig(
+        state: StateManagement.getx,
+        createdAt: DateTime(2026, 3, 14),
+        network: NetworkClient.http,
+      );
+      expect(config.toYaml(), contains('network: http'));
+    });
+
+    test('readFrom falls back to Dio when network key is missing', () {
+      final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
+      try {
+        File('${tempDir.path}${Platform.pathSeparator}arcle.yaml')
+            .writeAsStringSync('state: bloc\ncreated_at: 2026-03-14T10:00:00.000\n');
+        expect(ArcleConfig.readFrom(tempDir)?.network, NetworkClient.dio);
+      } finally {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('readFrom reads the http network client', () {
+      final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
+      try {
+        File('${tempDir.path}${Platform.pathSeparator}arcle.yaml')
+            .writeAsStringSync(
+          'state: riverpod\nnetwork: http\ncreated_at: 2026-03-14T10:00:00.000\n',
+        );
+        expect(ArcleConfig.readFrom(tempDir)?.network, NetworkClient.http);
+      } finally {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
   });
 }

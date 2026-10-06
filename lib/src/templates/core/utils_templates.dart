@@ -1,3 +1,5 @@
+import '../../state_management.dart';
+
 class UtilsTemplates {
   static String utilsLogger() => '''
 import 'dart:developer' as developer;
@@ -296,7 +298,111 @@ class AppValidators {
 }
 ''';
 
-  static String utilsFailure() => '''
+  static String utilsFailure([
+    NetworkClient network = NetworkClient.dio,
+  ]) {
+    if (network.isHttp) {
+      return _httpUtilsFailure();
+    }
+    return _dioUtilsFailure();
+  }
+
+  static String _httpUtilsFailure() => '''
+import 'dart:async';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import '../api_client/http_client.dart';
+
+/// Represents all possible failure types in the application.
+/// 
+/// This sealed class enables exhaustive pattern matching:
+/// ```dart
+/// failure.when(
+///   network: (msg) => showNoInternet(),
+///   server: (msg, code) => showServerError(),
+///   // ...
+/// );
+/// ```
+sealed class AppFailure {
+  const AppFailure(this.message);
+  final String message;
+  
+  /// Optional structured details (validation, etc.)
+  String get displayMessage => message.isNotEmpty ? message : 'Something went wrong';
+  
+  /// Pattern matching helper
+  T when<T>({
+    required T Function(String message) network,
+    required T Function(String message, int? statusCode) server,
+    required T Function(String message) timeout,
+    required T Function(String message) unauthorized,
+    required T Function(String message) notFound,
+    required T Function(String message) validation,
+    required T Function(String message) cache,
+    required T Function(String message, Object? error) unknown,
+  }) {
+    return switch (this) {
+      NetworkFailure f => network(f.message),
+      ServerFailure f => server(f.message, f.statusCode),
+      TimeoutFailure f => timeout(f.message),
+      UnauthorizedFailure f => unauthorized(f.message),
+      NotFoundFailure f => notFound(f.message),
+      ValidationFailure f => validation(f.message),
+      CacheFailure f => cache(f.message),
+      UnknownFailure f => unknown(f.message, f.error),
+    };
+  }
+
+  /// Create failure from generic exception
+  factory AppFailure.fromException(Object e, [StackTrace? stack]) {
+    if (e is http.ClientException) {
+      return const NetworkFailure('No internet connection. Please check your network.');
+    }
+    if (e is SocketException) {
+      return const NetworkFailure('No internet connection. Please check your network.');
+    }
+    if (e is TimeoutException) {
+      return const TimeoutFailure('Connection timed out. Please try again.');
+    }
+    if (e is FormatException) {
+      return const ServerFailure('Invalid server response format.');
+    }
+    return UnknownFailure('An unexpected error occurred. Please try again.', e);
+  }
+
+  /// Create failure from HTTP response (non-2xx).
+  factory AppFailure.fromResponse(ApiResponse response) {
+    final statusCode = response.statusCode;
+    final parsed = _parseErrorPayload(response.data);
+    final message = parsed.message ?? _fallbackMessage(statusCode) ?? 'Something went wrong';
+
+    if (statusCode == 401 || statusCode == 403) {
+      return UnauthorizedFailure(message);
+    }
+    if (statusCode == 404) {
+      return NotFoundFailure(message);
+    }
+    if (statusCode == 422 || statusCode == 400) {
+      return ValidationFailure(
+        message,
+        fieldErrors: parsed.fieldErrors,
+        globalErrors: parsed.globalErrors,
+      );
+    }
+    if (statusCode >= 500) {
+      return ServerFailure(
+        _fallbackMessage(statusCode) ?? 'Server error occurred. Please try again later.',
+        statusCode: statusCode,
+      );
+    }
+    return ServerFailure(message, statusCode: statusCode);
+  }
+$_commonFailureBody
+''';
+
+  static String _dioUtilsFailure() => '''
+import 'dart:async';
+import 'dart:io';
 import 'package:dio/dio.dart';
 
 /// Represents all possible failure types in the application.
@@ -370,7 +476,16 @@ sealed class AppFailure {
     if (e is DioException) {
       return AppFailure.fromDioException(e);
     }
-    return UnknownFailure(e.toString(), e);
+    if (e is SocketException) {
+      return const NetworkFailure('No internet connection. Please check your network.');
+    }
+    if (e is TimeoutException) {
+      return const TimeoutFailure('Connection timed out. Please try again.');
+    }
+    if (e is FormatException) {
+      return const ServerFailure('Invalid server response format.');
+    }
+    return UnknownFailure('An unexpected error occurred. Please try again.', e);
   }
   
   /// Create failure from HTTP response (non-2xx).
@@ -393,10 +508,17 @@ sealed class AppFailure {
       );
     }
     if (statusCode != null && statusCode >= 500) {
-      return ServerFailure(message, statusCode: statusCode);
+      return ServerFailure(
+        _fallbackMessage(statusCode) ?? 'Server error occurred. Please try again later.',
+        statusCode: statusCode,
+      );
     }
     return ServerFailure(message, statusCode: statusCode);
   }
+$_commonFailureBody
+''';
+
+  static const String _commonFailureBody = r'''
 
   static String? _fallbackMessage(int? statusCode) {
     return switch (statusCode) {

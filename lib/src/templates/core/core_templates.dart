@@ -1,6 +1,27 @@
+import '../../state_management.dart';
+
 class CoreTemplates {
-  static String responseHandler() => '''
-import 'package:dio/dio.dart';
+  static String responseHandler([
+    NetworkClient network = NetworkClient.dio,
+  ]) {
+    final clientImport =
+        network.isHttp
+            ? "import '../api_client/http_client.dart';"
+            : "import 'package:dio/dio.dart';";
+    final responseType = network.isHttp ? 'ApiResponse' : 'Response<dynamic>';
+    final catchClause =
+        network.isHttp
+            ? '''    } catch (e, stack) {
+      return Results.failure(AppFailure.fromException(e, stack));
+    }'''
+            : '''    } on DioException catch (e) {
+      return Results.failure(AppFailure.fromDioException(e));
+    } catch (e, stack) {
+      return Results.failure(AppFailure.fromException(e, stack));
+    }''';
+
+    return '''
+$clientImport
 
 import '../response_handler/api_failure.dart';
 import '../utils/result.dart';
@@ -44,7 +65,7 @@ class ResponseHandler {
 
   /// Handle a single object response
   static Future<Result<T>> handle<T>({
-    required Future<Response<dynamic>> Function() request,
+    required Future<$responseType> Function() request,
     required T Function(Map<String, dynamic>) fromJson,
     String? tag,
   }) async {
@@ -71,16 +92,12 @@ class ResponseHandler {
       final payload = mapData['data'] ?? mapData['result'] ?? mapData['payload'];
       final payloadMap = _asMap(payload) ?? mapData;
       return Results.success(fromJson(payloadMap));
-    } on DioException catch (e) {
-      return Results.failure(AppFailure.fromDioException(e));
-    } catch (e, stack) {
-      return Results.failure(AppFailure.fromException(e, stack));
-    }
+$catchClause
   }
   
   /// Handle a list response
   static Future<Result<List<T>>> handleList<T>({
-    required Future<Response<dynamic>> Function() request,
+    required Future<$responseType> Function() request,
     required T Function(Map<String, dynamic>) fromJson,
     String? tag,
   }) async {
@@ -100,7 +117,6 @@ class ResponseHandler {
       if (data is List) {
         items = _toMapList(data);
       } else if (data is Map<String, dynamic>) {
-        // Handle BaseResponse wrapper
         if (data.containsKey('success') && data['success'] == false) {
           return Results.failure(AppFailure.fromResponse(response));
         }
@@ -121,16 +137,12 @@ class ResponseHandler {
       return Results.success(
         items.map(fromJson).toList(),
       );
-    } on DioException catch (e) {
-      return Results.failure(AppFailure.fromDioException(e));
-    } catch (e, stack) {
-      return Results.failure(AppFailure.fromException(e, stack));
-    }
+$catchClause
   }
   
   /// Handle paginated response
   static Future<Result<PaginatedResponse<T>>> handlePaginated<T>({
-    required Future<Response<dynamic>> Function() request,
+    required Future<$responseType> Function() request,
     required T Function(Map<String, dynamic>) fromJson,
     String? tag,
   }) async {
@@ -150,16 +162,12 @@ class ResponseHandler {
       }
       
       return Results.success(PaginatedResponse.fromJson(data, fromJson));
-    } on DioException catch (e) {
-      return Results.failure(AppFailure.fromDioException(e));
-    } catch (e, stack) {
-      return Results.failure(AppFailure.fromException(e, stack));
-    }
+$catchClause
   }
   
   /// Handle void response (no data expected)
   static Future<Result<void>> handleVoid({
-    required Future<Response<dynamic>> Function() request,
+    required Future<$responseType> Function() request,
     String? tag,
   }) async {
     try {
@@ -176,11 +184,7 @@ class ResponseHandler {
       }
       
       return Results.success(null);
-    } on DioException catch (e) {
-      return Results.failure(AppFailure.fromDioException(e));
-    } catch (e, stack) {
-      return Results.failure(AppFailure.fromException(e, stack));
-    }
+$catchClause
   }
 }
 
@@ -252,31 +256,29 @@ class PaginatedResponse<T> {
   }
 }
 ''';
+  }
 
   static String errorHandler() => '''
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import '../response_handler/api_failure.dart';
+import '../utils/dialogs.dart';
 import '../utils/logger.dart';
 
 /// Centralized error handler for the application.
 /// 
-/// Features:
-/// - Converts failures to user-friendly messages
-/// - Provides UI helpers for showing errors
-/// - Supports error recovery actions
-/// - Logs errors for debugging
+/// Uses AppDialogs to show user-friendly error alerts and retry dialogs.
 /// 
 /// Usage:
 /// ```dart
-/// // In repository/usecase:
+/// // In presentation layer:
 /// result.fold(
 ///   (failure) => ErrorHandler.handle(context, failure),
 ///   (data) => showData(data),
 /// );
 /// 
-/// // Or with recovery action:
+/// // With recovery action:
 /// ErrorHandler.handleWithRecovery(
 ///   context,
 ///   failure,
@@ -287,13 +289,13 @@ class ErrorHandler {
   /// Global error callback for custom handling
   static void Function(AppFailure failure)? onError;
   
-  /// Handle failure and show appropriate UI feedback
+  /// Handle failure and show appropriate UI feedback using AppDialogs
   static void handle(BuildContext context, AppFailure failure) {
     AppLogger.error('Error handled', tag: 'ERROR', error: failure.message);
     onError?.call(failure);
     
     final message = _getUserMessage(failure);
-    showErrorSnackBar(context, message);
+    AppDialogs.showError(message);
   }
   
   /// Handle failure with retry option
@@ -304,21 +306,15 @@ class ErrorHandler {
     String? retryLabel,
   }) {
     final message = _getUserMessage(failure);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: retryLabel ?? 'Retry',
-          onPressed: onRetry,
-        ),
-        duration: const Duration(seconds: 5),
-      ),
+    AppDialogs.showRetry(
+      title: 'Error',
+      message: message,
+      onRetry: onRetry,
+      retryText: retryLabel ?? 'Retry',
     );
   }
   
-  /// Show error dialog for critical errors
+  /// Show error dialog
   static Future<void> showErrorDialog(
     BuildContext context,
     AppFailure failure, {
@@ -326,45 +322,21 @@ class ErrorHandler {
     VoidCallback? onDismiss,
   }) async {
     final message = _getUserMessage(failure);
-    
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title ?? 'Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onDismiss?.call();
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    await AppDialogs.showError(
+      message,
+      title: title ?? 'Error',
+      onDismiss: onDismiss,
     );
   }
   
-  /// Show simple error snackbar
-  static void showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+  /// Show simple error dialog
+  static void showError(String message) {
+    AppDialogs.showError(message);
   }
   
-  /// Show success snackbar
-  static void showSuccessSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.green,
-      ),
-    );
+  /// Show success snackbar (duration: 2 seconds)
+  static void showSuccess(String message) {
+    AppDialogs.showSuccess(message);
   }
   
   /// Convert failure to user-friendly message

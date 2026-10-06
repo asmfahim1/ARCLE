@@ -1,5 +1,6 @@
 import '../state_management.dart';
 import '../utils/console.dart';
+import '../utils/version.dart';
 
 class CliUi {
   CliUi(this.console);
@@ -8,7 +9,7 @@ class CliUi {
 
   void showWelcome() {
     _banner(
-      title: '   🚀 ARCLE - Flutter Clean Architecture CLI',
+      title: '   🚀 ARCLE Version : $arcleVersion',
       subtitle: 'Build scalable, production-ready apps with ease.',
       compact: true,
     );
@@ -17,7 +18,7 @@ class CliUi {
 
   void showFirstRunGreeting() {
     _banner(
-      title: '   🚀 ARCLE - Flutter Clean Architecture CLI',
+      title: '   🚀 ARCLE Version : $arcleVersion',
       subtitle: 'Your companion for clean, scalable Flutter apps.',
       compact: false,
     );

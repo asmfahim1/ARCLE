@@ -406,7 +406,7 @@ class DocsTemplates {
       <w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>5.2 HTTP Client Configuration</w:t></w:r>
     </w:p>
     <w:p><w:r><w:t>• Base URL: Configured in environment files</w:t></w:r></w:p>
-    <w:p><w:r><w:t>• HTTP Client: Dio with interceptors</w:t></w:r></w:p>
+    <w:p><w:r><w:t>• HTTP Client: Configured with interceptors and handlers (Dio / Http)</w:t></w:r></w:p>
     <w:p><w:r><w:t>• Authentication: Bearer token in headers</w:t></w:r></w:p>
     <w:p><w:r><w:t>• Timeout: Configurable connection/receive timeouts</w:t></w:r></w:p>
     <w:p><w:r><w:t>• Retry Logic: Automatic retry on failure</w:t></w:r></w:p>
@@ -1147,7 +1147,7 @@ The following feature modules are implemented in the project:
 \subsection{HTTP Client Configuration}
 \begin{itemize}
   \item Base URL: Configured in environment files
-  \item HTTP Client: Dio with interceptors
+  \item HTTP Client: Configured with interceptors and handlers (Dio / Http)
   \item Authentication: Bearer token in headers
   \item Timeout: Configurable connection/receive timeouts
   \item Retry Logic: Automatic retry on failure
@@ -1520,7 +1520,7 @@ $endpointsMarkdown
 
 ### HTTP Client Configuration
 - **Base URL:** Configured in environment files
-- **HTTP Client:** Dio with interceptors
+- **HTTP Client:** Configured with interceptors and handlers (Dio / Http)
 - **Authentication:** Bearer token in headers
 - **Timeout:** Configurable connection/receive timeouts
 - **Retry Logic:** Automatic retry on failure

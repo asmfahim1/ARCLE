@@ -23,6 +23,12 @@ class CreateCommand {
         help: 'State management option (bloc, getx, riverpod)',
       )
       ..addOption(
+        'network',
+        abbr: 'n',
+        allowed: const ['dio', 'http'],
+        help: 'Network Ecosystem for the API layer (dio, http). Default: dio',
+      )
+      ..addOption(
         'path',
         abbr: 'p',
         help: 'Directory to create the project in',
@@ -80,10 +86,16 @@ class CreateCommand {
       return ExitCode.usage.code;
     }
 
+    final network = NetworkPicker(console).resolve(
+      cmd['network'] as String?,
+      interactive: cmd['interactive'] as bool,
+    );
+
     final projectName = cmd.rest.first;
     ui.section('📦 Creating New Project');
     ui.step('PROJECT ', projectName);
     ui.step('STATE   ', '${state.label} ${_stateIcon(state)}');
+    ui.step('NETWORK ', network.label);
     final basePath = Directory(cmd['path'] as String);
     final targetDir = Directory(
       '${basePath.path}${Platform.pathSeparator}$projectName',
@@ -92,6 +104,7 @@ class CreateCommand {
     final generator = ProjectGenerator(
       ui: ui,
       state: state,
+      network: network,
       stateVersion: (cmd['state-version'] as String?)?.trim(),
       force: cmd['force'] as bool,
       projectName: projectName,

@@ -19,6 +19,7 @@ class ProjectGenerator {
     required this.state,
     required this.stateVersion,
     required this.force,
+    this.network = NetworkClient.dio,
     this.projectName = '',
     this.overwriteMain = false,
     this.overwriteWidgetTest = false,
@@ -27,12 +28,27 @@ class ProjectGenerator {
 
   final CliUi ui;
   final StateManagement state;
+  final NetworkClient network;
   final String? stateVersion;
   final bool force;
   final String projectName;
   final bool overwriteMain;
   final bool overwriteWidgetTest;
   final bool overwriteAnalysisOptions;
+
+  /// Dart package name used in `package:` imports. Prefers the `name:` from the
+  /// target pubspec.yaml (always valid), then the given project name.
+  String _resolvePackageName(Directory targetDir) {
+    final pubspec = File(_join(targetDir.path, 'pubspec.yaml'));
+    if (pubspec.existsSync()) {
+      final match = RegExp(
+        r'^name\s*:\s*([A-Za-z0-9_]+)\s*$',
+        multiLine: true,
+      ).firstMatch(pubspec.readAsStringSync());
+      if (match != null) return match.group(1)!;
+    }
+    return projectName.isEmpty ? 'my_app' : projectName;
+  }
 
   Console get console => ui.console;
 
@@ -171,7 +187,7 @@ class ProjectGenerator {
       onSkip: (path) => ui.itemSkipped(path),
     );
 
-    final files = _buildFiles();
+    final files = _buildFiles(targetDir);
     for (final entry in files.entries) {
       if (overwriteMain && entry.key == 'lib/main.dart') {
         final file = File(_join(targetDir.path, entry.key));
@@ -222,7 +238,11 @@ class ProjectGenerator {
       onSkip: (_) {},
     );
 
-    writer.write(targetDir, 'lib/core/di/app_di.dart', DiTemplates.di(state));
+    writer.write(
+      targetDir,
+      'lib/core/di/app_di.dart',
+      DiTemplates.di(state, network),
+    );
     if (state == StateManagement.riverpod) {
       writer.write(
         targetDir,
@@ -244,15 +264,20 @@ class ProjectGenerator {
       writer.write(
         targetDir,
         'lib/core/di/injection.config.dart',
-        DiTemplates.blocInjectionConfig(),
+        DiTemplates.blocInjectionConfig(network),
       );
     }
     console.line('');
     ui.success('DI files updated.');
   }
 
-  Map<String, String> _buildFiles() {
-    final files = buildProjectFiles(state, projectName: projectName);
+  Map<String, String> _buildFiles(Directory targetDir) {
+    final packageName = _resolvePackageName(targetDir);
+    final files = buildProjectFiles(
+      state,
+      projectName: packageName,
+      network: network,
+    );
     final docsName = projectName.isEmpty ? 'my_app' : projectName;
     files.putIfAbsent(
       'docs/PLAN.md',
@@ -270,8 +295,11 @@ class ProjectGenerator {
       '${base.path}${Platform.pathSeparator}${ArcleConfig.filename}',
     );
     if (configFile.existsSync() && !force) return;
-    final config =
-        ArcleConfig(state: state, createdAt: DateTime.now()).toYaml();
+    final config = ArcleConfig(
+      state: state,
+      createdAt: DateTime.now(),
+      network: network,
+    ).toYaml();
     configFile.writeAsStringSync(config);
     ui.itemCreated(ArcleConfig.filename);
   }
@@ -1086,7 +1114,9 @@ end
     final version =
         (stateVersion == null || stateVersion!.isEmpty) ? 'any' : stateVersion!;
     final deps = <_Dependency>[
-      _Dependency('dio', '^5.4.0'),
+      network.isHttp
+          ? _Dependency('http', '^1.6.0')
+          : _Dependency('dio', '^5.4.0'),
       _Dependency('shared_preferences', '^2.2.2'),
       _Dependency('permission_handler', '^11.3.0'),
       _Dependency('dartz', '^0.10.1'),

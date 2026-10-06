@@ -1,7 +1,10 @@
 import '../../state_management.dart';
 
 class DemoTemplates {
-  static Map<String, String> files(StateManagement state) {
+  static Map<String, String> files(
+    StateManagement state, [
+    NetworkClient network = NetworkClient.dio,
+  ]) {
     final files = <String, String>{
       // Shared README and domain layer files
       'lib/features/demo/README.md': _readme(),
@@ -20,7 +23,7 @@ class DemoTemplates {
       'lib/features/demo/data/models/login_request.dart': _loginRequest(),
       'lib/features/demo/data/models/user_model.dart': _userModel(),
       'lib/features/demo/data/sources/demo_remote_data_source.dart':
-          _remoteDataSource(state),
+          _remoteDataSource(state, network),
       'lib/features/demo/data/repositories/demo_repository_impl.dart':
           _demoRepositoryImpl(state),
       // Shared widgets
@@ -474,16 +477,24 @@ class UserModel extends UserEntity {
 }
 ''';
 
-  static String _remoteDataSource(StateManagement state) {
+  static String _remoteDataSource(
+    StateManagement state,
+    NetworkClient network,
+  ) {
     final injectableImport =
         state == StateManagement.bloc
             ? "import 'package:injectable/injectable.dart';\n"
             : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
+    final clientImport =
+        network.isHttp
+            ? "import '../../../../core/api_client/http_client.dart';\n"
+            : "import 'package:dio/dio.dart';\n";
+    final responseType = network.isHttp ? 'ApiResponse' : 'Response<dynamic>';
+
     return '''
 import 'dart:async';
-import 'package:dio/dio.dart';
-$injectableImport
+$clientImport$injectableImport
 import '../../../../core/api_client/api_service.dart';
 import '../models/login_request.dart';
 
@@ -493,10 +504,13 @@ class DemoRemoteDataSource {
 
   final ApiService _apiService;
 
-  /// Demo login. Replace with your real API later.\r\n  Future<Response<dynamic>> login(LoginRequest request) async {\r\n    return _apiService.post('/auth/login', data: request.toJson());\r\n  }
+  /// Demo login. Replace with your real API later.
+  Future<$responseType> login(LoginRequest request) async {
+    return _apiService.post('/auth/login', data: request.toJson());
+  }
 
-  /// Fetch users from JSONPlaceholder (uses token from SessionManager in Dio).
-  Future<Response<dynamic>> fetchUsers() async {
+  /// Fetch users from JSONPlaceholder.
+  Future<$responseType> fetchUsers() async {
     return _apiService.get('/users');
   }
 }
@@ -516,6 +530,7 @@ class DemoRemoteDataSource {
 $injectableImport
 import 'package:dartz/dartz.dart';
 import '../../../../core/response_handler/api_failure.dart';
+import '../../../../core/response_handler/response_handler.dart';
 import '../../../../core/session_manager/session_manager.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/user_entity.dart';
@@ -536,30 +551,28 @@ class DemoRepositoryImpl implements DemoRepository {
     if (email.isEmpty || password.isEmpty) {
       return Left(ValidationFailure('Please enter email and password'));
     }
-    try {
-      final response = await _remote.login(
+    final result = await ResponseHandler.handle<Map<String, dynamic>>(
+      request: () => _remote.login(
         LoginRequest(email: email, password: password),
-      );
-      final token = response.data['token']?.toString() ?? '';
-      await _sessionManager.saveSession(accessToken: token);
-      return Right(token);
-    } catch (e, stack) {
-      return Left(AppFailure.fromException(e, stack));
-    }
+      ),
+      fromJson: (json) => json,
+    );
+    return result.fold(
+      (failure) => Left(failure),
+      (data) async {
+        final token = data['token']?.toString() ?? '';
+        await _sessionManager.saveSession(accessToken: token);
+        return Right(token);
+      },
+    );
   }
 
   @override
   Future<Result<List<UserEntity>>> getUsers() async {
-    try {
-      final response = await _remote.fetchUsers();
-      final data = response.data as List<dynamic>;
-      final users = data
-          .map((json) => UserModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-      return Right(users);
-    } catch (e, stack) {
-      return Left(AppFailure.fromException(e, stack));
-    }
+    return ResponseHandler.handleList(
+      request: () => _remote.fetchUsers(),
+      fromJson: (json) => UserModel.fromJson(json),
+    );
   }
 
   @override

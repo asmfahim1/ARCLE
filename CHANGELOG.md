@@ -1,3 +1,33 @@
+## 2.4.0
+
+### Network Ecosystem (Dio & Http)
+
+- **Interactive Network Selection**: During project creation (`arcle create` / `arcle init`), developers are prompted to select their preferred network ecosystem across all state management choices (BLoC, GetX, Riverpod):
+  - `1. Dio (recommended)`
+  - `2. Http` (powered by `http: ^1.6.0`)
+- Added `--network` / `-n` flag (`dio` or `http`) to `arcle create` and `arcle init` for non-interactive / CI automation.
+- Full `package:http` 1.6.0 client integration (`ApiHttpClient`):
+  - GET, POST, PUT, PATCH, DELETE operations.
+  - Native request cancellation via `AbortableRequest` and `AbortableMultipartRequest`.
+  - Multipart file upload support.
+  - File download with real-time download progress tracking.
+  - Unified `ApiResponse` wrapper matching status code and response payloads.
+- State-aware dependency injection configuration for both `DioClient` and `ApiHttpClient` (BLoC get_it, GetX bindings, Riverpod providers).
+
+### Unified Error & Response Handling
+
+- Actively wired `BaseResponse`, `ResponseHandler`, and `ErrorHandler` into project generation for both Dio and Http networking pipelines.
+- Integrated `ErrorHandler` directly with `AppDialogs` (`lib/core/utils/dialogs.dart`):
+  - Error messages and retry prompts display clean dialogs (`AppDialogs.showError` and `AppDialogs.showRetry`).
+  - Success actions display a 2-second snackbar notification (`AppDialogs.showSuccess`).
+  - Technical error messages and raw traces are intercepted and mapped into user-friendly messages via `AppFailure`.
+
+### Application Branding & Versioning
+
+- ARCLE version banner: The CLI intro banner now displays `ARCLE Version : 2.4.0` instead of `ARCLE-FLUTTER CLEAN ARCHITECTURE`.
+- Project naming in constants: Generated `lib/core/utils/constants.dart` now includes `static const String appName = '<project_name>';` in `AppConstants`.
+- `MaterialApp` widget now consumes `title: AppConstants.appName` with `import 'package:<project_name>/core/utils/constants.dart';` across BLoC, GetX, and Riverpod templates.
+
 ## 2.3.2
 
 ### Documentation & Work Tracking

@@ -1,7 +1,16 @@
 import '../../state_management.dart';
 
 class DiTemplates {
-  static String di(StateManagement state) {
+  static String di(
+    StateManagement state, [
+    NetworkClient network = NetworkClient.dio,
+  ]) {
+    final clientImport = network.isHttp
+        ? "import '../api_client/http_client.dart';"
+        : "import '../api_client/dio_client.dart';";
+    final clientCreate = network.isHttp
+        ? 'final apiClient = ApiHttpClient(sessionManager);'
+        : 'final apiClient = DioClient(sessionManager);';
     switch (state) {
       case StateManagement.bloc:
         return '''
@@ -20,7 +29,7 @@ import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../api_client/api_service.dart';
-import '../api_client/dio_client.dart';
+$clientImport
 import '../env/env.dart';
   import '../notifications/notification_service.dart';
   import '../permissions/permission_service.dart';
@@ -42,8 +51,8 @@ class AppDi {
     Get.put(sessionManager, permanent: true);
 
     // Network stack shared across repositories.
-    final dioClient = DioClient(sessionManager);
-    final apiService = ApiService(dioClient);
+    $clientCreate
+    final apiService = ApiService(apiClient);
     Get.put(apiService, permanent: true);
 
     // Permissions used by core services/features.
@@ -68,7 +77,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../api_client/api_service.dart';
-import '../api_client/dio_client.dart';
+$clientImport
 import '../env/env.dart';
   import '../notifications/notification_service.dart';
   import '../permissions/permission_service.dart';
@@ -81,8 +90,8 @@ class AppDi {
   Future<ProviderContainer> register(Env env) async {
     final prefManager = PrefManager();
     final sessionManager = SessionManager(prefManager);
-    final dioClient = DioClient(sessionManager);
-    final apiService = ApiService(dioClient);
+    $clientCreate
+    final apiService = ApiService(apiClient);
     final permissionService = PermissionService();
       final notifications =
           NotificationService(FlutterLocalNotificationsPlugin());
@@ -172,7 +181,6 @@ Future<void> configureDependencies() async => getIt.init();
 ''';
 
   static String blocInjectableModule() => '''
-import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -191,14 +199,21 @@ abstract class AppModule {
 }
 ''';
 
-  static String blocInjectionConfig() => '''
+  static String blocInjectionConfig([
+    NetworkClient network = NetworkClient.dio,
+  ]) {
+    final clientImport = network.isHttp
+        ? "import '../api_client/http_client.dart';"
+        : "import '../api_client/dio_client.dart';";
+    final clientClass = network.isHttp ? 'ApiHttpClient' : 'DioClient';
+    return '''
 // GENERATED CODE - This is a stub. Run build_runner to regenerate.
 // ignore_for_file: unused_import
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
   import '../api_client/api_service.dart';
-  import '../api_client/dio_client.dart';
+  $clientImport
   import '../notifications/notification_service.dart';
   import '../permissions/permission_service.dart';
   import '../session_manager/pref_manager.dart';
@@ -220,8 +235,11 @@ GetIt init(GetIt getIt) {
     getIt.registerLazySingleton<AppSettingsCubit>(
       () => AppSettingsCubit(getIt<PrefManager>()),
     );
+  getIt.registerLazySingleton<$clientClass>(
+    () => $clientClass(getIt<SessionManager>()),
+  );
   getIt.registerLazySingleton<ApiService>(
-    () => ApiService(getIt<DioClient>()),
+    () => ApiService(getIt<$clientClass>()),
   );
   getIt.registerLazySingleton<PermissionService>(() => PermissionService());
   getIt.registerLazySingleton<NotificationService>(
@@ -230,4 +248,5 @@ GetIt init(GetIt getIt) {
   return getIt;
 }
 ''';
+  }
 }

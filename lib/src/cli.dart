@@ -20,6 +20,7 @@ import 'ui/cli_ui.dart';
 import 'utils/console.dart';
 import 'utils/command_suggester.dart';
 import 'utils/first_run.dart';
+import 'utils/version.dart';
 
 class Cli {
   Future<int> run(List<String> args) async {
@@ -196,7 +197,7 @@ class Cli {
     return [
       '',
       '  ╔══════════════════════════════════════════════════════════╗',
-      '  ║   🚀  ARCLE - Flutter Clean Architecture CLI              ║',
+      '  ║   🚀  ${'ARCLE Version : $arcleVersion'.padRight(52)}║',
       '  ║    Build production-ready Flutter apps with ease         ║',
       '  ╚══════════════════════════════════════════════════════════╝',
       '',

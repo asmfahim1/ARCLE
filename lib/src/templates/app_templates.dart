@@ -67,7 +67,7 @@ Future<void> bootstrap() async {
     }
   }
 
-  static String app(StateManagement state) {
+  static String app(StateManagement state, {String projectName = 'my_app'}) {
     final stateImports = switch (state) {
       StateManagement.bloc =>
         "import 'package:flutter_bloc/flutter_bloc.dart';\n"
@@ -97,6 +97,7 @@ Future<void> bootstrap() async {
     return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:$projectName/core/utils/constants.dart';
 $stateImports
 import '../core/localization/app_strings.dart';
 $routeImports
@@ -132,7 +133,7 @@ MultiBlocProvider(
         bloc: getIt<AppSettingsCubit>(),
         builder: (context, settings) {
           return MaterialApp(
-            title: 'Arcle Demo',
+            title: AppConstants.appName,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settings.themeMode,
@@ -169,7 +170,7 @@ GetBuilder<AppSettingsController>(
       init: Get.find<AppSettingsController>(),
       builder: (controller) {
         return GetMaterialApp(
-          title: 'Arcle Demo',
+          title: AppConstants.appName,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: controller.themeMode.value,
@@ -205,7 +206,7 @@ Consumer(
       builder: (context, ref, child) {
         final settings = ref.watch(appSettingsProvider);
         return MaterialApp(
-          title: 'Arcle Demo',
+          title: AppConstants.appName,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: settings.themeMode,

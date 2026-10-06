@@ -9,8 +9,15 @@ import '../common_project_files.dart';
 /// - Core providers configuration
 /// - Localization files
 /// - Riverpod-specific DI setup
-Map<String, String> buildRiverpodProjectFiles({String projectName = 'my_app'}) {
-  final files = buildCommonProjectFiles(StateManagement.riverpod);
+Map<String, String> buildRiverpodProjectFiles({
+  String projectName = 'my_app',
+  NetworkClient network = NetworkClient.dio,
+}) {
+  final files = buildCommonProjectFiles(
+    StateManagement.riverpod,
+    projectName: projectName,
+    network: network,
+  );
 
   files.addAll({
     // Localization JSON files
