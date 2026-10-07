@@ -102,7 +102,7 @@ $stateImports
 import '../core/localization/app_strings.dart';
 $routeImports
 import '../core/route_handler/app_route_observer.dart';
-import '../core/theme_handler/app_theme.dart';
+import '../core/theme_manager/app_theme.dart';
 
 class App extends StatelessWidget {
   const App({super.key});

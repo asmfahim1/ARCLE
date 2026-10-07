@@ -30,7 +30,7 @@ class AppSettingsState {
   import 'package:flutter_bloc/flutter_bloc.dart';
   
   import '../../../core/localization/app_strings.dart';
-  import '../../../core/session_manager/pref_manager.dart';
+  import '../../../core/services/pref_manager.dart';
   import 'app_settings_state.dart';
   
   class AppSettingsCubit extends Cubit<AppSettingsState> {
@@ -82,7 +82,7 @@ class AppSettingsState {
   import 'package:flutter/material.dart';
   import 'package:get/get.dart';
   import '../../../core/localization/app_strings.dart';
-  import '../../../core/session_manager/pref_manager.dart';
+  import '../../../core/services/pref_manager.dart';
   
   class AppSettingsController extends GetxController {
     final PrefManager _prefManager = Get.find<PrefManager>();
@@ -143,7 +143,7 @@ class AppSettingsState {
   import 'package:flutter_riverpod/flutter_riverpod.dart';
   
   import '../../../core/localization/app_strings.dart';
-  import '../../../core/session_manager/pref_manager.dart';
+  import '../../../core/services/pref_manager.dart';
   
   /// Immutable state class for app settings.
   class AppSettingsState {
@@ -370,7 +370,7 @@ $getxImport
 import '../../../core/common_widgets/common_checkbox.dart';
 import '../../../core/common_widgets/common_dropdown.dart';
 import '../../../core/localization/app_strings.dart';
-import '../../../core/utils/dimensions.dart';
+import '../../../core/theme_manager/dimensions.dart';
 
 class SettingsBody extends StatelessWidget {
   const SettingsBody({

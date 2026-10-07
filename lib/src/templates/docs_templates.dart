@@ -341,9 +341,8 @@ class DocsTemplates {
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>lib/</w:t></w:r></w:p>
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>├── app/                    # App configuration</w:t></w:r></w:p>
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>├── core/                   # Shared utilities</w:t></w:r></w:p>
-    <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>│   ├── api_client/         # HTTP client</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>│   ├── network/             # HTTP client + BaseResponse</w:t></w:r></w:p>
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>│   ├── di/                 # Dependency injection</w:t></w:r></w:p>
-    <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>│   ├── error_handler/      # Error handling</w:t></w:r></w:p>
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>│   ├── route_handler/      # Navigation</w:t></w:r></w:p>
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>│   └── utils/              # Helpers</w:t></w:r></w:p>
     <w:p><w:r><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/><w:sz w:val="20"/></w:rPr><w:t>├── features/               # Feature modules</w:t></w:r></w:p>
@@ -1111,9 +1110,8 @@ The application follows Clean Architecture principles with clear separation of c
 lib/
 |-- app/                    # App configuration
 |-- core/                   # Shared utilities
-|   |-- api_client/         # HTTP client
+|   |-- network/             # HTTP client + BaseResponse
 |   |-- di/                 # Dependency injection
-|   |-- error_handler/      # Error handling
 |   |-- route_handler/      # Navigation
 |   `-- utils/              # Helpers
 |-- features/               # Feature modules
@@ -1491,9 +1489,8 @@ This document provides comprehensive technical documentation for the **$projectN
 lib/
 ├── app/                    # App configuration
 ├── core/                   # Shared utilities
-│   ├── api_client/         # HTTP client
+│   ├── network/             # HTTP client + BaseResponse
 │   ├── di/                 # Dependency injection
-│   ├── error_handler/      # Error handling
 │   ├── route_handler/      # Navigation
 │   └── utils/              # Helpers
 ├── features/               # Feature modules

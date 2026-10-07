@@ -1,6 +1,5 @@
 import 'package:arcle/src/state_management.dart';
 import 'package:arcle/src/templates/core/api_templates.dart';
-import 'package:arcle/src/templates/core/core_templates.dart';
 import 'package:arcle/src/templates/core/di_templates.dart';
 import 'package:arcle/src/templates/core/utils_templates.dart';
 import 'package:test/test.dart';
@@ -38,23 +37,19 @@ void main() {
       expect(code, contains('DioException'));
     });
 
-    test('responseHandler for HTTP uses ApiResponse', () {
-      final code = CoreTemplates.responseHandler(NetworkClient.http);
-      expect(code, contains('ApiResponse response'));
+    test('apiResponse for HTTP bundles BaseResponse and ResponseHandler using ApiResponse', () {
+      final code = ApiTemplates.apiResponse(NetworkClient.http);
+      expect(code, contains('class BaseResponse<T>'));
+      expect(code, contains('class ResponseHandler'));
+      expect(code, contains('Future<ApiResponse> Function()'));
       expect(code, isNot(contains("package:dio")));
     });
 
-    test('responseHandler for Dio uses Response<dynamic>', () {
-      final code = CoreTemplates.responseHandler(NetworkClient.dio);
-      expect(code, contains('Response<dynamic> response'));
+    test('apiResponse for Dio uses Response<dynamic> and delegates to BaseResponse.fromJson', () {
+      final code = ApiTemplates.apiResponse(NetworkClient.dio);
+      expect(code, contains('Future<Response<dynamic>> Function()'));
       expect(code, contains("package:dio/dio.dart"));
-    });
-
-    test('errorHandler routes errors to AppDialogs', () {
-      final code = CoreTemplates.errorHandler();
-      expect(code, contains('AppDialogs.showError'));
-      expect(code, contains('AppDialogs.showRetry'));
-      expect(code, contains('AppDialogs.showSuccess'));
+      expect(code, contains('BaseResponse<dynamic>.fromJson'));
     });
 
     test('di template registers ApiHttpClient for http and DioClient for dio', () {

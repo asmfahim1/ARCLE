@@ -6,15 +6,15 @@ class DiTemplates {
     NetworkClient network = NetworkClient.dio,
   ]) {
     final clientImport = network.isHttp
-        ? "import '../api_client/http_client.dart';"
-        : "import '../api_client/dio_client.dart';";
+        ? "import '../network/http_client.dart';"
+        : "import '../network/dio_client.dart';";
     final clientCreate = network.isHttp
         ? 'final apiClient = ApiHttpClient(sessionManager);'
         : 'final apiClient = DioClient(sessionManager);';
     switch (state) {
       case StateManagement.bloc:
         return '''
-import '../notifications/notification_service.dart';
+import '../services/notification_service.dart';
 import 'injection.dart';
 
 Future<void> setupDependencies() async {
@@ -28,13 +28,13 @@ Future<void> setupDependencies() async {
 import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../api_client/api_service.dart';
+import '../network/api_service.dart';
 $clientImport
 import '../env/env.dart';
-  import '../notifications/notification_service.dart';
-  import '../permissions/permission_service.dart';
-  import '../session_manager/pref_manager.dart';
-  import '../session_manager/session_manager.dart';
+  import '../services/notification_service.dart';
+  import '../services/permission_service.dart';
+  import '../services/pref_manager.dart';
+  import '../services/session_manager.dart';
   import '../../features/settings/presentation/app_settings_controller.dart';
 
 class AppDi {
@@ -76,13 +76,13 @@ class AppDi {
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../api_client/api_service.dart';
+import '../network/api_service.dart';
 $clientImport
 import '../env/env.dart';
-  import '../notifications/notification_service.dart';
-  import '../permissions/permission_service.dart';
-  import '../session_manager/session_manager.dart';
-  import '../session_manager/pref_manager.dart';
+  import '../services/notification_service.dart';
+  import '../services/permission_service.dart';
+  import '../services/session_manager.dart';
+  import '../services/pref_manager.dart';
   import '../../features/settings/presentation/app_settings_provider.dart';
   import 'providers.dart';
 
@@ -119,12 +119,12 @@ class AppDi {
   static String riverpodProviders() => '''
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../api_client/api_service.dart';
+import '../network/api_service.dart';
 import '../env/env.dart';
-import '../notifications/notification_service.dart';
-import '../permissions/permission_service.dart';
-import '../session_manager/pref_manager.dart';
-import '../session_manager/session_manager.dart';
+import '../services/notification_service.dart';
+import '../services/permission_service.dart';
+import '../services/pref_manager.dart';
+import '../services/session_manager.dart';
 // arcle:feature_imports
 
 // ============================================================================
@@ -185,7 +185,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../session_manager/session_manager.dart';
+import '../services/session_manager.dart';
 
 @module
 abstract class AppModule {
@@ -203,8 +203,8 @@ abstract class AppModule {
     NetworkClient network = NetworkClient.dio,
   ]) {
     final clientImport = network.isHttp
-        ? "import '../api_client/http_client.dart';"
-        : "import '../api_client/dio_client.dart';";
+        ? "import '../network/http_client.dart';"
+        : "import '../network/dio_client.dart';";
     final clientClass = network.isHttp ? 'ApiHttpClient' : 'DioClient';
     return '''
 // GENERATED CODE - This is a stub. Run build_runner to regenerate.
@@ -212,12 +212,12 @@ abstract class AppModule {
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-  import '../api_client/api_service.dart';
+  import '../network/api_service.dart';
   $clientImport
-  import '../notifications/notification_service.dart';
-  import '../permissions/permission_service.dart';
-  import '../session_manager/pref_manager.dart';
-  import '../session_manager/session_manager.dart';
+  import '../services/notification_service.dart';
+  import '../services/permission_service.dart';
+  import '../services/pref_manager.dart';
+  import '../services/session_manager.dart';
   import '../../features/settings/presentation/app_settings_cubit.dart';
   import 'injectable_module.dart';
 

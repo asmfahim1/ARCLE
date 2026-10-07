@@ -69,7 +69,7 @@ import 'package:dartz/dartz.dart';
   import '../../../lib/core/common_widgets/common_button.dart';
   import '../../../lib/core/common_widgets/common_text_field.dart';
   import '../../../lib/core/di/injection.dart';
-  import '../../../lib/core/utils/result.dart';
+  import '../../../lib/core/network/result.dart';
   import '../../../lib/features/demo/domain/entities/user_entity.dart';
   import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
   import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
@@ -122,8 +122,8 @@ class _FakeDemoRepository implements DemoRepository {
   
   import '../../../lib/core/common_widgets/common_button.dart';
   import '../../../lib/core/common_widgets/common_text_field.dart';
-  import '../../../lib/core/utils/result.dart';
-  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/core/network/result.dart';
+  import '../../../lib/core/services/pref_manager.dart';
   import '../../../lib/features/demo/domain/entities/user_entity.dart';
 import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
 import '../../../lib/features/demo/domain/usecases/login_usecase.dart';
@@ -186,7 +186,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../lib/core/common_widgets/common_button.dart';
 import '../../../lib/core/common_widgets/common_text_field.dart';
-import '../../../lib/core/utils/result.dart';
+import '../../../lib/core/network/result.dart';
 import '../../../lib/features/demo/domain/entities/user_entity.dart';
 import '../../../lib/features/demo/domain/repositories/demo_repository.dart';
 import '../../../lib/features/demo/presentation/providers/demo_providers.dart';
@@ -257,7 +257,7 @@ import 'package:flutter/material.dart';
   import 'package:flutter_test/flutter_test.dart';
   import 'package:shared_preferences/shared_preferences.dart';
   
-  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/core/services/pref_manager.dart';
   import '../../../lib/features/settings/presentation/app_settings_cubit.dart';
   import '../../../lib/features/settings/presentation/settings_screen.dart';
   
@@ -286,7 +286,7 @@ import 'package:flutter/material.dart';
   import 'package:get/get.dart';
   import 'package:shared_preferences/shared_preferences.dart';
   
-  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/core/services/pref_manager.dart';
   import '../../../lib/features/settings/presentation/app_settings_controller.dart';
   import '../../../lib/features/settings/presentation/settings_screen.dart';
   
@@ -312,7 +312,7 @@ import 'package:flutter/material.dart';
   import 'package:flutter_test/flutter_test.dart';
   import 'package:shared_preferences/shared_preferences.dart';
   
-  import '../../../lib/core/session_manager/pref_manager.dart';
+  import '../../../lib/core/services/pref_manager.dart';
   import '../../../lib/core/di/providers.dart';
   import '../../../lib/features/settings/presentation/settings_screen.dart';
   

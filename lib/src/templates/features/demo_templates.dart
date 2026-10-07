@@ -155,7 +155,7 @@ import '../../../../core/common_widgets/common_text_field.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dialogs.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -223,7 +223,7 @@ import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_text_field.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dialogs.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../controller/auth_controller.dart';
 
 /// Login form widget for GetX state management.
@@ -278,7 +278,7 @@ import '../../../../core/common_widgets/common_text_field.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dialogs.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../notifiers/auth_notifier.dart';
 import '../state/auth_state.dart';
 
@@ -345,7 +345,7 @@ class UserEntity {
 ''';
 
   static String _demoRepository() => '''
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/result.dart';
 import '../entities/user_entity.dart';
 
 abstract class DemoRepository {
@@ -366,7 +366,7 @@ abstract class DemoRepository {
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/result.dart';
 import '../repositories/demo_repository.dart';
 
 ${injectableAnno}class LoginUseCase {
@@ -392,7 +392,7 @@ ${injectableAnno}class LoginUseCase {
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/result.dart';
 import '../entities/user_entity.dart';
 import '../repositories/demo_repository.dart';
 
@@ -416,7 +416,7 @@ ${injectableAnno}class GetUsersUseCase {
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/result.dart';
 import '../repositories/demo_repository.dart';
 
 ${injectableAnno}class LogoutUseCase {
@@ -488,14 +488,14 @@ class UserModel extends UserEntity {
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     final clientImport =
         network.isHttp
-            ? "import '../../../../core/api_client/http_client.dart';\n"
+            ? "import '../../../../core/network/http_client.dart';\n"
             : "import 'package:dio/dio.dart';\n";
     final responseType = network.isHttp ? 'ApiResponse' : 'Response<dynamic>';
 
     return '''
 import 'dart:async';
 $clientImport$injectableImport
-import '../../../../core/api_client/api_service.dart';
+import '../../../../core/network/api_service.dart';
 import '../models/login_request.dart';
 
 $injectableAnno
@@ -529,10 +529,10 @@ class DemoRemoteDataSource {
     return '''
 $injectableImport
 import 'package:dartz/dartz.dart';
-import '../../../../core/response_handler/api_failure.dart';
-import '../../../../core/response_handler/response_handler.dart';
-import '../../../../core/session_manager/session_manager.dart';
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/api_failure.dart';
+import '../../../../core/network/base_response.dart';
+import '../../../../core/services/session_manager.dart';
+import '../../../../core/network/result.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/demo_repository.dart';
 import '../models/login_request.dart';
@@ -853,7 +853,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/route_handler/app_routes.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../widgets/login_form.dart';
 
@@ -898,7 +898,7 @@ import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_loader.dart';
 import '../../../../core/route_handler/app_routes.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -1070,8 +1070,8 @@ class UsersController extends GetxController {
   static String _getxBinding() => '''
 import 'package:get/get.dart';
 
-import '../../../../core/api_client/api_service.dart';
-import '../../../../core/session_manager/session_manager.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/services/session_manager.dart';
 import '../../data/repositories/demo_repository_impl.dart';
 import '../../data/sources/demo_remote_data_source.dart';
 import '../../domain/repositories/demo_repository.dart';
@@ -1111,7 +1111,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/route_handler/app_routes.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../widgets/login_form.dart';
 
 /// Login screen for GetX state management.
@@ -1155,8 +1155,8 @@ import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/common_widgets/common_loader.dart';
 import '../../../../core/route_handler/app_routes.dart';
 import '../../../../core/utils/dialogs.dart';
-import '../../../../core/utils/dimensions.dart';
-import '../../../../core/session_manager/session_manager.dart';
+import '../../../../core/theme_manager/dimensions.dart';
+import '../../../../core/services/session_manager.dart';
 import '../controller/auth_controller.dart';
 import '../controller/users_controller.dart';
 import '../widgets/user_card.dart';
@@ -1550,7 +1550,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/common_widgets/common_app_bar.dart';
 import '../../../../core/common_widgets/common_button.dart';
 import '../../../../core/route_handler/app_routes.dart';
-import '../../../../core/utils/dimensions.dart';
+import '../../../../core/theme_manager/dimensions.dart';
 import '../../../../core/localization/app_strings.dart';
 import '../notifiers/auth_notifier.dart';
 import '../widgets/login_form.dart';
@@ -1724,7 +1724,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/route_handler/app_routes.dart';
-import '../../../../core/session_manager/session_manager.dart';
+import '../../../../core/services/session_manager.dart';
 
 /// Splash screen for BLoC state management.
 class SplashScreen extends StatelessWidget {
@@ -1806,7 +1806,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/route_handler/app_routes.dart';
-import '../../../../core/session_manager/session_manager.dart';
+import '../../../../core/services/session_manager.dart';
 
 /// Splash screen for GetX state management.
 /// 

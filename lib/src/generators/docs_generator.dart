@@ -175,7 +175,7 @@ class DocsGenerator {
 
     // Look for remote data sources
     final sourcesPatterns = [
-      'lib/core/api_client',
+      'lib/core/network',
       'lib/features/*/data/sources',
     ];
 

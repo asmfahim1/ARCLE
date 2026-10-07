@@ -311,7 +311,7 @@ class AppValidators {
 import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../api_client/http_client.dart';
+import 'http_client.dart';
 
 /// Represents all possible failure types in the application.
 /// 
@@ -755,7 +755,7 @@ class _ParsedErrorPayload {
   static String utilsResult() => '''
 import 'package:dartz/dartz.dart';
 
-import '../response_handler/api_failure.dart';
+import 'api_failure.dart';
 
 /// Type alias for Either-based result handling.
 /// 

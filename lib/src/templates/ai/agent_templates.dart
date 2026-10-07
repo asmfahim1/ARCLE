@@ -53,15 +53,13 @@ This project was scaffolded with [ARCLE CLI](https://github.com/asmfahim1/ARCLE)
 lib/
 ├── app/          → App widget entry point
 ├── core/         → Shared infrastructure (DI, API, env, theme, utils, widgets)
-│   ├── api_client/
+│   ├── network/
+│   ├── services/
 │   ├── di/
 │   ├── env/
 │   ├── localization/
 │   ├── route_handler/
-│   ├── session_manager/
-│   ├── theme_handler/
-│   ├── notifications/
-│   ├── permissions/
+│   ├── theme_manager/
 │   ├── utils/
 │   └── common_widgets/
 └── features/     → Feature modules (data / domain / presentation)

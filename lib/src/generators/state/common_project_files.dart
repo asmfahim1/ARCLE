@@ -3,7 +3,6 @@ import '../../templates/app_templates.dart';
 import '../../templates/core/analysis_templates.dart';
 import '../../templates/core/api_templates.dart';
 import '../../templates/core/constants_templates.dart';
-import '../../templates/core/core_templates.dart';
 import '../../templates/core/dialogs_templates.dart';
 import '../../templates/core/dimensions_templates.dart';
 import '../../templates/core/di_templates.dart';
@@ -31,14 +30,14 @@ Map<String, String> buildCommonProjectFiles(
     'lib/main.dart': AppTemplates.mainEntry(),
     'lib/core/README.md': ReadmeTemplates.coreReadme(),
     if (network.isHttp)
-      'lib/core/api_client/http_client.dart': ApiTemplates.httpClient(state)
+      'lib/core/network/http_client.dart': ApiTemplates.httpClient(state)
     else
-      'lib/core/api_client/dio_client.dart': ApiTemplates.dioClient(state),
-    'lib/core/api_client/api_service.dart': ApiTemplates.apiService(
+      'lib/core/network/dio_client.dart': ApiTemplates.dioClient(state),
+    'lib/core/network/api_service.dart': ApiTemplates.apiService(
       state,
       network,
     ),
-    'lib/core/api_client/base_response.dart': ApiTemplates.apiResponse(),
+    'lib/core/network/base_response.dart': ApiTemplates.apiResponse(network),
     'lib/core/localization/app_strings.dart': LocalizationTemplates.appStrings(
       state,
     ),
@@ -50,8 +49,8 @@ Map<String, String> buildCommonProjectFiles(
     'lib/core/utils/endpoints.dart': ConstantsTemplates.apiEndpoints(),
     'lib/core/utils/enums.dart': ConstantsTemplates.appEnums(),
     'lib/core/utils/app_assets.dart': ConstantsTemplates.appAssets(),
-    'lib/core/utils/app_colors.dart': ConstantsTemplates.appColors(),
-    'lib/core/utils/dimensions.dart': DimensionsTemplates.dimensions(),
+    'lib/core/theme_manager/app_colors.dart': ConstantsTemplates.appColors(),
+    'lib/core/theme_manager/dimensions.dart': DimensionsTemplates.dimensions(),
     'lib/core/utils/dialogs.dart': DialogsTemplates.dialogs(state),
     'lib/core/common_widgets/README.md': ReadmeTemplates.commonWidgetsReadme(),
     'lib/core/common_widgets/svg_icon.dart': WidgetsTemplates.svgIcon(),
@@ -83,28 +82,24 @@ Map<String, String> buildCommonProjectFiles(
     'lib/core/env/stag_env.dart': EnvTemplates.envStag(),
     'lib/core/env/local_env.dart': EnvTemplates.envLocal(),
     'lib/core/env/env_factory.dart': EnvTemplates.envFactory(),
-    'lib/core/session_manager/pref_manager.dart': ServicesTemplates.prefManager(
+    'lib/core/services/pref_manager.dart': ServicesTemplates.prefManager(
       state,
     ),
-    'lib/core/session_manager/session_manager.dart':
-        ServicesTemplates.sessionManager(state),
-    'lib/core/response_handler/response_handler.dart':
-        CoreTemplates.responseHandler(network),
-    'lib/core/error_handler/error_handler.dart': CoreTemplates.errorHandler(),
+    'lib/core/services/session_manager.dart': ServicesTemplates.sessionManager(
+      state,
+    ),
     'lib/core/route_handler/app_routes.dart': RouteTemplates.routes(),
     'lib/core/route_handler/app_route_observer.dart': RouteTemplates.observer(),
     'lib/core/route_handler/app_router.dart': RouteTemplates.router(state),
-    'lib/core/theme_handler/app_theme.dart': ThemeTemplates.themeHandler(),
-    'lib/core/notifications/notification_service.dart':
+    'lib/core/theme_manager/app_theme.dart': ThemeTemplates.themeHandler(),
+    'lib/core/services/notification_service.dart':
         ServicesTemplates.notificationService(state),
-    'lib/core/permissions/permission_service.dart':
+    'lib/core/services/permission_service.dart':
         ServicesTemplates.permissionService(state),
     'lib/core/utils/logger.dart': UtilsTemplates.utilsLogger(),
     'lib/core/utils/date_formatter.dart': UtilsTemplates.utilsDateFormatter(),
-    'lib/core/response_handler/api_failure.dart': UtilsTemplates.utilsFailure(
-      network,
-    ),
-    'lib/core/utils/result.dart': UtilsTemplates.utilsResult(),
+    'lib/core/network/api_failure.dart': UtilsTemplates.utilsFailure(network),
+    'lib/core/network/result.dart': UtilsTemplates.utilsResult(),
     'lib/core/utils/app_validators.dart': UtilsTemplates.appValidators(),
     'lib/core/utils/validators.dart': UtilsTemplates.utilsValidators(),
     'test/features/auth/login_screen_test.dart': TestsTemplates.loginScreenTest(
