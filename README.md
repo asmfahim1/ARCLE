@@ -1,11 +1,28 @@
-# ARCLE CLI
+<p align="center">
+  <img src="lib/docs/Gemini_Generated_Image_hof2r5hof2r5hof2.jfif" alt="ARCLE Banner" width="100%" />
+</p>
 
-Agentic Flutter Development Platform — scaffold Clean Architecture projects with BLoC, GetX, or Riverpod, and configure AI agent support for Claude Code, Codex, and Gemini.
+[//]: # (<p align="center">)
 
-[![Pub Version](https://img.shields.io/pub/v/arcle?color=blue&logo=dart)](https://pub.dev/packages/arcle)
-[![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat&logo=dart&logoColor=white)](https://dart.dev)
-[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[//]: # (  <img src="lib/docs/Gemini_Generated_Image_e3rno6e3rno6e3rn.jfif" alt="ARCLE Logo" width="160" />)
+
+[//]: # (</p>)
+
+<h1 align="center">ARCLE CLI</h1>
+
+<p align="center">
+  <strong>Agentic Flutter Development Platform</strong><br>
+  Scaffold Clean Architecture projects with BLoC, GetX, or Riverpod, choose Dio or Http networking, and configure AI agent support for Claude Code, Codex, and Gemini.
+</p>
+
+<p align="center">
+  <a href="https://pub.dev/packages/arcle"><img src="https://img.shields.io/pub/v/arcle?color=blue&logo=dart" alt="Pub Version" /></a>
+  <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-0175C2?style=flat&logo=dart&logoColor=white" alt="Dart" /></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white" alt="Flutter" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License" /></a>
+</p>
+
+---
 
 ## Why ARCLE
 
@@ -13,9 +30,10 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 
 - Create a project with Clean Architecture structure
 - Choose BLoC, GetX, or Riverpod with a numbered prompt
+- Choose Dio or Http networking with unified response and error handling
 - Generate full feature modules
 - Keep DI and route wiring consistent
-- API client ready with Dio
+- API client ready with Dio or Http
 - Session management & token handling
 - Multi-language support
 - Environment configuration (local, staging, production)
@@ -26,11 +44,15 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
 - **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
 
-## What's New In v2.3.2
+## What's New In v3.0.0
 
-- **Project & feature documentation folders** — `arcle create`, `arcle init`, and `arcle configure-ai` now seed a root `docs/PLAN.md` + `docs/HISTORY.md`, and `arcle feature <name>` seeds `lib/features/<name>/docs/<name>_plan.md` + `<name>_history.md` so each feature's docs stay clearly named and grouped in their own `docs/` folder.
-- **New `arcle history add` command** — logs AI/human work to root and feature `docs/HISTORY.md` in one call: `arcle history add --feature login --summary "Implemented login API" --agent claude`.
-- **AI agents now self-report progress** — `arcle configure-ai` writes a work-tracking rule into `CLAUDE.md`, `.codex/instructions.md`, and `GEMINI.md` so Claude Code, Codex, and Gemini call `arcle history add` after finishing work, keeping both root and per-feature history accurate.
+- 🌐 **Dual Network Ecosystem (Dio & Http)** — Select between Dio (recommended) or native Http (`http: ^1.6.0`) interactively or via `--network dio|http`. Includes `ApiHttpClient` with request cancellation (`AbortableRequest`), multipart uploads, download progress tracking, and DI wiring across BLoC, GetX, and Riverpod.
+- 🛡️ **Unified Error & Response Handling** — Standardized `BaseResponse` and `ResponseHandler` pipelines with user-friendly error dialogs (`AppDialogs.showError`/`showRetry`) and snackbars (`AppDialogs.showSuccess`) mapped directly from `AppFailure`.
+- 🏷️ **Application Branding & Versioning** — CLI intro banner now displays `ARCLE Version : 3.0.0`. Generated projects auto-wire `AppConstants.appName` directly to `MaterialApp(title: ...)` across all state templates.
+- 🏗️ **Clean Architecture & Core Restructure** —
+  - **Data Source Boundary**: Remote data sources return raw responses wrapped in `BaseResponse`, keeping model parsing (`Model.fromJson`) strictly inside repository implementations.
+  - **Single Response Pipeline**: Merged `BaseResponse` and `ResponseHandler` into `lib/core/network/base_response.dart`. Removed dead `ErrorHandler`.
+  - **Consolidated `core/` Folders**: Streamlined into `core/network/`, `core/services/`, and `core/theme_manager/`.
 
 ## 📦 Installation
 
@@ -60,13 +82,13 @@ dart pub global run arcle:arcle --help
 ## 🚀 Quick Start
 
 ```bash
-# Create a new project — numbered prompt picks state management
+# Create a new project — numbered prompts pick state management and network
 arcle create my_app
 
-# Or skip the menu with an explicit flag (great for CI/CD)
-arcle create my_app --state bloc
-arcle create my_app --state getx
-arcle create my_app --state riverpod
+# Or skip the menus with explicit flags (great for CI/CD)
+arcle create my_app --state bloc --network dio
+arcle create my_app --state getx --network http
+arcle create my_app --state riverpod --network dio
 
 # Optional alias
 arcle new my_app
@@ -273,19 +295,15 @@ my_awesome_app/
 │   ├── app/
 │   │   └── app.dart                    # App widget setup
 │   ├── core/                           # Shared infrastructure
-│   │   ├── api_client/
-│   │   ├── di/
-│   │   ├── env/
-│   │   ├── error_handler/
-│   │   ├── response_handler/
-│   │   ├── localization/
-│   │   ├── route_handler/
-│   │   ├── session_manager/
-│   │   ├── theme_handler/
-│   │   ├── notifications/
-│   │   ├── permissions/
-│   │   ├── utils/
-│   │   └── common_widgets/
+│   │   ├── network/                    # ApiClient (Dio/Http), BaseResponse, ApiFailure, Result
+│   │   ├── services/                   # Session, Preferences, Notifications, Permissions
+│   │   ├── theme_manager/              # AppTheme, AppColors, Dimensions
+│   │   ├── di/                         # Dependency injection setup
+│   │   ├── env/                        # Environment configurations
+│   │   ├── localization/               # Localization & translation loader
+│   │   ├── route_handler/              # Routing & navigation
+│   │   ├── utils/                      # Constants, dialogs, helpers
+│   │   └── common_widgets/             # Reusable UI widgets
 │   └── features/
 │       ├── demo/                       # Demo feature (included!)
 │       │   ├── data/
@@ -330,7 +348,7 @@ lib/features/feature_name/presentation/
 - 📱 Build APK (debug and release modes)
 - 📚 Documentation generation
 - 🎨 Pre-configured theming system
-- 🌐 API client setup with Dio and error handling
+- 🌐 Dual network client setup with Dio or Http and unified error handling
 - 🌍 Per-locale management with `arcle add locale` and `arcle delete locale`
 - 🔍 Deep project analysis with `arcle verify --full`
 - 🤖 Optional AI agent context (Claude Code, Codex, Gemini) via `arcle configure-ai`
