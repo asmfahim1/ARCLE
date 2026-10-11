@@ -404,7 +404,6 @@ See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 - [ ] Add GraphQL support
 - [ ] Generate widget tests
 - [ ] Add Firebase integration option
-- [ ] Generate CI/CD configuration
 - [ ] Support for custom templates
 
 ## 🤝 Contributing
