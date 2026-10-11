@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="lib/docs/Gemini_Generated_Image_hof2r5hof2r5hof2.jfif" alt="ARCLE Banner" width="100%" />
+  <img src="lib/docs/Gemini_Generated_Image_hof2r5hof2r5hof2.jpg" alt="ARCLE Banner" width="100%" />
 </p>
 
 [//]: # (<p align="center">)
