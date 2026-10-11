@@ -49,7 +49,7 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 
 <table border="0">
   <tr>
-    <td width="70%" valign="top">
+    <td width="65%" valign="top">
       <h2>Why ARCLE</h2>
       <p><b>ARCLE</b> removes repetitive setup work for scalable Flutter apps.</p>
       <ul>
@@ -70,8 +70,8 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
         <li><b>Code Quality:</b> <b>Pre-commit code review</b> — <code>arcle review</code> catches analyze errors, format issues, and missing tests before you commit</li>
       </ul>
     </td>
-    <td width="30%" align="center" valign="middle">
-      <img src="lib/docs/arcle_logo_animated.gif" alt="ARCLE Logo" width="160" />
+    <td width="35%" align="center" valign="middle">
+      <img src="lib/docs/arcle_animation.gif" alt="ARCLE Logo" width="350" height = 200 />
     </td>
   </tr>
 </table>
