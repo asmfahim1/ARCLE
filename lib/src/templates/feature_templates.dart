@@ -132,7 +132,7 @@ class ${className}Entity {
 ''';
 
   static String _repositoryContract(String snake, String className) => '''
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/result.dart';
 import '../entity/${snake}_entity.dart';
 
 abstract class ${className}Repository {
@@ -154,11 +154,11 @@ abstract class ${className}Repository {
     // Use the snake name to preserve word boundaries for endpoints.
     final camelName = StringHelpers.camelCase(snake);
     return '''
-import '../../../../core/api_client/api_service.dart';
-import '../../../../core/session_manager/session_manager.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/network/base_response.dart';
+import '../../../../core/services/session_manager.dart';
 import '../../../../core/utils/endpoints.dart';
 $injectableImport
-import '../model/${snake}_model.dart';
 
 $injectableAnno
 class ${className}RemoteSource {
@@ -167,16 +167,21 @@ class ${className}RemoteSource {
   final ApiService _api;
   final SessionManager _session;
 
-  Future<List<${className}Model>> fetchData() async {
+  /// Calls the API and wraps the raw response into a [BaseResponse].
+  ///
+  /// No model parsing happens here — only [${className}RepositoryImpl] is
+  /// responsible for turning [BaseResponse.data] into [${className}Model].
+  Future<BaseResponse<dynamic>> fetchData() async {
     final token = await _session.getToken();
     final response = await _api.get(ApiEndpoints.${camelName}List, query: {
       'token': token ?? '',
     });
 
-    final data = (response.data as List<dynamic>? ?? []);
-    return data
-        .map((item) => ${className}Model.fromJson(item as Map<String, dynamic>))
-        .toList();
+    final raw = response.data;
+    if (raw is Map<String, dynamic>) {
+      return BaseResponse<dynamic>.fromJson(raw, (d) => d);
+    }
+    return BaseResponse<dynamic>.success(raw);
   }
 }
 ''';
@@ -196,12 +201,12 @@ class ${className}RemoteSource {
             ? '@LazySingleton(as: ${className}Repository)\n'
             : '';
     return '''
-import '../../../../core/response_handler/api_failure.dart';
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/api_failure.dart';
+import '../../../../core/network/result.dart';
 import 'package:dartz/dartz.dart';
 import '../../domain/entity/${snake}_entity.dart';
 import '../../domain/repository/${snake}_repository.dart';
-// import '../model/${snake}_model.dart';
+import '../model/${snake}_model.dart';
 import '../source/${snake}_remote_source.dart';
 $injectableImport
 
@@ -214,8 +219,19 @@ class ${className}RepositoryImpl implements ${className}Repository {
   @override
   Future<Result<List<${className}Entity>>> get${className}Data() async {
     try {
-      final models = await _remote.fetchData();
-      final entities = models.map((e) => e.toEntity()).toList();
+      final baseResponse = await _remote.fetchData();
+      if (!baseResponse.success) {
+        return Left(ServerFailure(baseResponse.message));
+      }
+
+      final rawList = baseResponse.data is List
+          ? baseResponse.data as List
+          : const <dynamic>[];
+      final entities = rawList
+          .whereType<Map<String, dynamic>>()
+          .map(${className}Model.fromJson)
+          .map((model) => model.toEntity())
+          .toList();
       return Right(entities);
     } catch (e, stack) {
       return Left(AppFailure.fromException(e, stack));
@@ -236,7 +252,7 @@ class ${className}RepositoryImpl implements ${className}Repository {
             : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
-import '../../../../core/utils/result.dart';
+import '../../../../core/network/result.dart';
 import '../entity/${snake}_entity.dart';
 import '../repository/${snake}_repository.dart';
 $injectableImport
@@ -432,8 +448,8 @@ import '../../domain/usecase/${snake}_usecase.dart';
 import '../../domain/repository/${snake}_repository.dart';
 import '../../data/repository/${snake}_repository_impl.dart';
 import '../../data/source/${snake}_remote_source.dart';
-import '../../../../core/api_client/api_service.dart';
-import '../../../../core/session_manager/session_manager.dart';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/services/session_manager.dart';
 import '../controller/${snake}_controller.dart';
 
 class ${className}Binding extends Bindings {

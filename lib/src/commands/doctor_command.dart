@@ -156,9 +156,18 @@ class DoctorCommand {
     }
 
     var actions = 0;
+    final existingConfig = ArcleConfig.readFrom(targetDir);
+    final pubspec = File('${targetDir.path}${Platform.pathSeparator}pubspec.yaml');
+    final hasHttp =
+        pubspec.existsSync() && pubspec.readAsStringSync().contains('http:');
+    final network =
+        existingConfig?.network ??
+        (hasHttp ? NetworkClient.http : NetworkClient.dio);
+
     final generator = ProjectGenerator(
       ui: ui,
       state: state,
+      network: network,
       stateVersion: null,
       force: force,
     );
@@ -167,7 +176,7 @@ class DoctorCommand {
     generator.updateDependencies(targetDir);
     actions += 1;
 
-    _writeConfig(targetDir, state, force, ui);
+    _writeConfig(targetDir, state, network, force, ui);
     actions += 1;
 
     await generator.scaffoldDi(targetDir);
@@ -179,6 +188,7 @@ class DoctorCommand {
   void _writeConfig(
     Directory targetDir,
     StateManagement state,
+    NetworkClient network,
     bool force,
     CliUi ui,
   ) {
@@ -193,7 +203,11 @@ class DoctorCommand {
     }
 
     final config =
-        ArcleConfig(state: state, createdAt: DateTime.now()).toYaml();
+        ArcleConfig(
+          state: state,
+          createdAt: DateTime.now(),
+          network: network,
+        ).toYaml();
     file.writeAsStringSync(config);
     ui.itemUpdated(ArcleConfig.filename);
   }

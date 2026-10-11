@@ -243,7 +243,7 @@ class CommonCheckbox extends StatelessWidget {
 
   static String commonSnackbar() => '''
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonSnackbar {
   // Default background/text colors come from AppTheme.snackBarTheme.
@@ -445,7 +445,7 @@ class CommonDialog extends StatelessWidget {
     return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../utils/dimensions.dart';
+import '../theme_manager/dimensions.dart';
 import '../utils/enums.dart';
 
 class CommonImageContainer extends StatelessWidget {
@@ -622,7 +622,7 @@ class CommonImageContainer extends StatelessWidget {
 
   static String paginatedListView() => '''
 import 'package:flutter/material.dart';
-import '../utils/dimensions.dart';
+import '../theme_manager/dimensions.dart';
 
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T item, int index);
 typedef SeparatorBuilder = Widget Function(BuildContext context, int index);

@@ -99,6 +99,7 @@ class GenDiCommand {
     final generator = ProjectGenerator(
       ui: ui,
       state: state,
+      network: config?.network ?? NetworkClient.dio,
       stateVersion: null,
       force: cmd['force'] as bool,
     );

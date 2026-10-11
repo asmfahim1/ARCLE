@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:io/io.dart';
 
+import '../state_management.dart';
 import '../templates/ai/agent_templates.dart';
 import '../templates/ai/claude_templates.dart';
 import '../templates/ai/codex_templates.dart';
@@ -61,6 +62,7 @@ class ConfigureAiCommand {
     final projectName = _readProjectName(pubspec);
 
     final config = ArcleConfig.readFrom(targetDir);
+    final network = config?.network ?? NetworkClient.dio;
     var state = config?.state;
     if (state != null) {
       ui.info('Detected state management: ${state.label} (from arcle.yaml)');
@@ -124,7 +126,11 @@ class ConfigureAiCommand {
     };
 
     if (writeClaude) {
-      files['.claude/CLAUDE.md'] = ClaudeTemplates.claudeMd(projectName, state);
+      files['.claude/CLAUDE.md'] = ClaudeTemplates.claudeMd(
+        projectName,
+        state,
+        network,
+      );
       files['.claude/settings.json'] = ClaudeTemplates.claudeSettings();
     }
     if (writeCodex) {

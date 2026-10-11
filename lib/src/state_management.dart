@@ -29,3 +29,37 @@ enum StateManagement {
     return null;
   }
 }
+
+/// Networking engine used by the generated API layer.
+enum NetworkClient {
+  dio('dio', 'Dio'),
+  http('http', 'Http');
+
+  const NetworkClient(this.id, this.label);
+
+  final String id;
+  final String label;
+  int get option => index + 1;
+
+  /// Engine used whenever the user skips the choice.
+  static const NetworkClient defaultClient = NetworkClient.dio;
+
+  bool get isDio => this == NetworkClient.dio;
+  bool get isHttp => this == NetworkClient.http;
+
+  static NetworkClient? fromId(String? id) {
+    final normalized = (id ?? '').trim().toLowerCase();
+    for (final client in NetworkClient.values) {
+      if (client.id == normalized) return client;
+    }
+    return null;
+  }
+
+  static NetworkClient? fromOption(int option) {
+    final index = option - 1;
+    if (index >= 0 && index < NetworkClient.values.length) {
+      return NetworkClient.values[index];
+    }
+    return null;
+  }
+}

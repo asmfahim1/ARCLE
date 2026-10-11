@@ -1,3 +1,46 @@
+## 3.0.0
+
+### Network Ecosystem (Dio & Http)
+
+- **Interactive Network Selection**: During project creation (`arcle create` / `arcle init`), developers are prompted to select their preferred network ecosystem across all state management choices (BLoC, GetX, Riverpod):
+  - `1. Dio (recommended)`
+  - `2. Http` (powered by `http: ^1.6.0`)
+- Added `--network` / `-n` flag (`dio` or `http`) to `arcle create` and `arcle init` for non-interactive / CI automation.
+- Full `package:http` 1.6.0 client integration (`ApiHttpClient`):
+  - GET, POST, PUT, PATCH, DELETE operations.
+  - Native request cancellation via `AbortableRequest` and `AbortableMultipartRequest`.
+  - Multipart file upload support.
+  - File download with real-time download progress tracking.
+  - Unified `ApiResponse` wrapper matching status code and response payloads.
+- State-aware dependency injection configuration for both `DioClient` and `ApiHttpClient` (BLoC get_it, GetX bindings, Riverpod providers).
+
+### Unified Error & Response Handling
+
+- Actively wired `BaseResponse` and `ResponseHandler` into project generation for both Dio and Http networking pipelines.
+- Error messages are surfaced through `AppDialogs` (`lib/core/utils/dialogs.dart`) directly from `AppFailure`:
+  - Error messages and retry prompts display clean dialogs (`AppDialogs.showError` and `AppDialogs.showRetry`).
+  - Success actions display a 2-second snackbar notification (`AppDialogs.showSuccess`).
+  - Technical error messages and raw traces are intercepted and mapped into user-friendly messages via `AppFailure`.
+
+### Application Branding & Versioning
+
+- ARCLE version banner: The CLI intro banner now displays `ARCLE Version : 3.0.0` instead of `ARCLE-FLUTTER CLEAN ARCHITECTURE`.
+- Project naming in constants: Generated `lib/core/utils/constants.dart` now includes `static const String appName = '<project_name>';` in `AppConstants`.
+- `MaterialApp` widget now consumes `title: AppConstants.appName` with `import 'package:<project_name>/core/utils/constants.dart';` across BLoC, GetX, and Riverpod templates.
+
+### Breaking Changes — Clean Architecture & Core Restructure
+
+This release replaces the unpublished 2.4.0 line entirely because it changes generated project structure and import paths; anyone who already generated a project against the unpublished 2.4.0 templates needs to regenerate or manually migrate.
+
+- **Data sources no longer parse response bodies.** Previously, `${Feature}RemoteSource`/`${Feature}RemoteDataSource` classes (in `arcle feature <name>` output) called `Model.fromJson(...)` directly on the raw API response, which put domain-shape knowledge in the transport layer and bypassed `BaseResponse` entirely. Data sources now only call the API and wrap the raw response in `BaseResponse` (`Future<BaseResponse<dynamic>> fetchData()`); the repository impl class is the only place that calls `Model.fromJson` on `BaseResponse.data` and maps to an entity. This matches the clean-architecture rule that transport and domain-model parsing are separate responsibilities.
+- **`BaseResponse` and `ResponseHandler` merged into one file** (`lib/core/network/base_response.dart`). `ResponseHandler` previously reimplemented its own ad-hoc envelope detection (checking `data`/`result`/`payload` keys, manual `success` checks) instead of using `BaseResponse.fromJson`, so two independent, partially-overlapping response-shape parsers existed in the same project. `ResponseHandler` now builds a `BaseResponse` first and derives success/failure/data from it — response-shape normalization lives in exactly one place.
+- **Removed the unused `ErrorHandler` class and `core/error_handler/` folder.** It was generated into every project but never referenced anywhere outside its own definition file; presentation code already calls `AppDialogs` directly off the `AppFailure` returned by `result.fold(...)`.
+- **`core/` folder consolidation** — new projects now generate:
+  - `core/network/` — `api_service.dart`, `http_client.dart`/`dio_client.dart`, `base_response.dart` (incl. merged `ResponseHandler`), `api_failure.dart`, `result.dart` (replaces `core/api_client/`, `core/response_handler/`, and `core/utils/result.dart`)
+  - `core/services/` — `session_manager.dart`, `pref_manager.dart`, `notification_service.dart`, `permission_service.dart` (replaces `core/session_manager/`, `core/notifications/`, `core/permissions/`)
+  - `core/theme_manager/` — `app_theme.dart`, `app_colors.dart`, `dimensions.dart` (renamed from `core/theme_handler/`, now also owns colors and spacing since they're one "how things look" concern)
+  - `core/di/`, `core/env/`, `core/localization/`, `core/route_handler/`, `core/common_widgets/`, `core/utils/` are unchanged.
+
 ## 2.3.2
 
 ### Documentation & Work Tracking

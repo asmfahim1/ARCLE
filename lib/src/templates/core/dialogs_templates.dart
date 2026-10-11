@@ -31,19 +31,67 @@ class AppDialogs {
     }
   }
 
-  static void showError(String message) {
+  /// Show error alert dialog
+  static Future<void> showError(
+    String message, {
+    String title = 'Error',
+    VoidCallback? onDismiss,
+  }) async {
     final context = AppRoutes.navigatorKey.currentContext;
     if (context == null) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
         content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onDismiss?.call();
+            },
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
 
+  /// Show error dialog with retry action
+  static Future<void> showRetry({
+    required String title,
+    required String message,
+    required VoidCallback onRetry,
+    String retryText = 'Retry',
+    String cancelText = 'Cancel',
+  }) async {
+    final context = AppRoutes.navigatorKey.currentContext;
+    if (context == null) return;
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(cancelText),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onRetry();
+            },
+            child: Text(retryText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show success snackbar for 2 seconds
   static void showSuccess(String message) {
     final context = AppRoutes.navigatorKey.currentContext;
     if (context == null) return;
@@ -106,16 +154,59 @@ class AppDialogs {
     }
   }
 
-  static void showError(String message) {
-    Get.snackbar(
-      'Error',
-      message,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+  /// Show error alert dialog
+  static Future<void> showError(
+    String message, {
+    String title = 'Error',
+    VoidCallback? onDismiss,
+  }) async {
+    await Get.dialog(
+      AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back();
+              onDismiss?.call();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
+  /// Show error dialog with retry action
+  static Future<void> showRetry({
+    required String title,
+    required String message,
+    required VoidCallback onRetry,
+    String retryText = 'Retry',
+    String cancelText = 'Cancel',
+  }) async {
+    await Get.dialog(
+      AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(cancelText),
+          ),
+          FilledButton(
+            onPressed: () {
+              Get.back();
+              onRetry();
+            },
+            child: Text(retryText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show success snackbar for 2 seconds
   static void showSuccess(String message) {
     Get.snackbar(
       'Success',
@@ -123,6 +214,7 @@ class AppDialogs {
       backgroundColor: Colors.green,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
     );
   }
 

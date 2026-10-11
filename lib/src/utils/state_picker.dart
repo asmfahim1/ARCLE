@@ -67,3 +67,47 @@ class StatePicker {
     }
   }
 }
+
+/// Picks the networking engine ("Network Ecosystem") for the generated API layer.
+///
+/// Always resolves to a value: when the choice is skipped, non-interactive,
+/// empty or invalid, Dio is used.
+class NetworkPicker {
+  NetworkPicker(this.console);
+
+  final Console console;
+
+  NetworkClient resolve(String? raw, {required bool interactive}) {
+    final explicit = NetworkClient.fromId(raw);
+    if (explicit != null) return explicit;
+    if (!interactive) return NetworkClient.defaultClient;
+    return _promptSelection();
+  }
+
+  NetworkClient _promptSelection() {
+    final ui = CliUi(console);
+
+    console.line('');
+    ui.section('🌐 Network Ecosystem');
+    console.line('  Choose the engine that powers your API layer:');
+    console.line('');
+    console.line(
+      '  1. 🚀 Dio ${console.color('(recommended)', ConsoleColor.green)}'
+      ' - interceptors, cancel tokens, upload/download progress',
+    );
+    console.line(
+      '  2. 🛰️  Http - lightweight official package, minimal dependencies',
+    );
+    console.line('');
+    stdout.write('  Select your Network Ecosystem (1-2) [default: 1]: ');
+
+    final input = stdin.readLineSync()?.trim();
+    if (input == null || input.isEmpty) return NetworkClient.defaultClient;
+
+    final number = int.tryParse(input);
+    if (number != null) {
+      return NetworkClient.fromOption(number) ?? NetworkClient.defaultClient;
+    }
+    return NetworkClient.fromId(input) ?? NetworkClient.defaultClient;
+  }
+}

@@ -24,6 +24,12 @@ class InitCommand {
         help: 'State management option (bloc, getx, riverpod)',
       )
       ..addOption(
+        'network',
+        abbr: 'n',
+        allowed: const ['dio', 'http'],
+        help: 'Network Ecosystem for the API layer (dio, http). Default: dio',
+      )
+      ..addOption(
         'path',
         abbr: 'p',
         help: 'Directory of an existing Flutter project',
@@ -64,6 +70,11 @@ class InitCommand {
       return ExitCode.usage.code;
     }
 
+    final network = NetworkPicker(console).resolve(
+      cmd['network'] as String?,
+      interactive: cmd['interactive'] as bool,
+    );
+
     final targetDir = Directory(cmd['path'] as String);
     final projectName =
         targetDir.uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ??
@@ -71,6 +82,7 @@ class InitCommand {
     final generator = ProjectGenerator(
       ui: ui,
       state: state,
+      network: network,
       stateVersion: (cmd['state-version'] as String?)?.trim(),
       force: cmd['force'] as bool,
       projectName: projectName,
@@ -79,6 +91,7 @@ class InitCommand {
     ui.section('🛠️  Initializing Clean Architecture');
     ui.step('PATH    ', targetDir.path);
     ui.step('STATE   ', '${state.label} ${_stateIcon(state)}');
+    ui.step('NETWORK ', network.label);
     await generator.scaffold(targetDir);
     ui.success('✨ Clean architecture scaffolded successfully!');
     ui.info(

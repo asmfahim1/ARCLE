@@ -44,8 +44,31 @@ void main() {
       expect(results['help'], isTrue);
     });
 
+    test('parser supports network option', () {
+      expect(
+        InitCommand.parser().parse(['--network', 'dio'])['network'],
+        'dio',
+      );
+      expect(
+        InitCommand.parser().parse(['--network', 'http'])['network'],
+        'http',
+      );
+      expect(
+        InitCommand.parser().parse(['-n', 'http'])['network'],
+        'http',
+      );
+    });
+
+    test('parser rejects invalid network option', () {
+      expect(
+        () => InitCommand.parser().parse(['--network', 'invalid']),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('parser supports short options', () {
       expect(InitCommand.parser().parse(['-s', 'bloc'])['state'], 'bloc');
+      expect(InitCommand.parser().parse(['-n', 'dio'])['network'], 'dio');
       expect(InitCommand.parser().parse(['-f'])['force'], isTrue);
       expect(InitCommand.parser().parse(['-h'])['help'], isTrue);
     });

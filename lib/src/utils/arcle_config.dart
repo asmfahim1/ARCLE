@@ -3,10 +3,15 @@ import 'dart:io';
 import '../state_management.dart';
 
 class ArcleConfig {
-  ArcleConfig({required this.state, required this.createdAt});
+  ArcleConfig({
+    required this.state,
+    required this.createdAt,
+    this.network = NetworkClient.dio,
+  });
 
   final StateManagement state;
   final DateTime createdAt;
+  final NetworkClient network;
 
   static const filename = 'arcle.yaml';
 
@@ -14,6 +19,7 @@ class ArcleConfig {
     return [
       'state: ${state.id}',
       'state_option: ${state.option}',
+      'network: ${network.id}',
       'created_at: ${createdAt.toIso8601String()}',
     ].join('\n');
   }
@@ -25,7 +31,9 @@ class ArcleConfig {
     final state = StateManagement.fromInput(data['state'] ?? '');
     final createdAt = DateTime.tryParse(data['created_at'] ?? '');
     if (state == null || createdAt == null) return null;
-    return ArcleConfig(state: state, createdAt: createdAt);
+    final network =
+        NetworkClient.fromId(data['network']) ?? NetworkClient.defaultClient;
+    return ArcleConfig(state: state, createdAt: createdAt, network: network);
   }
 
   static Map<String, String> _parseKeyValues(String input) {

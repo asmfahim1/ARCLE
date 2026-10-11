@@ -9,8 +9,10 @@ enum ImageSourceType { network, offline }
 enum ButtonShape { rectangular, rounded, circle }
 ''';
 
-  static String appConstants() => '''
+  static String appConstants({String projectName = 'my_app'}) => '''
 class AppConstants {
+  static const String appName = '$projectName';
+
   static const String token = 'token';
   static const String isLoggedIn = 'is_logged_in';
   static const String defaultTheme = 'default_theme';

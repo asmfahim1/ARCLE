@@ -1,7 +1,11 @@
 import '../../state_management.dart';
 
 class ClaudeTemplates {
-  static String claudeMd(String projectName, StateManagement state) => '''
+  static String claudeMd(
+    String projectName,
+    StateManagement state, [
+    NetworkClient network = NetworkClient.dio,
+  ]) => '''
 # CLAUDE.md — ARCLE Project Instructions
 
 This file is read by Claude Code automatically when working in this project.
@@ -13,7 +17,7 @@ This file is read by Claude Code automatically when working in this project.
 - **State Management**: ${state.label}
 - **Architecture**: Clean Architecture (data / domain / presentation)
 - **Routing**: Named route handler
-- **API**: Dio client with interceptors
+- **API**: ${network.isHttp ? 'HTTP client' : 'Dio client'} with error/response handlers
 
 ## Key Commands
 

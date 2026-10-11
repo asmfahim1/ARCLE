@@ -4,15 +4,23 @@ import '../../../templates/core/di_templates.dart';
 import '../../../templates/core/localization_templates.dart';
 import '../common_project_files.dart';
 
-Map<String, String> buildBlocProjectFiles({String projectName = 'my_app'}) {
-  final files = buildCommonProjectFiles(StateManagement.bloc);
+Map<String, String> buildBlocProjectFiles({
+  String projectName = 'my_app',
+  NetworkClient network = NetworkClient.dio,
+}) {
+  final files = buildCommonProjectFiles(
+    StateManagement.bloc,
+    projectName: projectName,
+    network: network,
+  );
 
   files.addAll({
     'assets/langs/en.json': LocalizationTemplates.enJson(),
     'assets/langs/bn.json': LocalizationTemplates.bnJson(),
     'lib/core/di/injection.dart': DiTemplates.blocInjection(),
     'lib/core/di/injectable_module.dart': DiTemplates.blocInjectableModule(),
-    'lib/core/di/injection.config.dart': DiTemplates.blocInjectionConfig(),
+    'lib/core/di/injection.config.dart':
+        DiTemplates.blocInjectionConfig(network),
     'lib/core/di/bloc_providers.dart':
         BlocProvidersTemplates.appBlocProviders(),
   });
