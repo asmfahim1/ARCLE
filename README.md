@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="lib/docs/Gemini_Generated_Image_hof2r5hof2r5hof2.jpg" alt="ARCLE Banner" width="100%" />
+  <img src="lib/docs/arcle_banner.svg" alt="ARCLE Banner" width="100%" />
 </p>
 
 [//]: # (<p align="center">)
@@ -15,6 +15,7 @@
   Scaffold Clean Architecture projects with BLoC, GetX, or Riverpod, choose Dio or Http networking, and configure AI agent support for Claude Code, Codex, and Gemini.
 </p>
 
+<!-- BADGES -->
 <p align="center">
   <a href="https://pub.dev/packages/arcle"><img src="https://img.shields.io/pub/v/arcle?color=blue&logo=dart" alt="Pub Version" /></a>
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-0175C2?style=flat&logo=dart&logoColor=white" alt="Dart" /></a>
@@ -24,7 +25,7 @@
 
 ---
 
-## Why ARCLE
+<!-- ## Why ARCLE
 
 ARCLE removes repetitive setup work for scalable Flutter apps.
 
@@ -42,7 +43,41 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - Production-ready code structure
 - Build APKs from the CLI
 - **AI agent context** — add Claude Code, Codex, or Gemini config via `arcle configure-ai` (opt-in)
-- **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit
+- **Pre-commit code review** — `arcle review` catches analyze errors, format issues, and missing tests before you commit -->
+
+---
+
+<table border="0">
+  <tr>
+    <td width="70%" valign="top">
+      <h2>Why ARCLE</h2>
+      <p><b>ARCLE</b> removes repetitive setup work for scalable Flutter apps.</p>
+      <ul>
+        <li><b>Clean Architecture:</b> Create a project with Clean Architecture structure</li>
+        <li><b>State Management:</b> Choose BLoC, GetX, or Riverpod with a numbered prompt</li>
+        <li><b>Networking:</b> Choose Dio or Http networking with unified response and error handling</li>
+        <li><b>Feature Modules:</b> Generate full feature modules</li>
+        <li><b>Consistent Architecture:</b> Keep DI and route wiring consistent</li>
+        <li><b>API Ready:</b> API client ready with Dio or Http</li>
+        <li><b>Security & Session:</b> Session management & token handling</li>
+        <li><b>Localization:</b> Multi-language support</li>
+        <li><b>Environments:</b> Environment configuration (local, staging, production)</li>
+        <li><b>Demo App:</b> <b>Working demo feature</b> with login & API integration</li>
+        <li><b>Documentation:</b> <b>Auto-generated documentation</b></li>
+        <li><b>Quality Standard:</b> Production-ready code structure</li>
+        <li><b>CLI Tools:</b> Build APKs from the CLI</li>
+        <li><b>AI Agent Context:</b> <b>AI agent context</b> — add Claude Code, Codex, or Gemini config via <code>arcle configure-ai</code> (opt-in)</li>
+        <li><b>Code Quality:</b> <b>Pre-commit code review</b> — <code>arcle review</code> catches analyze errors, format issues, and missing tests before you commit</li>
+      </ul>
+    </td>
+    <td width="30%" align="center" valign="middle">
+      <img src="lib/docs/arcle_logo_animated.gif" alt="ARCLE Logo" width="160" />
+    </td>
+  </tr>
+</table>
+
+---
+
 
 ## What's New In v3.0.0
 
