@@ -167,7 +167,7 @@ class CreateCommand {
       case StateManagement.bloc:
         return '🧱';
       case StateManagement.getx:
-        return '⚡';
+        return '✨';
       case StateManagement.riverpod:
         return '🌊';
     }

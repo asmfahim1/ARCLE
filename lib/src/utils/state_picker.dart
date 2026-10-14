@@ -96,7 +96,7 @@ class NetworkPicker {
       ' - interceptors, cancel tokens, upload/download progress',
     );
     console.line(
-      '  2. 🛰️  Http - lightweight official package, minimal dependencies',
+      '  2. 🛰️ Http - lightweight official package, minimal dependencies',
     );
     console.line('');
     stdout.write('  Select your Network Ecosystem (1-2) [default: 1]: ');

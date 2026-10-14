@@ -197,7 +197,7 @@ class Cli {
     return [
       '',
       '  ╔══════════════════════════════════════════════════════════╗',
-      '  ║   🚀  ${'ARCLE Version : $arcleVersion'.padRight(52)}║',
+      '  ║   🚀  ${'ARCLE Version : $arcleVersion'.padRight(52)}    ║',
       '  ║    Build production-ready Flutter apps with ease         ║',
       '  ╚══════════════════════════════════════════════════════════╝',
       '',
@@ -242,7 +242,7 @@ class Cli {
       '',
       '  STATE MANAGEMENT OPTIONS',
       '    🧱  BLoC       Business Logic Component, predictable state',
-      '    ⚡  GetX       Lightweight, reactive, no boilerplate',
+      '    ✨  GetX       Lightweight, reactive, no boilerplate',
       '    🌊  Riverpod   Type-safe, no context needed',
       '',
       '  GLOBAL OPTIONS',
