@@ -53,11 +53,11 @@ void main() {
     });
 
     test('di template registers ApiHttpClient for http and DioClient for dio', () {
-      final httpCode = DiTemplates.di(StateManagement.bloc, NetworkClient.http);
+      final httpCode = DiTemplates.di(StateManagement.getx, NetworkClient.http);
       expect(httpCode, contains('ApiHttpClient'));
       expect(httpCode, isNot(contains('DioClient')));
 
-      final dioCode = DiTemplates.di(StateManagement.bloc, NetworkClient.dio);
+      final dioCode = DiTemplates.di(StateManagement.getx, NetworkClient.dio);
       expect(dioCode, contains('DioClient'));
       expect(dioCode, isNot(contains('ApiHttpClient')));
     });

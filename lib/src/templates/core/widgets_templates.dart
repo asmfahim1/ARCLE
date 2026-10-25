@@ -4,12 +4,19 @@ class WidgetsTemplates {
   static String svgIcon() => '''
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../theme_manager/app_colors.dart';
 
 class SvgIcon extends StatelessWidget {
-  const SvgIcon(this.asset, {super.key, this.size = 24});
+  const SvgIcon(
+    this.asset, {
+    super.key,
+    this.size = 24,
+    this.color,
+  });
 
   final String asset;
   final double size;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +24,9 @@ class SvgIcon extends StatelessWidget {
       asset,
       width: size,
       height: size,
+      colorFilter: color != null
+          ? ColorFilter.mode(color!, BlendMode.srcIn)
+          : null,
     );
   }
 }
@@ -24,19 +34,372 @@ class SvgIcon extends StatelessWidget {
 
   static String commonLoader() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonLoader extends StatelessWidget {
-  const CommonLoader({super.key});
+  final double? size;
+  final Color? color;
+  final double strokeWidth;
+  final bool _isShimmer;
+
+  // Shimmer configurable properties
+  final double? width;
+  final double? height;
+  final BoxBorder? border;
+  final BorderRadiusGeometry? borderRadius;
+  final double? radius;
+  final Color? shimmerColor;
+  final Color? baseColor;
+  final Color? highlightColor;
+  final Duration duration;
+  final BoxShape shape;
+  final Widget? child;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
+
+  /// Default constructor for a CircularProgressIndicator loader.
+  const CommonLoader({
+    super.key,
+    this.size,
+    this.color,
+    this.strokeWidth = 4.0,
+  })  : _isShimmer = false,
+        width = null,
+        height = null,
+        border = null,
+        borderRadius = null,
+        radius = null,
+        shimmerColor = null,
+        baseColor = null,
+        highlightColor = null,
+        duration = const Duration(milliseconds: 1500),
+        shape = BoxShape.rectangle,
+        child = null,
+        margin = null,
+        padding = null;
+
+  /// Shimmer loader constructor with customizable height, width, border, and shimmer color.
+  const CommonLoader.shimmer({
+    super.key,
+    this.width,
+    this.height,
+    this.border,
+    this.borderRadius,
+    this.radius,
+    this.shimmerColor,
+    this.baseColor,
+    this.highlightColor,
+    this.duration = const Duration(milliseconds: 1500),
+    this.shape = BoxShape.rectangle,
+    this.child,
+    this.margin,
+    this.padding,
+  })  : _isShimmer = true,
+        size = null,
+        color = null,
+        strokeWidth = 4.0;
+
+  /// Shimmer loader for circular shapes (e.g., avatars).
+  const CommonLoader.circularShimmer({
+    super.key,
+    required double size,
+    this.border,
+    this.shimmerColor,
+    this.baseColor,
+    this.highlightColor,
+    this.duration = const Duration(milliseconds: 1500),
+    this.child,
+    this.margin,
+  })  : _isShimmer = true,
+        width = size,
+        height = size,
+        borderRadius = null,
+        radius = null,
+        shape = BoxShape.circle,
+        padding = null,
+        size = null,
+        color = null,
+        strokeWidth = 4.0;
 
   @override
-  Widget build(BuildContext context) => const Center(
-        child: CircularProgressIndicator(),
+  Widget build(BuildContext context) {
+    if (_isShimmer) {
+      return CommonShimmer(
+        width: width,
+        height: height,
+        border: border,
+        borderRadius: borderRadius,
+        radius: radius,
+        shimmerColor: shimmerColor,
+        baseColor: baseColor,
+        highlightColor: highlightColor,
+        duration: duration,
+        shape: shape,
+        margin: margin,
+        padding: padding,
+        child: child,
       );
+    }
+
+    final effectiveColor = color ?? AppColors.primary(context);
+    final indicator = CircularProgressIndicator(
+      strokeWidth: strokeWidth,
+      valueColor: AlwaysStoppedAnimation<Color>(effectiveColor),
+    );
+
+    return Center(
+      child: size != null
+          ? SizedBox(
+              width: size,
+              height: size,
+              child: indicator,
+            )
+          : indicator,
+    );
+  }
+}
+
+/// A pure Flutter custom shimmer widget built with standard animation and shader masks.
+/// Requires NO external packages.
+///
+/// Supports customizable:
+/// - [height] and [width]
+/// - [border] and [borderRadius] / [radius]
+/// - [shimmerColor], [baseColor], and [highlightColor]
+/// - [duration] and [shape]
+/// - Optional [child] widget to shimmer complex layouts
+class CommonShimmer extends StatefulWidget {
+  final double? width;
+  final double? height;
+  final BoxBorder? border;
+  final BorderRadiusGeometry? borderRadius;
+  final double? radius;
+  final Color? shimmerColor;
+  final Color? baseColor;
+  final Color? highlightColor;
+  final Duration duration;
+  final BoxShape shape;
+  final Widget? child;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
+
+  const CommonShimmer({
+    super.key,
+    this.width,
+    this.height,
+    this.border,
+    this.borderRadius,
+    this.radius,
+    this.shimmerColor,
+    this.baseColor,
+    this.highlightColor,
+    this.duration = const Duration(milliseconds: 1500),
+    this.shape = BoxShape.rectangle,
+    this.child,
+    this.margin,
+    this.padding,
+  });
+
+  /// Factory constructor for a circular shimmer placeholder (e.g., avatar).
+  factory CommonShimmer.circular({
+    Key? key,
+    required double size,
+    BoxBorder? border,
+    Color? shimmerColor,
+    Color? baseColor,
+    Color? highlightColor,
+    Duration duration = const Duration(milliseconds: 1500),
+    Widget? child,
+    EdgeInsetsGeometry? margin,
+  }) {
+    return CommonShimmer(
+      key: key,
+      width: size,
+      height: size,
+      border: border,
+      shape: BoxShape.circle,
+      shimmerColor: shimmerColor,
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      duration: duration,
+      margin: margin,
+      child: child,
+    );
+  }
+
+  /// Factory constructor for a rectangular/rounded shimmer placeholder.
+  factory CommonShimmer.rectangular({
+    Key? key,
+    double? width,
+    double? height,
+    BorderRadiusGeometry? borderRadius,
+    double? radius,
+    BoxBorder? border,
+    Color? shimmerColor,
+    Color? baseColor,
+    Color? highlightColor,
+    Duration duration = const Duration(milliseconds: 1500),
+    Widget? child,
+    EdgeInsetsGeometry? margin,
+    EdgeInsetsGeometry? padding,
+  }) {
+    return CommonShimmer(
+      key: key,
+      width: width,
+      height: height,
+      borderRadius: borderRadius,
+      radius: radius,
+      border: border,
+      shimmerColor: shimmerColor,
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      duration: duration,
+      margin: margin,
+      padding: padding,
+      child: child,
+    );
+  }
+
+  @override
+  State<CommonShimmer> createState() => _CommonShimmerState();
+}
+
+class _CommonShimmerState extends State<CommonShimmer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    )..repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant CommonShimmer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.duration != widget.duration) {
+      _controller.duration = widget.duration;
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Default palette adapts seamlessly to dark and light modes
+    final defaultBase =
+        isDark ? const Color(0xFF232736) : const Color(0xFFE5E7EB);
+    final defaultHighlight =
+        isDark ? const Color(0xFF383E56) : const Color(0xFFF3F4F6);
+
+    final effectiveBase = widget.baseColor ??
+        (widget.shimmerColor != null
+            ? widget.shimmerColor!.withValues(alpha: 0.35)
+            : defaultBase);
+
+    final effectiveHighlight =
+        widget.highlightColor ?? (widget.shimmerColor ?? defaultHighlight);
+
+    final effectiveRadius = widget.shape == BoxShape.circle
+        ? null
+        : (widget.borderRadius ??
+            (widget.radius != null
+                ? BorderRadius.circular(widget.radius!)
+                : BorderRadius.circular(8.0)));
+
+    final double? circleSize = widget.shape == BoxShape.circle
+        ? (widget.width ?? widget.height ?? 40.0)
+        : null;
+
+    final effectiveWidth = circleSize ?? widget.width;
+    final effectiveHeight = circleSize ?? widget.height;
+
+    final Widget shimmerContent = AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: const Alignment(-1.0, -0.3),
+              end: const Alignment(1.0, 0.3),
+              stops: const [0.1, 0.5, 0.9],
+              colors: [
+                effectiveBase,
+                effectiveHighlight,
+                effectiveBase,
+              ],
+              transform: _SlidingGradientTransform(
+                slidePercent: -1.5 + (3.0 * _controller.value),
+              ),
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: widget.child ??
+          Container(
+            width: effectiveWidth ?? double.infinity,
+            height: effectiveHeight ?? 16.0,
+            color: Colors.white,
+          ),
+    );
+
+    // Apply clipping for rounded corners or circular bounds
+    final Widget clippedContent;
+    if (widget.shape == BoxShape.circle) {
+      clippedContent = ClipOval(child: shimmerContent);
+    } else if (effectiveRadius != null) {
+      clippedContent = ClipRRect(
+        borderRadius: effectiveRadius,
+        child: shimmerContent,
+      );
+    } else {
+      clippedContent = shimmerContent;
+    }
+
+    // Outer container handles borders, dimensions, margin, and padding
+    return Container(
+      width: effectiveWidth,
+      height: effectiveHeight,
+      margin: widget.margin,
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        border: widget.border,
+        shape: widget.shape,
+        borderRadius: effectiveRadius,
+      ),
+      child: clippedContent,
+    );
+  }
+}
+
+/// Helper gradient transform that slides horizontally across the target rect.
+class _SlidingGradientTransform extends GradientTransform {
+  const _SlidingGradientTransform({required this.slidePercent});
+
+  final double slidePercent;
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * slidePercent, 0.0, 0.0);
+  }
 }
 ''';
 
   static String commonButton() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonButton extends StatelessWidget {
   const CommonButton({
@@ -45,6 +408,8 @@ class CommonButton extends StatelessWidget {
     required this.onPressed,
     this.backgroundColor,
     this.foregroundColor,
+    this.disabledBackgroundColor,
+    this.disabledForegroundColor,
     this.width,
     this.height = 48,
     this.borderRadius,
@@ -56,6 +421,8 @@ class CommonButton extends StatelessWidget {
   final VoidCallback onPressed;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final Color? disabledBackgroundColor;
+  final Color? disabledForegroundColor;
   final double? width;
   final double height;
   final double? borderRadius;
@@ -64,6 +431,12 @@ class CommonButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    final defaultBg = AppColors.primary(context);
+    final defaultFg = Colors.white;
+    final defaultDisabledBg = AppColors.disabled;
+    final defaultDisabledFg = isDark ? Colors.black45 : Colors.white70;
+
     final theme = Theme.of(context);
     final baseStyle = theme.elevatedButtonTheme.style ?? const ButtonStyle();
 
@@ -71,15 +444,19 @@ class CommonButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height,
       child: ElevatedButton(
-        // Colors/padding come from AppTheme.elevatedButtonTheme by default.
-        // Pass [backgroundColor]/[foregroundColor]/[borderRadius] to override per call.
         style: baseStyle.copyWith(
-          backgroundColor: backgroundColor != null
-              ? WidgetStatePropertyAll(backgroundColor)
-              : null,
-          foregroundColor: foregroundColor != null
-              ? WidgetStatePropertyAll(foregroundColor)
-              : null,
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return disabledBackgroundColor ?? defaultDisabledBg;
+            }
+            return backgroundColor ?? defaultBg;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return disabledForegroundColor ?? defaultDisabledFg;
+            }
+            return foregroundColor ?? defaultFg;
+          }),
           shape: borderRadius != null
               ? WidgetStatePropertyAll(
                   RoundedRectangleBorder(
@@ -96,7 +473,7 @@ class CommonButton extends StatelessWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    foregroundColor ?? theme.colorScheme.onPrimary,
+                    foregroundColor ?? defaultFg,
                   ),
                 ),
               )
@@ -109,6 +486,7 @@ class CommonButton extends StatelessWidget {
 
   static String commonTextField() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonTextField extends StatelessWidget {
   const CommonTextField({
@@ -122,6 +500,16 @@ class CommonTextField extends StatelessWidget {
     this.obscureText = false,
     this.validator,
     this.onChanged,
+    this.fillColor,
+    this.textColor,
+    this.hintColor,
+    this.labelColor,
+    this.borderColor,
+    this.focusBorderColor,
+    this.cursorColor,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.enabled = true,
   });
 
   final String? hintText;
@@ -133,20 +521,60 @@ class CommonTextField extends StatelessWidget {
   final bool obscureText;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
+  final Color? fillColor;
+  final Color? textColor;
+  final Color? hintColor;
+  final Color? labelColor;
+  final Color? borderColor;
+  final Color? focusBorderColor;
+  final Color? cursorColor;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    // Fill color, borders and padding come from AppTheme.inputDecorationTheme.
-    // Leave `decoration` borders unset here so theme changes apply automatically.
+    final effectiveFillColor = fillColor ?? AppColors.surface(context);
+    final effectiveTextColor = textColor ?? AppColors.textPrimary(context);
+    final effectiveHintColor = hintColor ?? AppColors.textSecondary(context);
+    final effectiveBorderColor = borderColor ?? AppColors.border(context);
+    final effectiveFocusBorderColor =
+        focusBorderColor ?? AppColors.primary(context);
+
     return TextFormField(
       controller: controller,
+      enabled: enabled,
       maxLines: maxLines,
       minLines: minLines,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      style: TextStyle(color: effectiveTextColor),
+      cursorColor: cursorColor ?? effectiveFocusBorderColor,
       decoration: InputDecoration(
         hintText: hintText,
+        hintStyle: TextStyle(color: effectiveHintColor),
         labelText: labelText,
+        labelStyle: TextStyle(color: labelColor ?? effectiveHintColor),
+        filled: true,
+        fillColor: effectiveFillColor,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: effectiveBorderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: effectiveBorderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: effectiveFocusBorderColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
       ),
       validator: validator,
       onChanged: onChanged,
@@ -157,6 +585,7 @@ class CommonTextField extends StatelessWidget {
 
   static String commonDropdown() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonDropdown<T> extends StatelessWidget {
   const CommonDropdown({
@@ -168,6 +597,13 @@ class CommonDropdown<T> extends StatelessWidget {
     this.hint,
     this.labelText,
     this.validator,
+    this.fillColor,
+    this.dropdownColor,
+    this.textColor,
+    this.hintColor,
+    this.borderColor,
+    this.focusBorderColor,
+    this.iconColor,
   });
 
   final List<T> items;
@@ -177,23 +613,58 @@ class CommonDropdown<T> extends StatelessWidget {
   final String? hint;
   final String? labelText;
   final String? Function(T?)? validator;
+  final Color? fillColor;
+  final Color? dropdownColor;
+  final Color? textColor;
+  final Color? hintColor;
+  final Color? borderColor;
+  final Color? focusBorderColor;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
-    // Border, fill color and dropdown menu surface come from
-    // AppTheme.inputDecorationTheme, so it stays visually in sync with
-    // CommonTextField automatically.
+    final effectiveFillColor = fillColor ?? AppColors.surface(context);
+    final effectiveDropdownColor = dropdownColor ?? AppColors.surface(context);
+    final effectiveTextColor = textColor ?? AppColors.textPrimary(context);
+    final effectiveHintColor = hintColor ?? AppColors.textSecondary(context);
+    final effectiveBorderColor = borderColor ?? AppColors.border(context);
+    final effectiveFocusBorderColor =
+        focusBorderColor ?? AppColors.primary(context);
+    final effectiveIconColor = iconColor ?? AppColors.textSecondary(context);
+
     return DropdownButtonFormField<T>(
       value: value,
       isExpanded: true,
+      dropdownColor: effectiveDropdownColor,
+      iconEnabledColor: effectiveIconColor,
+      style: TextStyle(color: effectiveTextColor),
       decoration: InputDecoration(
         hintText: hint ?? 'Select',
+        hintStyle: TextStyle(color: effectiveHintColor),
         labelText: labelText,
+        labelStyle: TextStyle(color: effectiveHintColor),
+        filled: true,
+        fillColor: effectiveFillColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: effectiveBorderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: effectiveBorderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: effectiveFocusBorderColor, width: 2),
+        ),
       ),
       items: items.map((item) {
         return DropdownMenuItem<T>(
           value: item,
-          child: Text(itemLabel(item)),
+          child: Text(
+            itemLabel(item),
+            style: TextStyle(color: effectiveTextColor),
+          ),
         );
       }).toList(),
       onChanged: onChanged,
@@ -205,6 +676,7 @@ class CommonDropdown<T> extends StatelessWidget {
 
   static String commonCheckbox() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonCheckbox extends StatelessWidget {
   const CommonCheckbox({
@@ -213,27 +685,46 @@ class CommonCheckbox extends StatelessWidget {
     required this.onChanged,
     this.label,
     this.activeColor,
+    this.checkColor,
+    this.borderColor,
+    this.textColor,
   });
 
   final bool value;
   final ValueChanged<bool?> onChanged;
   final String? label;
   final Color? activeColor;
+  final Color? checkColor;
+  final Color? borderColor;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
-    // Fill/check colors come from AppTheme.checkboxTheme unless [activeColor]
-    // is explicitly passed.
+    final effectiveActiveColor = activeColor ?? AppColors.primary(context);
+    final effectiveCheckColor = checkColor ??
+        (AppColors.isDark(context) ? Colors.black : Colors.white);
+    final effectiveBorderColor = borderColor ?? AppColors.border(context);
+    final effectiveTextColor = textColor ?? AppColors.textPrimary(context);
+
     return Row(
       children: [
         Checkbox(
           value: value,
           onChanged: onChanged,
-          activeColor: activeColor,
+          activeColor: effectiveActiveColor,
+          checkColor: effectiveCheckColor,
+          side: BorderSide(color: effectiveBorderColor, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         ),
         if (label != null)
           Expanded(
-            child: Text(label!, style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(
+              label!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: effectiveTextColor,
+                      ) ??
+                  TextStyle(color: effectiveTextColor),
+            ),
           ),
       ],
     );
@@ -246,7 +737,7 @@ import 'package:flutter/material.dart';
 import '../theme_manager/app_colors.dart';
 
 class CommonSnackbar {
-  // Default background/text colors come from AppTheme.snackBarTheme.
+  // Default background/text colors come from AppColors.primary(context) or AppTheme.
   // [backgroundColor]/[textColor] let a call site override just this one snackbar.
   static void show(
     BuildContext context, {
@@ -255,15 +746,16 @@ class CommonSnackbar {
     Color? backgroundColor,
     Color? textColor,
   }) {
-    final snackBarTheme = Theme.of(context).snackBarTheme;
+    final effectiveBg = backgroundColor ?? AppColors.primary(context);
+    final effectiveText = textColor ?? Colors.white;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: (snackBarTheme.contentTextStyle ?? const TextStyle())
-              .copyWith(color: textColor),
+          style: TextStyle(color: effectiveText),
         ),
-        backgroundColor: backgroundColor ?? snackBarTheme.backgroundColor,
+        backgroundColor: effectiveBg,
         duration: duration,
       ),
     );
@@ -292,11 +784,36 @@ class CommonSnackbar {
       textColor: Colors.white,
     );
   }
+
+  static void warning(
+    BuildContext context, {
+    required String message,
+  }) {
+    show(
+      context,
+      message: message,
+      backgroundColor: AppColors.warning,
+      textColor: Colors.white,
+    );
+  }
+
+  static void info(
+    BuildContext context, {
+    required String message,
+  }) {
+    show(
+      context,
+      message: message,
+      backgroundColor: AppColors.info,
+      textColor: Colors.white,
+    );
+  }
 }
 ''';
 
   static String commonAppBar() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonAppBar({
@@ -305,6 +822,8 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.actions,
     this.backgroundColor,
+    this.foregroundColor,
+    this.iconColor,
     this.titleStyle,
     this.showBackButton = true,
   });
@@ -313,19 +832,29 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final List<Widget>? actions;
   final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? iconColor;
   final TextStyle? titleStyle;
   final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
-    // backgroundColor/titleStyle default to AppTheme.appBarTheme when null.
+    final effectiveBg = backgroundColor ?? AppColors.surface(context);
+    final effectiveFg = foregroundColor ?? AppColors.textPrimary(context);
+    final effectiveIconColor = iconColor ?? effectiveFg;
+
     return AppBar(
-      title: Text(title, style: titleStyle),
-      backgroundColor: backgroundColor,
+      title: Text(
+        title,
+        style: titleStyle ??
+            TextStyle(color: effectiveFg, fontWeight: FontWeight.w600),
+      ),
+      backgroundColor: effectiveBg,
+      foregroundColor: effectiveFg,
       automaticallyImplyLeading: showBackButton,
       leading: showBackButton
           ? IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(Icons.arrow_back, color: effectiveIconColor),
               onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
             )
           : null,
@@ -340,6 +869,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   static String commonBottomSheet() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonBottomSheet extends StatelessWidget {
   const CommonBottomSheet({
@@ -348,6 +878,8 @@ class CommonBottomSheet extends StatelessWidget {
     required this.content,
     this.actions,
     this.backgroundColor,
+    this.titleColor,
+    this.titleStyle,
     this.height,
   });
 
@@ -355,17 +887,19 @@ class CommonBottomSheet extends StatelessWidget {
   final Widget content;
   final List<Widget>? actions;
   final Color? backgroundColor;
+  final Color? titleColor;
+  final TextStyle? titleStyle;
   final double? height;
 
   @override
   Widget build(BuildContext context) {
-    final bottomSheetTheme = Theme.of(context).bottomSheetTheme;
+    final effectiveBg = backgroundColor ?? AppColors.surface(context);
+    final effectiveTitleColor = titleColor ?? AppColors.textPrimary(context);
+
     return Container(
       height: height ?? 300,
       decoration: BoxDecoration(
-        color: backgroundColor ??
-            bottomSheetTheme.backgroundColor ??
-            Theme.of(context).colorScheme.surface,
+        color: effectiveBg,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
@@ -377,7 +911,14 @@ class CommonBottomSheet extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: titleStyle ??
+                  Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: effectiveTitleColor,
+                      ) ??
+                  TextStyle(
+                    color: effectiveTitleColor,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
           Expanded(
@@ -404,6 +945,7 @@ class CommonBottomSheet extends StatelessWidget {
 
   static String commonDialog() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 
 class CommonDialog extends StatelessWidget {
   const CommonDialog({
@@ -412,6 +954,9 @@ class CommonDialog extends StatelessWidget {
     required this.message,
     this.actions,
     this.backgroundColor,
+    this.titleColor,
+    this.messageColor,
+    this.iconColor,
     this.icon,
   });
 
@@ -419,20 +964,40 @@ class CommonDialog extends StatelessWidget {
   final String message;
   final List<Widget>? actions;
   final Color? backgroundColor;
+  final Color? titleColor;
+  final Color? messageColor;
+  final Color? iconColor;
   final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBg = backgroundColor ?? AppColors.surface(context);
+    final effectiveTitleColor = titleColor ?? AppColors.textPrimary(context);
+    final effectiveMsgColor = messageColor ?? AppColors.textSecondary(context);
+    final effectiveIconColor = iconColor ?? AppColors.primary(context);
+
     return AlertDialog(
-      backgroundColor: backgroundColor,
-      icon: icon != null ? Icon(icon) : null,
-      title: Text(title),
-      content: Text(message),
+      backgroundColor: effectiveBg,
+      icon: icon != null ? Icon(icon, color: effectiveIconColor) : null,
+      title: Text(
+        title,
+        style: TextStyle(
+          color: effectiveTitleColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: Text(
+        message,
+        style: TextStyle(color: effectiveMsgColor),
+      ),
       actions: actions ??
           [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(
+                'Close',
+                style: TextStyle(color: AppColors.primary(context)),
+              ),
             ),
           ],
     );
@@ -445,6 +1010,7 @@ class CommonDialog extends StatelessWidget {
     return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../theme_manager/app_colors.dart';
 import '../theme_manager/dimensions.dart';
 import '../utils/enums.dart';
 
@@ -560,6 +1126,8 @@ class CommonImageContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBg = color ?? AppColors.surface(context);
+
     return Container(
       height: $dimensionAccess.height(height ?? 100),
       width: $dimensionAccess.width(width ?? 100),
@@ -567,7 +1135,7 @@ class CommonImageContainer extends StatelessWidget {
       padding: padding,
       alignment: alignment,
       decoration: BoxDecoration(
-        color: color,
+        color: effectiveBg,
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius:
             isCircle ? null : BorderRadius.circular($dimensionAccess.radius(borderRadius ?? 10)),
@@ -607,7 +1175,10 @@ class CommonImageContainer extends StatelessWidget {
           child: SizedBox(
             width: width,
             height: height,
-            child: const LinearProgressIndicator(),
+            child: LinearProgressIndicator(
+              color: AppColors.primary(context),
+              backgroundColor: AppColors.border(context),
+            ),
           ),
         );
       },
@@ -622,6 +1193,7 @@ class CommonImageContainer extends StatelessWidget {
 
   static String paginatedListView() => '''
 import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
 import '../theme_manager/dimensions.dart';
 
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T item, int index);
@@ -686,7 +1258,7 @@ class PaginatedListView<T> extends StatelessWidget {
         slivers: [
           if (padding != null) SliverPadding(padding: padding!),
           separatorBuilder != null ? _separatedList() : _normalList(),
-          if (_bottomWidget() != null) _bottomWidget()!,
+          if (_bottomWidget(context) != null) _bottomWidget(context)!,
         ],
       ),
     );
@@ -707,7 +1279,7 @@ class PaginatedListView<T> extends StatelessWidget {
         itemBuilder: (ctx, i) => itemBuilder(ctx, items[i], i),
       );
 
-  Widget? _bottomWidget() {
+  Widget? _bottomWidget(BuildContext context) {
     if (isLoading && showLoadingIndicator) {
       return SliverToBoxAdapter(
         child: loadingWidget ??
@@ -717,7 +1289,9 @@ class PaginatedListView<T> extends StatelessWidget {
                 child: SizedBox(
                   height: Dimensions.height(40),
                   width: Dimensions.width(40),
-                  child: const CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary(context),
+                  ),
                 ),
               ),
             ),
