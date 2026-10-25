@@ -94,6 +94,39 @@ class AppColors {
   static const Color divider            = Color(0xFFEEEEEE);
   static const Color disabled           = Color(0xFFBDBDBD);
   static const Color overlay            = Color(0x80000000);
+
+  // ── Dynamic Theme Helpers ────────────────────────────────────────────────
+  /// Whether the current active theme is dark mode.
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  /// Dynamic brand primary color for the current theme brightness.
+  static Color primary(BuildContext context) =>
+      isDark(context) ? brandPrimaryDark : brandPrimaryLight;
+
+  /// Dynamic accent color for the current theme brightness.
+  static Color accent(BuildContext context) =>
+      isDark(context) ? accentDark : accentLight;
+
+  /// Dynamic background color for the current theme brightness.
+  static Color background(BuildContext context) =>
+      isDark(context) ? darkBackground : lightBackground;
+
+  /// Dynamic surface color for cards, sheets, dialogs, etc.
+  static Color surface(BuildContext context) =>
+      isDark(context) ? darkSurface : lightSurface;
+
+  /// Dynamic border color for input borders, card outlines, etc.
+  static Color border(BuildContext context) =>
+      isDark(context) ? darkBorder : lightBorder;
+
+  /// Dynamic primary text color for the current theme brightness.
+  static Color textPrimary(BuildContext context) =>
+      isDark(context) ? darkTextPrimary : lightTextPrimary;
+
+  /// Dynamic secondary text color for the current theme brightness.
+  static Color textSecondary(BuildContext context) =>
+      isDark(context) ? darkTextSecondary : lightTextSecondary;
 }
 ''';
 }

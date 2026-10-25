@@ -79,6 +79,13 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 ---
 
 
+## What's New In v3.0.1
+
+- 🎨 **Centralized `AppColors` Theming in Common Widgets** — Connected all 12 core common widgets (`CommonButton`, `CommonTextField`, `CommonLoader`, `CommonDropdown`, `CommonCheckbox`, `CommonSnackbar`, `CommonAppBar`, `CommonBottomSheet`, `CommonDialog`, `CommonImageContainer`, `PaginatedListView`, and `SvgIcon`) directly to `AppColors` (`lib/core/theme_manager/app_colors.dart`), eliminating hardcoded static colors.
+- 🌓 **Adaptive Light & Dark Mode** — Added context-aware dynamic helpers to `AppColors` (`AppColors.isDark(context)`, `primary(context)`, `surface(context)`, `border(context)`, `textPrimary(context)`, `textSecondary(context)`, etc.) so that tweaking a single file automatically themes every common widget and screen for both Light and Dark modes.
+- 🔔 **Expanded Semantic Snackbars** — Added `CommonSnackbar.warning()` and `CommonSnackbar.info()` alongside `CommonSnackbar.error()` and `CommonSnackbar.success()`.
+- ✨ **Pure Flutter Shimmer Loader** — Added `CommonLoader.shimmer`, `CommonLoader.circularShimmer`, and standalone `CommonShimmer` with shader-mask animations, zero third-party package dependencies, and automatic light/dark palette adaptation.
+
 ## What's New In v3.0.0
 
 - 🌐 **Dual Network Ecosystem (Dio & Http)** — Select between Dio (recommended) or native Http (`http: ^1.6.0`) interactively or via `--network dio|http`. Includes `ApiHttpClient` with request cancellation (`AbortableRequest`), multipart uploads, download progress tracking, and DI wiring across BLoC, GetX, and Riverpod.

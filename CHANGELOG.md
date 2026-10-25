@@ -1,3 +1,31 @@
+## 3.0.1
+
+### Core & Common Widgets — Centralized `AppColors` Integration
+
+- **Dynamic Theming for Common Widgets**: Connected all core common widgets in `lib/core/common_widgets/` directly to `AppColors` (`lib/core/theme_manager/app_colors.dart`), eliminating hardcoded static colors and ensuring seamless dynamic adaptation for both Light and Dark modes:
+  - `CommonLoader`: Defaults indicator color dynamically to `AppColors.primary(context)` across both light and dark themes. Added pure Flutter shimmer loader (`CommonLoader.shimmer`, `CommonLoader.circularShimmer`, and `CommonShimmer`) with zero external package dependencies, supporting customizable dimensions, shapes (rectangle, rounded, circle), duration, border, margin, padding, and dynamic light/dark mode base and highlight palettes.
+  - `CommonButton`: Resolves background, text, loader, and disabled states (`disabledBackgroundColor`, `disabledForegroundColor`) using `AppColors.primary(context)` and `AppColors.disabled`.
+  - `CommonTextField`: Fully styles input decoration (fill, borders, focused border, cursor, hint, label, text) using `AppColors.surface(context)`, `AppColors.border(context)`, `AppColors.primary(context)`, and `AppColors.textPrimary(context)`. Added optional custom color parameters.
+  - `CommonDropdown`: Connected dropdown menu background (`dropdownColor`), item text, hint text, borders, and prefix/suffix icons to `AppColors`.
+  - `CommonCheckbox`: Connected active fill, check mark (`checkColor`), outline border, and label text to `AppColors` with dark/light mode awareness.
+  - `CommonSnackbar`: Added semantic helpers `CommonSnackbar.warning()` and `CommonSnackbar.info()` alongside `CommonSnackbar.error()` and `CommonSnackbar.success()`, routing directly through `AppColors` semantic tokens (`error`, `success`, `warning`, `info`). Default snackbar background now resolves to `AppColors.primary(context)`.
+  - `CommonAppBar`: Automatically adapts app bar background, title text, and back-button icon color via `AppColors.surface(context)` and `AppColors.textPrimary(context)`.
+  - `CommonBottomSheet`: Connected container background and title styling to `AppColors.surface(context)` and `AppColors.textPrimary(context)`.
+  - `CommonDialog`: Connected dialog background, title, message text, icon, and default action button to `AppColors.surface(context)`, `AppColors.textPrimary(context)`, and `AppColors.primary(context)`.
+  - `CommonImageContainer`: Connected background container color, network progress indicator, and fallback borders to `AppColors`.
+  - `PaginatedListView`: Connected pagination loading indicator to `AppColors.primary(context)`.
+  - `SvgIcon`: Added optional `color` parameter with `ColorFilter.mode` tinting support.
+- **Adaptive Helpers in `AppColors`**: Added context-aware theme helper methods to `AppColors`:
+  - `AppColors.isDark(context)`
+  - `AppColors.primary(context)`
+  - `AppColors.accent(context)`
+  - `AppColors.background(context)`
+  - `AppColors.surface(context)`
+  - `AppColors.border(context)`
+  - `AppColors.textPrimary(context)`
+  - `AppColors.textSecondary(context)`
+  Developers can now change brand or theme palette colors in a single file (`app_colors.dart`) and have all common widgets and app screens automatically adjust.
+
 ## 3.0.0
 
 ### Network Ecosystem (Dio & Http)
