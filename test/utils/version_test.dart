@@ -3,8 +3,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('Version', () {
-    test('arcleVersion is 3.0.1', () {
-      expect(arcleVersion, '3.0.1');
+    test('arcleVersion is 3.0.2', () {
+      expect(arcleVersion, '3.0.2');
     });
   });
 }
