@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="lib/docs/arcle_banner.svg" alt="ARCLE Banner" width="100%" />
+  <img src="https://raw.githubusercontent.com/asmfahim1/ARCLE/master/lib/docs/arcle_banner.jpg" alt="ARCLE Banner" width="100%" />
 </p>
 
 [//]: # (<p align="center">)
@@ -71,13 +71,17 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
       </ul>
     </td>
     <td width="35%" align="center" valign="middle">
-      <img src="lib/docs/arcle_animation.gif" alt="ARCLE Logo" width="350" height = 200 />
+      <img src="https://raw.githubusercontent.com/asmfahim1/ARCLE/master/lib/docs/arcle_animation.gif" alt="ARCLE Logo" width="350" height="200" />
     </td>
   </tr>
 </table>
 
 ---
 
+
+## What's New In v3.0.2
+
+- 🖼️ **Pub.dev Asset Fix** — Replaced relative image paths with absolute raw GitHub asset URLs to ensure the banner and logo render reliably on pub.dev.
 
 ## What's New In v3.0.1
 

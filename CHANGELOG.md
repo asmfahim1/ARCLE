@@ -1,3 +1,9 @@
+## 3.0.2
+
+### Documentation & Assets
+
+- **Pub.dev Image Loading Fix**: Replaced local relative image paths in `README.md` (`lib/docs/arcle_banner.svg` and `lib/docs/arcle_animation.gif`) with absolute raw GitHub repository URLs (`https://raw.githubusercontent.com/asmfahim1/ARCLE/master/lib/docs/...`) so that the banner and animated logo render properly on pub.dev.
+
 ## 3.0.1
 
 ### Core & Common Widgets — Centralized `AppColors` Integration
