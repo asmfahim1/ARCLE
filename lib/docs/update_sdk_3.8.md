@@ -47,13 +47,13 @@ Updating to Dart 3.8.1 and Flutter 3.32.8 provides significant developer experie
 * **Problem**: Conditionally adding widgets to lists/menus/action bars previously required awkward collection-ifs (`if (widget != null) widget`) or verbose ternary spreads.
 * **Solution**: In Dart 3.8, elements can be prefixed with `?` directly in lists, sets, and maps:
   ```dart
-  children: [
+    children: [
     const CommonAppBar(title: 'Overview'),
     bannerWidget?,         // Included only if non-null
     filterBar?,            // Automatically omitted if null
     Expanded(child: UserList()),
-  ]
-  ```
+    ]
+```
 * **ARCLE Offering**:
   - Adopt this syntax across common widget templates and feature pages.
   - Enable `use_null_aware_elements: true` in `analysis_options.yaml` to encourage modern idiomatic Flutter.
