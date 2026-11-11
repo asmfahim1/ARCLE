@@ -90,6 +90,7 @@ Before designing or building ANY UI screen, form, card, or component:
 - **Data Layer**: Models (`_model.dart`), sources (`_remote_source.dart`), and repository implementations (`_repository_impl.dart`). Can only depend on Domain interfaces. Must NEVER import Presentation.
 - **Domain Layer**: Pure Dart only. Entities (`_entity.dart`), repository interfaces (`_repository.dart`), use cases (`_usecase.dart`). Must NEVER depend on Data or Presentation layers.
 - **Presentation Layer**: Pages, widgets, and state holders (${state.label}). Can only depend on Domain use cases. Must NEVER import Data layer directly.
+- **Screen Componentization**: Keep `_screen.dart` files thin and declarative. Compose named sub-widgets in `build()`; extract sub-widgets to `presentation/widgets/`, enums/constants to `presentation/resources/`, and non-trivial UI logic to controllers.
 - Use focused use cases for distinct business operations. Separate screen-level controllers/blocs/providers when independent lifecycles justify it.
 - Keep API response models separate from domain entities.
 - Follow existing dependency injection, routing, repository, mapping, and error-handling conventions.

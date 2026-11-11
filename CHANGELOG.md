@@ -1,3 +1,17 @@
+## 3.0.4
+
+### AI Agent Workflow & Screen Architecture
+
+- **Mandatory Screen Componentization Rule (`.ai/coding-rules.md`)**:
+  - Enforced thin, declarative `_screen.dart` files across all state management architectures.
+  - **Single Responsibility in `build()`**: Screens must only compose named sub-widgets (`SomeSection(...)`, `SomeCard(...)`); private `_buildX()` helpers and heavy nested widget trees are prohibited.
+  - **Sub-Widget Extraction**: Screen-specific sub-widgets must be extracted to `presentation/widgets/<name>_widget.dart` (or `_card.dart`).
+  - **Resource Extraction**: Screen-specific enums, constants, and static lookup tables must reside under `presentation/resources/`.
+  - **UI Logic Separation**: Formatting, mapping, filtering, and non-trivial calculations must be placed in feature controllers or `presentation/utils/`.
+  - **Reuse-First for Screens**: Agents must inspect `presentation/widgets/`, `presentation/resources/`, and existing controllers before generating new UI components.
+- **Agent Workflow Template Alignment**:
+  - Aligned `.claude/CLAUDE.md`, `.codex/CODEX.md`, and `.gemini/GEMINI.md` to highlight the screen componentization requirement under Presentation Layer Clean Architecture standards.
+
 ## 3.0.3
 
 ### Common Widgets

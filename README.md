@@ -79,6 +79,15 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 ---
 
 
+## What's New In v3.0.4
+
+- 🧱 **Mandatory Screen Componentization Rule** — Updated `.ai/coding-rules.md` and agent instruction templates (`CLAUDE.md`, `CODEX.md`, `GEMINI.md`) to strictly enforce clean, declarative `_screen.dart` files:
+  - Screens must only compose named sub-widgets inside `build()` — no monolithic inline widget trees or private `_buildX()` helper methods.
+  - Sub-widgets extracted to feature `presentation/widgets/<name>_widget.dart` (or `_card.dart`).
+  - Screen-specific enums and constants extracted to feature `presentation/resources/`.
+  - Non-trivial formatting, mapping, and UI logic delegated to controllers or `presentation/utils/`.
+  - Agents must inspect existing feature widgets, resources, and controllers before generating duplicate UI elements.
+
 ## What's New In v3.0.3
 
 - 🖼️ **Enhanced `CommonImageContainer`** — Added optional dynamic dimensions (`double? height`/`width`), text initials fallback rendering with responsive typography (`fallbackText`, `fallbackTextColor`), SVG color tinting (`svgColor`), and customizable borders/paddings.

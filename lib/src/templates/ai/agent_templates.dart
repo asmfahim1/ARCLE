@@ -193,6 +193,16 @@ Before designing or building ANY UI screen, form, card, or component:
 5. **AppColors & Themes**: ALWAYS use `AppColors` and dynamic theme helpers (`AppColors.primary(context)`, `AppColors.surface(context)`, `AppColors.textPrimary(context)`, etc.). Never scatter hardcoded Color values across widgets.
 6. **Figma & Visual References**: Match layout, dimensions, typography, spacing, colors, and component states. Compare results against references and disclose any unresolved differences. Never claim pixel-perfect accuracy without actual comparison.
 
+## Screen Componentization Rule (Mandatory)
+
+A `_screen.dart` file must stay thin and declarative:
+1. **One class per screen**: the screen's `build()` method must only compose named sub-widgets (`SomeSection(...)`, `SomeCard(...)`) — it must NOT contain large inline widget trees, private `_buildX()` helper methods, or multi-level nested `Column`/`Row`/`ListView` blocks.
+2. **Extract sub-widgets**: any widget-returning piece used only by that screen goes into its own class under that feature's `presentation/widgets/<name>_widget.dart` (or `_card.dart`), never left inline in the screen file.
+3. **Extract enums/constants**: any screen-specific enum, constant, or static lookup table goes under that feature's `presentation/resources/`, never declared inside the screen file.
+4. **Extract logic**: formatting, mapping, filtering, or any non-trivial computation goes into the `<Feature>Controller` (or a `presentation/utils/` helper for pure UI-only logic) — the screen only calls it, never implements it inline.
+5. When asked to "create a new screen," check `presentation/widgets/`, `presentation/resources/`, and the controller first for reusable pieces before writing new ones, and place any new reusable piece in those folders rather than inside the screen class.
+
+
 ## Widget Rules
 
 - All widgets must have a `key` parameter in the constructor

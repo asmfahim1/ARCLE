@@ -34,6 +34,7 @@ void main() {
       expect(content, contains('AppColors'));
       expect(content, contains('## 5. Clean Architecture Standards'));
       expect(content, contains('Presentation → Domain ← Data'));
+      expect(content, contains('Screen Componentization'));
       expect(content, contains('## 6. Coding & Security Standards'));
       expect(content, contains('Logger'));
       expect(content, contains('SessionManager'));
@@ -90,6 +91,7 @@ void main() {
       expect(content, contains('Dimensions'));
       expect(content, contains('AppColors'));
       expect(content, contains('Presentation → Domain ← Data'));
+      expect(content, contains('Screen Componentization'));
       expect(content, contains('arcle history add'));
       expect(content, contains('--agent claude'));
       expect(content, contains('## 12. Claude Preferences'));
@@ -122,6 +124,7 @@ void main() {
       expect(content, contains('Dimensions'));
       expect(content, contains('AppColors'));
       expect(content, contains('Presentation → Domain ← Data'));
+      expect(content, contains('Screen Componentization'));
       expect(content, contains('arcle history add'));
       expect(content, contains('--agent gemini'));
       expect(content, contains('## 9. Agent Switching & Continuation'));
@@ -173,6 +176,9 @@ void main() {
         expect(coding, contains('common_widgets'));
         expect(coding, contains('Dimensions Utility'));
         expect(coding, contains('Figma & Visual References'));
+        expect(coding, contains('## Screen Componentization Rule (Mandatory)'));
+        expect(coding, contains('presentation/widgets/'));
+        expect(coding, contains('presentation/resources/'));
         expect(coding, contains('## Verification & Quality Standards'));
         expect(coding, contains('dart format .'));
         expect(coding, contains('flutter analyze'));
