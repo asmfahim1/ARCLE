@@ -97,27 +97,6 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 - 🔄 **Codex Migration to `CODEX.md`** — Updated Codex configuration output to `.codex/CODEX.md` with automatic registration in `.codex/settings.json` `context_files`.
 - 🩺 **Robust AI Diagnostics & Validation** — Upgraded `arcle ai validate`, `arcle agent validate`, and `arcle ai doctor` to verify agent instruction files, validate shared rule references, and detect deprecated `.codex/instructions.md` files.
 
-## What's New In v3.0.2
-
-- 🖼️ **Pub.dev Asset Fix** — Replaced relative image paths with absolute raw GitHub asset URLs to ensure the banner and logo render reliably on pub.dev.
-
-## What's New In v3.0.1
-
-- 🎨 **Centralized `AppColors` Theming in Common Widgets** — Connected all 12 core common widgets (`CommonButton`, `CommonTextField`, `CommonLoader`, `CommonDropdown`, `CommonCheckbox`, `CommonSnackbar`, `CommonAppBar`, `CommonBottomSheet`, `CommonDialog`, `CommonImageContainer`, `PaginatedListView`, and `SvgIcon`) directly to `AppColors` (`lib/core/theme_manager/app_colors.dart`), eliminating hardcoded static colors.
-- 🌓 **Adaptive Light & Dark Mode** — Added context-aware dynamic helpers to `AppColors` (`AppColors.isDark(context)`, `primary(context)`, `surface(context)`, `border(context)`, `textPrimary(context)`, `textSecondary(context)`, etc.) so that tweaking a single file automatically themes every common widget and screen for both Light and Dark modes.
-- 🔔 **Expanded Semantic Snackbars** — Added `CommonSnackbar.warning()` and `CommonSnackbar.info()` alongside `CommonSnackbar.error()` and `CommonSnackbar.success()`.
-- ✨ **Pure Flutter Shimmer Loader** — Added `CommonLoader.shimmer`, `CommonLoader.circularShimmer`, and standalone `CommonShimmer` with shader-mask animations, zero third-party package dependencies, and automatic light/dark palette adaptation.
-
-## What's New In v3.0.0
-
-- 🌐 **Dual Network Ecosystem (Dio & Http)** — Select between Dio (recommended) or native Http (`http: ^1.6.0`) interactively or via `--network dio|http`. Includes `ApiHttpClient` with request cancellation (`AbortableRequest`), multipart uploads, download progress tracking, and DI wiring across BLoC, GetX, and Riverpod.
-- 🛡️ **Unified Error & Response Handling** — Standardized `BaseResponse` and `ResponseHandler` pipelines with user-friendly error dialogs (`AppDialogs.showError`/`showRetry`) and snackbars (`AppDialogs.showSuccess`) mapped directly from `AppFailure`.
-- 🏷️ **Application Branding & Versioning** — CLI intro banner now displays `ARCLE Version : 3.0.0`. Generated projects auto-wire `AppConstants.appName` directly to `MaterialApp(title: ...)` across all state templates.
-- 🏗️ **Clean Architecture & Core Restructure** —
-  - **Data Source Boundary**: Remote data sources return raw responses wrapped in `BaseResponse`, keeping model parsing (`Model.fromJson`) strictly inside repository implementations.
-  - **Single Response Pipeline**: Merged `BaseResponse` and `ResponseHandler` into `lib/core/network/base_response.dart`. Removed dead `ErrorHandler`.
-  - **Consolidated `core/` Folders**: Streamlined into `core/network/`, `core/services/`, and `core/theme_manager/`.
-
 ## 📦 Installation
 
 ### Option 1: Activate globally (Recommended)
