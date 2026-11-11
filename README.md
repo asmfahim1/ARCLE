@@ -79,6 +79,15 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 ---
 
 
+## What's New In v3.0.3
+
+- 🖼️ **Enhanced `CommonImageContainer`** — Added optional dynamic dimensions (`double? height`/`width`), text initials fallback rendering with responsive typography (`fallbackText`, `fallbackTextColor`), SVG color tinting (`svgColor`), and customizable borders/paddings.
+- 📜 **Upgraded `PaginatedListView`** — Built-in default empty state with localized text and icon, `asSlivers` embedding mode (`_slivers` via `SliverMainAxisGroup`), and corrected `SliverPadding` wrapping for seamless integration inside custom scroll views.
+- 🤖 **Standardized AI Agent Workflow (Claude, Codex, Gemini)** — Unified mandatory 10-step engineering workflow across `.claude/CLAUDE.md`, `.codex/CODEX.md`, and `.gemini/GEMINI.md`, requiring shared `.ai/` rule loading, discovery, planning, UI design system tokens (`Dimensions`, `AppColors`), Clean Architecture contracts, and test verification (`PASS`/`FAIL`/`SKIPPED`/`NOT RUN`).
+- 🧩 **Core Element Investigation & Reuse Mandate** — Instructs all coding agents to inspect ARCLE's existing `lib/core/` elements (`common_widgets`, `theme_manager`, `utils`, `localization`, `services`) before designing UI and reuse them first (e.g. `CommonDropdown`, `CommonTextField`, `CommonCheckbox`, `CommonButton`, `CommonLoader` for forms), requiring explicit developer permission before adding external packages.
+- 🔄 **Codex Migration to `CODEX.md`** — Updated Codex configuration output to `.codex/CODEX.md` with automatic registration in `.codex/settings.json` `context_files`.
+- 🩺 **Robust AI Diagnostics & Validation** — Upgraded `arcle ai validate`, `arcle agent validate`, and `arcle ai doctor` to verify agent instruction files, validate shared rule references, and detect deprecated `.codex/instructions.md` files.
+
 ## What's New In v3.0.2
 
 - 🖼️ **Pub.dev Asset Fix** — Replaced relative image paths with absolute raw GitHub asset URLs to ensure the banner and logo render reliably on pub.dev.
@@ -250,7 +259,7 @@ arcle configure-ai   # interactive wizard — pick Claude / Codex / Gemini / All
 This writes:
 - `.ai/` — shared context files (`settings.yaml`, `project-context.md`, `architecture-rules.md`, `coding-rules.md`, `security-rules.md`, `permissions.yaml`)
 - `.claude/` — Claude Code integration (`CLAUDE.md`, `settings.json`)
-- `.codex/` — OpenAI Codex integration (`instructions.md`, `settings.json`)
+- `.codex/` — OpenAI Codex integration (`CODEX.md`, `settings.json`)
 - `.gemini/` — Google Gemini integration (`GEMINI.md`, `settings.json`)
 - `scripts/` — setup and doctor scripts for your team
 
@@ -273,7 +282,7 @@ my_awesome_app/
 
 Feature docs are named after the feature (`<name>_plan.md` / `<name>_history.md`) so it's always clear which feature a file belongs to, even when several files are open side by side.
 
-When an AI agent is configured via `arcle configure-ai`, its instruction file (`CLAUDE.md`, `.codex/instructions.md`, or `GEMINI.md`) tells it to log work as it goes:
+When an AI agent is configured via `arcle configure-ai`, its instruction file (`CLAUDE.md`, `.codex/CODEX.md`, or `GEMINI.md`) tells it to log work as it goes:
 
 ```bash
 arcle history add --summary "Fixed login crash" --agent claude

@@ -84,14 +84,19 @@ features/<name>/
     └── $stateSpecific/
 ```
 
-## Rules for AI Agents
+## Mandatory Workflow for AI Agents
 
-- Always respect the Clean Architecture layer boundaries
-- Never import domain/presentation layers from data
-- Keep business logic in domain usecases
-- Use the Dimensions class for all UI measurements
-- Follow existing naming conventions
-- See .ai/coding-rules.md and .ai/architecture-rules.md for detailed rules
+Every configured AI agent (Claude, Codex, Gemini) must follow this lifecycle:
+
+1. **Context & Discovery**: Inspect `git status --short --branch`, recent diffs, `docs/PLAN.md`, and recent entries in `docs/HISTORY.md`. Read all applicable rules in `.ai/`.
+2. **Task Planning**: Define goal, scope, acceptance criteria, dependencies, and risks. Scale plan depth to task size.
+3. **UI & Clean Architecture**: Investigate ARCLE core elements first (`lib/core/common_widgets/`, `theme_manager/`, `utils/`, `localization/`, `services/`). Reuse existing core widgets (`CommonButton`, `CommonTextField`, `CommonDropdown`, `CommonCheckbox`, `CommonLoader`, etc.) before writing custom one-offs. Ask developer permission before adding any external packages. Follow `Dimensions`, `AppColors`, and architectural layer contracts.
+4. **Verification**: Run `dart format .`, `flutter analyze`, and `flutter test`. Report checks truthfully as PASS, FAIL, SKIPPED, or NOT RUN. Review final git diff.
+5. **Work Tracking**: Log completed work using `arcle history add` (or with `--feature <name>`).
+6. **Agent Switching**: Resume from verified state, active plan, and recent history when switching agents.
+7. **Completion Report**: Report what changed, reusable findings, verification results, and remaining risks.
+
+See `.ai/coding-rules.md`, `.ai/architecture-rules.md`, and `.ai/security-rules.md` for detailed rules.
 ''';
   }
 
@@ -104,25 +109,27 @@ features/<name>/
 ## Clean Architecture Layers
 
 ### Data Layer
-- Contains: Models, Remote/Local Data Sources, Repository Implementations
+- Contains: Models (`_model.dart`), Remote/Local Data Sources (`_remote_source.dart`), Repository Implementations (`_repository_impl.dart`)
 - Can depend on: Domain layer interfaces only
 - Must NOT import: Presentation layer
 
 ### Domain Layer
-- Contains: Entities, Repository Interfaces, Use Cases
+- Contains: Entities (`_entity.dart`), Repository Interfaces (`_repository.dart`), Use Cases (`_usecase.dart`)
 - Must NOT depend on: Data or Presentation layers
-- Pure Dart only — no Flutter imports
+- Pure Dart only — no Flutter imports (except foundational annotations where strictly necessary)
 
 ### Presentation Layer
-- Contains: Pages, Widgets, $stateSpecificLabel
-- Can depend on: Domain layer only
-- Must NOT import: Data layer directly
+- Contains: Pages (`_screen.dart`), Widgets (`_widget.dart`), $stateSpecificLabel
+- Can depend on: Domain layer use cases only
+- Must NOT import: Data layer directly (no models or datasources in presentation)
 
-## Dependency Flow
+## Core Architectural Contracts
 
-```
-Presentation → Domain ← Data
-```
+- **Dependency Flow**: `Presentation → Domain ← Data`
+- **Focused Use Cases**: One use case class per distinct business operation. Keep business logic in domain use cases, never in widgets or presentation controllers.
+- **Model vs Entity Separation**: Data transfer objects / API response models live in `data/model/` and serialize via `fromJson`/`toJson`. Domain entities live in `domain/entity/` and represent core business concepts without serialization baggage.
+- **Independent Lifecycles**: Separate screen-level controllers, BLoCs, providers, or notifiers when independent responsibilities and lifecycles justify it.
+- **Repository Pattern**: Repository interfaces live in `domain/repository/`, implementations live in `data/repository/`. Return `Either<Failure, T>` using the `Result` type alias. Never throw unhandled exceptions from repositories.
 
 ## Naming Conventions
 
@@ -143,7 +150,7 @@ $stateSpecificRules
 
 ## General Rules
 
-- One feature = one directory under lib/features/
+- One feature = one directory under `lib/features/`
 - Do not put business logic in Widgets or Pages
 - Use Result<T> / Either for error handling
 - Repository interfaces live in domain, implementations in data
@@ -165,12 +172,41 @@ $stateSpecificRules
 - Use trailing commas in multi-line lists and parameters
 - Prefer single quotes for strings
 
+## UI & Design System — Mandatory Core Element Reuse
+
+Before designing or building ANY UI screen, form, card, or component:
+1. **Investigate ARCLE Core Elements First**: You MUST inspect `lib/core/` to see what ARCLE provides before writing custom widgets or screen markup from scratch:
+   - `lib/core/common_widgets/`: `CommonButton`, `CommonTextField`, `CommonDropdown`, `CommonCheckbox`, `CommonLoader` (circular & shimmer), `CommonImageContainer`, `CommonAppBar`, `CommonBottomSheet`, `CommonDialog`, `CommonSnackbar`, `PaginatedListView`, and `SvgIcon`.
+   - `lib/core/theme_manager/`: `AppColors` (semantic & dynamic theme helpers), `Dimensions` (responsive sizing & spacing), and `AppTheme`.
+   - `lib/core/localization/`: Localization extension (`context.tr('key')` / `AppLocalizations`) and JSON translation keys.
+   - `lib/core/utils/`: `AppValidators` for form validation, `AppDialogs` for user feedback, helpers, and formatters.
+   - `lib/core/services/`: `PrefManager` and `SessionManager` for persistence and session state.
+2. **Reuse Before Creating (Example: Forms & Screens)**:
+   - When asked to create a screen (such as a login screen with dropdown, textfields, remember-me checkbox, and login button), you MUST check `lib/core/common_widgets/` first and use `CommonDropdown`, `CommonTextField`, `CommonCheckbox`, `CommonButton`, and `CommonLoader` instead of writing raw `DropdownButton`, `TextField`, `Checkbox`, `ElevatedButton`, or creating custom one-offs.
+   - If existing core elements can fulfill the design requirement, ALWAYS use them.
+3. **Permission Gate for New External Packages**:
+   - If the developer's design requirement genuinely cannot be fulfilled by ARCLE's existing core elements and requires a third-party package or new library:
+     - DO NOT unilaterally add dependencies to `pubspec.yaml`.
+     - You MUST ask the developer for explicit permission first, explaining why the package is needed and confirming it is secure, well-maintained, and minimal.
+     - Only after the developer grants permission may you import the package and proceed with the commanded design.
+4. **Dimensions Utility**: ALWAYS use the project's `Dimensions` utility (`Dimensions.height()`, `Dimensions.width()`, `Dimensions.radius()`, `Dimensions.font()`, `Dimensions.allPadding()`, etc.) for all UI sizing, padding, margin, font sizes, and radii. NEVER hardcode raw pixel values.
+5. **AppColors & Themes**: ALWAYS use `AppColors` and dynamic theme helpers (`AppColors.primary(context)`, `AppColors.surface(context)`, `AppColors.textPrimary(context)`, etc.). Never scatter hardcoded Color values across widgets.
+6. **Figma & Visual References**: Match layout, dimensions, typography, spacing, colors, and component states. Compare results against references and disclose any unresolved differences. Never claim pixel-perfect accuracy without actual comparison.
+
 ## Widget Rules
 
 - All widgets must have a `key` parameter in the constructor
-- Use `super.key` via `super parameters`
+- Use `super.key` via super parameters
 - Avoid unnecessary `Container` wrappers — use `SizedBox`, `Padding`, `ColoredBox`
-- Use `Dimensions` utility for all padding, margin, font sizes, and radii — never hardcode pixel values
+
+## Verification & Quality Standards
+
+- Before completing any task, run:
+  1. `dart format .`
+  2. `flutter analyze`
+  3. `flutter test`
+- Report each verification check as `PASS`, `FAIL`, `SKIPPED`, or `NOT RUN`. Never claim a check passed without executing it.
+- Inspect the final `git diff` for accidental changes or generated-file churn.
 
 ## Repository Pattern
 

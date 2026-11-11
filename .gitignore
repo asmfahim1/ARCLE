@@ -32,7 +32,7 @@ Desktop.ini
 
 # ── Pub ──────────────────────────────────────────────────────────────────────
 .pub/
-pubspec.lock
+
 
 # ── Generated test / example apps (not part of the published package) ────────
 example/test_app/

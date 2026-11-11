@@ -89,6 +89,21 @@ class AppColors {
   static const Color success            = Color(0xFF27AE60);
   static const Color warning            = Color(0xFFF39C12);
   static const Color info               = Color(0xFF2980B9);
+  
+  // ── Slate / Neutral Scale ─────────────────────────────────────────────────
+  static const Color black = Color(0xFF000000);
+  static const Color slate950 = Color(0xFF0B0F19);
+  static const Color slate900 = Color(0xFF0F172A);
+  static const Color slate800 = Color(0xFF1E293B);
+  static const Color slate700 = Color(0xFF334155);
+  static const Color slate600 = Color(0xFF475569);
+  static const Color slate500 = Color(0xFF64748B);
+  static const Color slate400 = Color(0xFF94A3B8);
+  static const Color slate300 = Color(0xFF9DB2CE);
+  static const Color slate200 = Color(0xFFE5E7EB);
+  static const Color slate100 = Color(0xFFE2E8F0);
+  static const Color slate50 = Color(0xFFF8FAFC);
+  static const Color white = Color(0xFFFFFFFF);
 
   // ── Neutral / utility ────────────────────────────────────────────────────
   static const Color divider            = Color(0xFFEEEEEE);

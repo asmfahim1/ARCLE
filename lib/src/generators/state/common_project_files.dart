@@ -65,7 +65,7 @@ Map<String, String> buildCommonProjectFiles(
     'lib/core/common_widgets/common_checkbox.dart':
         WidgetsTemplates.commonCheckbox(),
     'lib/core/common_widgets/common_snackbar.dart':
-        WidgetsTemplates.commonSnackbar(),
+        WidgetsTemplates.commonSnackBar(),
     'lib/core/common_widgets/common_app_bar.dart':
         WidgetsTemplates.commonAppBar(),
     'lib/core/common_widgets/common_bottom_sheet.dart':

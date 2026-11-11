@@ -91,9 +91,9 @@ void main() {
     });
 
     test('commonSnackbar template imports app_colors and covers all semantic colors', () {
-      final code = WidgetsTemplates.commonSnackbar();
+      final code = WidgetsTemplates.commonSnackBar();
       expect(code, contains("import '../theme_manager/app_colors.dart';"));
-      expect(code, contains('class CommonSnackbar'));
+      expect(code, contains('class CommonSnackBar'));
       expect(code, contains('AppColors.primary(context)'));
       expect(code, contains('AppColors.error'));
       expect(code, contains('AppColors.success'));
@@ -134,6 +134,11 @@ void main() {
       expect(code, contains('AppColors.surface(context)'));
       expect(code, contains('AppColors.primary(context)'));
       expect(code, contains('AppColors.border(context)'));
+      expect(code, contains('AppColors.textPrimary(context)'));
+      expect(code, contains('fallbackText'));
+      expect(code, contains('fallbackTextColor'));
+      expect(code, contains('svgColor'));
+      expect(code, contains('Dimensions.font('));
     });
 
     test('paginatedListView template imports app_colors and adapts indicator', () {
@@ -141,6 +146,9 @@ void main() {
       expect(code, contains("import '../theme_manager/app_colors.dart';"));
       expect(code, contains('class PaginatedListView<T> extends StatelessWidget'));
       expect(code, contains('AppColors.primary(context)'));
+      expect(code, contains('asSlivers'));
+      expect(code, contains('SliverMainAxisGroup'));
+      expect(code, contains('emptyWidget ??'));
     });
   });
 }
