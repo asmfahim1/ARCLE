@@ -1,4 +1,11 @@
 .idea/
+.vscode/
 .claude/
+.codex/
+.gemini/
+.ai/
+example/test/
 example/test_app/
 example/**/test_app/
+pubspec.lock
+

@@ -180,6 +180,46 @@ class AiCommand {
       }
     }
 
+    // Check configured agent instruction files
+    final agentInstructionMap = {
+      'claude': '.claude/CLAUDE.md',
+      'codex': '.codex/CODEX.md',
+      'gemini': '.gemini/GEMINI.md',
+    };
+
+    for (final entry in agentInstructionMap.entries) {
+      final agentDir = Directory(
+        '${targetDir.path}${Platform.pathSeparator}.${entry.key}',
+      );
+      if (agentDir.existsSync()) {
+        final norm = entry.value.replaceAll('/', Platform.pathSeparator);
+        final file = File('${targetDir.path}${Platform.pathSeparator}$norm');
+        if (file.existsSync()) {
+          ui.success('${entry.value} — OK');
+          final content = file.readAsStringSync();
+          if (!content.contains('.ai/architecture-rules.md') ||
+              !content.contains('.ai/coding-rules.md')) {
+            ui.warn(
+              '${entry.value} is missing references to mandatory .ai/ shared rules',
+            );
+          }
+        } else {
+          passed = false;
+          ui.warn('${entry.value} — missing');
+        }
+      }
+    }
+
+    // Check for stale legacy Codex instruction file
+    final staleCodex = File(
+      '${targetDir.path}${Platform.pathSeparator}.codex${Platform.pathSeparator}instructions.md',
+    );
+    if (staleCodex.existsSync()) {
+      ui.warn(
+        '.codex/instructions.md is stale/deprecated. Rename or migrate to .codex/CODEX.md',
+      );
+    }
+
     if (passed) {
       ui.success('AI configuration is complete.');
     } else {
@@ -213,18 +253,60 @@ class AiCommand {
       issues++;
     }
 
-    // Check agent directories
-    for (final agent in ['claude', 'codex', 'gemini']) {
+    // Check agent directories and instruction files
+    final agentInstructionMap = {
+      'claude': '.claude/CLAUDE.md',
+      'codex': '.codex/CODEX.md',
+      'gemini': '.gemini/GEMINI.md',
+    };
+
+    for (final entry in agentInstructionMap.entries) {
       final dir = Directory(
-        '${targetDir.path}${Platform.pathSeparator}.$agent',
+        '${targetDir.path}${Platform.pathSeparator}.${entry.key}',
       );
       if (dir.existsSync()) {
-        ui.success('.$agent/ agent configured');
+        final norm = entry.value.replaceAll('/', Platform.pathSeparator);
+        final file = File('${targetDir.path}${Platform.pathSeparator}$norm');
+        if (file.existsSync()) {
+          ui.success('.${entry.key}/ configured with ${entry.value}');
+        } else {
+          ui.warn('.${entry.key}/ missing instruction file ${entry.value}');
+          issues++;
+        }
       } else {
         ui.info(
-          '.$agent/ not configured (optional) — run "arcle agent add $agent"',
+          '.${entry.key}/ not configured (optional) — run "arcle agent add ${entry.key}"',
         );
       }
+    }
+
+    // Check for stale legacy Codex instruction file
+    final staleCodex = File(
+      '${targetDir.path}${Platform.pathSeparator}.codex${Platform.pathSeparator}instructions.md',
+    );
+    if (staleCodex.existsSync()) {
+      ui.warn(
+        '.codex/instructions.md is stale/deprecated — migrate to .codex/CODEX.md',
+      );
+      issues++;
+    }
+
+    // Check docs/PLAN.md and docs/HISTORY.md
+    final planFile = File(
+      '${targetDir.path}${Platform.pathSeparator}docs${Platform.pathSeparator}PLAN.md',
+    );
+    final historyFile = File(
+      '${targetDir.path}${Platform.pathSeparator}docs${Platform.pathSeparator}HISTORY.md',
+    );
+    if (planFile.existsSync()) {
+      ui.success('docs/PLAN.md found');
+    } else {
+      ui.info('docs/PLAN.md not found (optional work tracking doc)');
+    }
+    if (historyFile.existsSync()) {
+      ui.success('docs/HISTORY.md found');
+    } else {
+      ui.info('docs/HISTORY.md not found (optional work tracking doc)');
     }
 
     if (issues == 0) {

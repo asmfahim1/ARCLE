@@ -732,13 +732,15 @@ class CommonCheckbox extends StatelessWidget {
 }
 ''';
 
-  static String commonSnackbar() => '''
+  static String commonSnackbar() => commonSnackBar();
+
+  static String commonSnackBar() => '''
 import 'package:flutter/material.dart';
 import '../theme_manager/app_colors.dart';
 
-class CommonSnackbar {
+class CommonSnackBar {
   // Default background/text colors come from AppColors.primary(context) or AppTheme.
-  // [backgroundColor]/[textColor] let a call site override just this one snackbar.
+  // [backgroundColor]/[textColor] let a call site override just this one snackBar.
   static void show(
     BuildContext context, {
     required String message,
@@ -1006,7 +1008,6 @@ class CommonDialog extends StatelessWidget {
 ''';
 
   static String commonImageContainer(StateManagement state) {
-    const dimensionAccess = 'Dimensions';
     return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -1017,8 +1018,8 @@ import '../utils/enums.dart';
 class CommonImageContainer extends StatelessWidget {
   const CommonImageContainer._({
     super.key,
-    required this.height,
-    required this.width,
+    this.height,
+    this.width,
     required this.imageUrl,
     required this.sourceType,
     this.borderRadius = 0,
@@ -1033,19 +1034,25 @@ class CommonImageContainer extends StatelessWidget {
     this.boxShadow,
     this.border,
     this.fallbackAssetPath,
+    this.svgColor,
+    this.fallbackText,
+    this.fallbackTextColor,
   });
 
   factory CommonImageContainer.network({
     Key? key,
-    required double height,
-    required double width,
+    double? height,
+    double? width,
     required String imageUrl,
     String token = '',
     double borderRadius = 0,
     bool isCircle = false,
     String? fallbackAssetPath,
+    String? fallbackText,
+    Color? fallbackTextColor,
     BoxFit fit = BoxFit.cover,
     Color? color,
+    BoxBorder? border,
   }) {
     return CommonImageContainer._(
       key: key,
@@ -1057,31 +1064,38 @@ class CommonImageContainer extends StatelessWidget {
       borderRadius: borderRadius,
       isCircle: isCircle,
       fallbackAssetPath: fallbackAssetPath,
+      fallbackText: fallbackText,
+      fallbackTextColor: fallbackTextColor,
       fit: fit,
       color: color,
+      border: border,
     );
   }
 
   factory CommonImageContainer.offline({
     Key? key,
-    required double height,
-    required double width,
+    double? height,
+    double? width,
+    EdgeInsets? padding,
     required String assetPath,
     double borderRadius = 0,
     bool isCircle = false,
     BoxFit? fit,
     Color? color,
+    Color? svgColor,
   }) {
     return CommonImageContainer._(
       key: key,
       height: height,
       width: width,
+      padding: padding,
       imageUrl: assetPath,
       sourceType: ImageSourceType.offline,
       borderRadius: borderRadius,
       isCircle: isCircle,
       fit: fit,
       color: color,
+      svgColor: svgColor,
     );
   }
 
@@ -1092,6 +1106,7 @@ class CommonImageContainer extends StatelessWidget {
   final bool isCircle;
   final String? token;
   final Color? color;
+  final Color? svgColor;
   final BoxFit? fit;
   final Clip? clipBehavior;
   final EdgeInsets? margin;
@@ -1100,25 +1115,40 @@ class CommonImageContainer extends StatelessWidget {
   final List<BoxShadow>? boxShadow;
   final BoxBorder? border;
   final String? fallbackAssetPath;
+  final String? fallbackText;
+  final Color? fallbackTextColor;
   final ImageSourceType sourceType;
 
   Widget _buildFallbackImage(BuildContext context) {
+    if (fallbackText != null && fallbackText!.isNotEmpty) {
+      final boxSize = height ?? width ?? 40;
+      return Center(
+        child: Text(
+          fallbackText!,
+          style: TextStyle(
+            color: fallbackTextColor ?? AppColors.textPrimary(context),
+            fontSize: Dimensions.font(boxSize * 0.38),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
     if (fallbackAssetPath?.toLowerCase().endsWith('.svg') == true) {
       return Center(
         child: SvgPicture.asset(
-          fallbackAssetPath ?? "",
+          fallbackAssetPath ?? '',
           fit: BoxFit.contain,
-          width: $dimensionAccess.width(40),
-          height: $dimensionAccess.height(40),
+          width: Dimensions.width(40),
+          height: Dimensions.height(40),
         ),
       );
     } else {
       return Center(
         child: Image.asset(
-          fallbackAssetPath ?? "",
+          fallbackAssetPath ?? '',
           fit: BoxFit.contain,
-          width: $dimensionAccess.width(40),
-          height: $dimensionAccess.height(40),
+          width: Dimensions.width(40),
+          height: Dimensions.height(40),
         ),
       );
     }
@@ -1129,17 +1159,19 @@ class CommonImageContainer extends StatelessWidget {
     final effectiveBg = color ?? AppColors.surface(context);
 
     return Container(
-      height: $dimensionAccess.height(height ?? 100),
-      width: $dimensionAccess.width(width ?? 100),
-      margin: margin,
-      padding: padding,
+      height: height != null ? Dimensions.height(height!) : null,
+      width: width != null ? Dimensions.width(width!) : null,
+      margin: margin ?? EdgeInsets.zero,
+      padding: padding ?? EdgeInsets.zero,
       alignment: alignment,
       decoration: BoxDecoration(
         color: effectiveBg,
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius:
-            isCircle ? null : BorderRadius.circular($dimensionAccess.radius(borderRadius ?? 10)),
-        border: border,
+            isCircle
+                ? null
+                : BorderRadius.circular(Dimensions.radius(borderRadius ?? 10)),
+        border: imageUrl?.isEmpty == true ? border : null,
         boxShadow: boxShadow,
       ),
       clipBehavior: clipBehavior ?? Clip.hardEdge,
@@ -1151,24 +1183,36 @@ class CommonImageContainer extends StatelessWidget {
     if (sourceType == ImageSourceType.offline) {
       if (imageUrl?.toLowerCase().endsWith('.svg') == true) {
         return SvgPicture.asset(
-          imageUrl ?? "",
-          fit: fit ?? BoxFit.cover,
+          imageUrl ?? '',
+          fit: fit ?? BoxFit.contain,
+          width: double.infinity,
+          height: double.infinity,
+          colorFilter:
+              svgColor != null
+                  ? ColorFilter.mode(svgColor!, BlendMode.srcIn)
+                  : null,
         );
       }
       return Image.asset(
-        imageUrl ?? "",
-        fit: fit,
+        imageUrl ?? '',
+        fit: fit ?? BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
       );
     }
 
-    if (imageUrl?.isEmpty == true || imageUrl?.contains("default.png") == true) {
+    if (imageUrl?.isEmpty == true ||
+        imageUrl?.contains('default.png') == true) {
       return _buildFallbackImage(context);
     }
 
     return Image.network(
-      imageUrl ?? "",
-      fit: fit,
-      headers: token?.isNotEmpty == true ? {"Authorization": "Bearer \$token"} : null,
+      imageUrl ?? '',
+      fit: fit ?? BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      headers:
+          token?.isNotEmpty == true ? {'Authorization': 'Bearer \$token'} : null,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -1196,7 +1240,8 @@ import 'package:flutter/material.dart';
 import '../theme_manager/app_colors.dart';
 import '../theme_manager/dimensions.dart';
 
-typedef ItemBuilder<T> = Widget Function(BuildContext context, T item, int index);
+typedef ItemBuilder<T> =
+    Widget Function(BuildContext context, T item, int index);
 typedef SeparatorBuilder = Widget Function(BuildContext context, int index);
 typedef LoadMoreCallback = void Function();
 
@@ -1220,6 +1265,7 @@ class PaginatedListView<T> extends StatelessWidget {
     this.endWidget,
     this.loadThreshold = 0.8,
     this.showLoadingIndicator = true,
+    this.asSlivers = false,
   });
 
   final List<T> items;
@@ -1233,15 +1279,56 @@ class PaginatedListView<T> extends StatelessWidget {
   final bool? primary;
   final SeparatorBuilder? separatorBuilder;
   final Widget? loadingWidget;
+  /// Default empty-state design shown when [items] is empty. Pass a value
+  /// here to override it for a specific screen.
   final Widget? emptyWidget;
   final Widget? endWidget;
   final double loadThreshold;
   final bool showLoadingIndicator;
 
+  /// When true, builds bare slivers meant to be embedded inside a parent
+  /// [CustomScrollView] (e.g. alongside a pinned header) instead of owning
+  /// its own scroll view. Scroll-triggered [onLoadMore] must then be driven
+  /// by the parent's scroll controller.
+  final bool asSlivers;
+
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty && !isLoading && emptyWidget != null) {
-      return emptyWidget!;
+    if (items.isEmpty && !isLoading) {
+      final resolvedEmptyWidget =
+          emptyWidget ??
+          Center(
+            child: Padding(
+              padding: Dimensions.allPadding(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: Dimensions.icon(56),
+                    color: AppColors.slate300,
+                  ),
+                  SizedBox(height: Dimensions.height(12),),
+                  Text(
+                    'No data found',
+                    style: TextStyle(
+                      color: AppColors.slate700,
+                      fontSize: Dimensions.font(15),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+      return asSlivers
+          ? SliverFillRemaining(hasScrollBody: false, child: resolvedEmptyWidget)
+          : resolvedEmptyWidget;
+    }
+
+    if (asSlivers) {
+      return _slivers(context);
     }
 
     return NotificationListener<ScrollNotification>(
@@ -1256,33 +1343,59 @@ class PaginatedListView<T> extends StatelessWidget {
         primary: primary,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          if (padding != null) SliverPadding(padding: padding!),
-          separatorBuilder != null ? _separatedList() : _normalList(),
-          if (_bottomWidget(context) != null) _bottomWidget(context)!,
+          if (padding != null)
+            SliverPadding(
+              padding: padding!,
+              sliver: separatorBuilder != null
+                  ? _separatedList()
+                  : _normalList(),
+            )
+          else
+            separatorBuilder != null
+                ? _separatedList()
+                : _normalList(),
+
+          if (_bottomWidget(context) != null)
+            _bottomWidget(context)!,
         ],
       ),
     );
   }
 
+  Widget _slivers(BuildContext context) {
+    final listSliver = separatorBuilder != null ? _separatedList() : _normalList();
+    final bottom = _bottomWidget(context);
+
+    return SliverMainAxisGroup(
+      slivers: [
+        padding != null
+            ? SliverPadding(padding: padding!, sliver: listSliver)
+            : listSliver,
+        if (bottom != null) bottom,
+      ],
+    );
+  }
+
   Widget _normalList() => SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (ctx, i) => itemBuilder(ctx, items[i], i),
-          childCount: items.length,
-          addRepaintBoundaries: true,
-          addAutomaticKeepAlives: true,
-        ),
-      );
+    delegate: SliverChildBuilderDelegate(
+      (ctx, i) => itemBuilder(ctx, items[i], i),
+      childCount: items.length,
+      addRepaintBoundaries: true,
+      addAutomaticKeepAlives: true,
+    ),
+  );
 
   Widget _separatedList() => SliverList.separated(
-        itemCount: items.length,
-        separatorBuilder: (ctx, i) => separatorBuilder!(ctx, i),
-        itemBuilder: (ctx, i) => itemBuilder(ctx, items[i], i),
-      );
+    itemCount: items.length,
+    separatorBuilder: (ctx, i) => separatorBuilder!(ctx, i),
+    itemBuilder: (ctx, i) => itemBuilder(ctx, items[i], i),
+  );
 
   Widget? _bottomWidget(BuildContext context) {
     if (isLoading && showLoadingIndicator) {
       return SliverToBoxAdapter(
-        child: loadingWidget ??
+        child:
+            loadingWidget ??
             Padding(
               padding: Dimensions.allPadding(16),
               child: Center(
@@ -1307,7 +1420,8 @@ class PaginatedListView<T> extends StatelessWidget {
     if (isLoading || hasReachedMax || items.isEmpty) return;
     if (notification is ScrollUpdateNotification) {
       final m = notification.metrics;
-      if (m.maxScrollExtent > 0 && m.pixels >= m.maxScrollExtent * loadThreshold) {
+      if (m.maxScrollExtent > 0 &&
+          m.pixels >= m.maxScrollExtent * loadThreshold) {
         onLoadMore();
       }
     }

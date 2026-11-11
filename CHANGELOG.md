@@ -1,3 +1,36 @@
+## 3.0.3
+
+### Common Widgets
+
+- **CommonImageContainer Upgrades**:
+  - Made `height` and `width` parameters optional nullable (`double?`) across `.network`, `.offline`, and private constructors, allowing natural image aspect sizing.
+  - Added text fallback rendering via `fallbackText` (`String?`) and `fallbackTextColor` (`Color?`) with responsive font scaling (`Dimensions.font(boxSize * 0.38)`).
+  - Added SVG color tinting via `svgColor` parameter using `ColorFilter.mode(svgColor, BlendMode.srcIn)`.
+  - Added optional `border` in `.network` (applied when image URL is empty) and `padding` in `.offline`.
+  - Default fit changed to `BoxFit.cover` (or `BoxFit.contain` for SVG) with full container expansion (`width: double.infinity, height: double.infinity`).
+- **PaginatedListView Upgrades**:
+  - Built-in default empty state with icon (`Icons.inbox_outlined`), responsive spacing, and localized text (`'common_no_data_found'.tr`) when `emptyWidget` is not provided.
+  - Added `asSlivers` mode (`bool`, default: `false`) and `_slivers` method using `SliverMainAxisGroup` to embed paginated lists and empty states (`SliverFillRemaining`) directly into parent `CustomScrollView`s.
+  - Fixed `SliverPadding` wrapping so list slivers are properly nested inside `SliverPadding`.
+
+### AI Agent Workflow & Instructions
+
+- **Codex Migration to `.codex/CODEX.md`**:
+  - Updated OpenAI Codex instruction file path from `.codex/instructions.md` to `.codex/CODEX.md`.
+  - Added `.codex/CODEX.md` to `context_files` in `.codex/settings.json`.
+  - Retained `CodexTemplates.instructionsMd` as a legacy forwarding alias for backward compatibility.
+- **Unified 10-Step Mandatory Workflow Contract**:
+  - Aligned `.claude/CLAUDE.md`, `.codex/CODEX.md`, and `.gemini/GEMINI.md` to enforce the identical 10-step engineering lifecycle: mandatory shared rule loading, context discovery, task planning, UI & design system (`Dimensions`, `AppColors`), Clean Architecture standards, coding & security standards, verification (`PASS`/`FAIL`/`SKIPPED`/`NOT RUN`), work tracking (`arcle history add`), agent switching, and completion reporting.
+- **Core Element Investigation & Reuse-First Mandate**:
+  - Before designing any UI (screens, forms, cards), all configured AI agents must inspect ARCLE's existing design elements in `lib/core/` (`common_widgets/`, `theme_manager/`, `utils/`, `localization/`, `services/`). If existing core components can fulfill the design (e.g. login form with `CommonDropdown`, `CommonTextField`, `CommonCheckbox`, `CommonButton`, `CommonLoader`), agents must use them first rather than creating custom one-offs from scratch. Agents are strictly prohibited from adding new third-party packages to `pubspec.yaml` without explicit developer permission.
+- **Enriched Shared `.ai/` Rules**:
+  - `.ai/project-context.md`: Added mandatory workflow lifecycle and multi-agent switching guidance.
+  - `.ai/architecture-rules.md`: Added core architectural contracts including focused use cases, model vs. entity separation, independent controller lifecycles, and pure Dart domain.
+  - `.ai/coding-rules.md`: Detailed UI design system standards (`Dimensions`, `AppColors`, common widgets, Figma/visual comparison) and verification discipline.
+- **Enhanced Configuration Validation & Diagnostics**:
+  - `arcle ai validate` and `arcle agent validate` now verify that configured agents possess their primary instruction files, verify that instruction files reference mandatory `.ai/` shared rules, and detect stale legacy `.codex/instructions.md` files.
+  - `arcle ai doctor` checks agent instruction files and documentation health.
+
 ## 3.0.2
 
 ### Documentation & Assets
