@@ -1,191 +1,234 @@
-# ARCLE — Standardize Workflow Instructions for Claude, Codex, and Gemini
+# ARCLE 3.1.0 Major Update Plan: Flutter SDK 3.38.10 & CommonRetryWidget
 
-## Role
+## Executive Summary
 
-Act as a senior Dart/Flutter CLI engineer and AI-agent workflow architect with 10+ years of equivalent software engineering experience.
+This plan outlines the architecture, implementation steps, developer offerings, and verification strategy for ARCLE release **3.1.0**.
+This release transitions ARCLE and its scaffolded Flutter projects to **Flutter SDK 3.38.10** / **Dart SDK 3.10.9**, introduces a new standardized **`CommonRetryWidget`**, expands design tokens in **`Dimensions`** and **`AppColors`**, audits and updates dependencies, and establishes the foundation for the subsequent security & environment management update.
 
-Inspect ARCLE's actual source code and standardize the mandatory workflow instructions generated for Claude, Codex, and Gemini.
+- **ARCLE CLI Version**: `3.0.4` $\rightarrow$ `3.1.0`
+- **Minimum Flutter Toolchain**: `3.29.3+` $\rightarrow$ `3.38.10+ (stable)`
+- **Minimum Dart SDK Constraint**: `>=3.7.0 <4.0.0` $\rightarrow$ `>=3.10.0 <4.0.0`
+- **Android Desugaring Toolchain**: `2.0.4` $\rightarrow$ `2.1.4`
+- **New Core Common Widget**: `CommonRetryWidget` (`lib/core/common_widgets/common_retry_widget.dart`)
+- **Design Tokens & Theme Adaptation**: Uses traditional `Dimensions.height(value)`, `Dimensions.allPadding(value)`, `Dimensions.icon(value)`, `Dimensions.radius(value)`, `AppColors.error`, and dynamic `AppColors.primary(context)` for seamless Light/Dark mode support.
+- **Subsequent Phase**: Security & Environment Configuration (staged to follow immediately after 3.1.0 verification)
 
-The goal is to maintain one consistent set of mandatory workflow rules across all three agents while preserving each agent's native instruction-file conventions.
+---
 
-## 1. Preserve the Existing Folder Structure
+## 1. Objectives & Scope
 
-Keep the existing `.ai/` folder, agent-specific folders, settings files, permissions, and other generated project files.
+### In Scope
+1. **Toolchain & Version Migration (Flutter 3.38.10 / Dart 3.10.9)**:
+   - Bump ARCLE host CLI SDK constraint to `sdk: ">=3.10.0 <4.0.0"` in `pubspec.yaml`.
+   - Bump ARCLE version to `3.1.0` in `pubspec.yaml` and `lib/src/utils/version.dart`.
+   - Update `ProjectGenerator._updateSdkConstraint` to enforce `sdk: ">=3.10.0 <4.0.0"` for all newly created projects.
+   - Update `UpgradeCommand` to upgrade existing projects' SDK constraint to `sdk: ">=3.10.0 <4.0.0"` and replace legacy `v2.0.0` banners with `v3.1.0`.
+   - Update `TOOLCHAIN.md` with Flutter `3.38.10+ (stable)`, Dart `3.10.9+` (`>=3.10.0 <4.0.0`), and desugaring `2.1.4`.
+   - Update `README.md` badges, prerequisites, and "What's New in v3.1.0" section.
 
-Make only this requested output-path change:
+2. **Package Audit & Updates**:
+   - Audit ARCLE CLI direct dependencies: update `io` (`^1.0.5` $\rightarrow$ `^1.1.0`), review `args` and `lints` for Dart 3.10 compatibility.
+   - Audit scaffolded project dependencies in `ProjectGenerator._dependencies()`:
+     - Android core library desugaring: `com.android.tools:desugar_jdk_libs:2.0.4` $\rightarrow$ `2.1.4` across Groovy and Kotlin build configurations.
+     - Ensure compatibility for `dio`, `shared_preferences`, `permission_handler`, `flutter_local_notifications`, `timezone`, and state management packages under Flutter 3.38.10.
 
-**Before:**
+3. **Core Common Widget Offering: `CommonRetryWidget`**:
+   - Scaffold `lib/core/common_widgets/common_retry_widget.dart` for all new projects.
+   - Exact implementation matching user specification:
+     - `StatelessWidget` with `message`, `buttonName`, and `onRetry` callback.
+     - Responsive centering and padding via `Dimensions.allPadding(24)`.
+     - Error icon with `Icons.error_outline_rounded`, size `Dimensions.icon(48)`, colored with `AppColors.error`.
+     - Spacing via traditional `SizedBox(height: Dimensions.height(12))` and `SizedBox(height: Dimensions.height(16))`.
+     - Responsive message text with `AppColors.slate700` and `Dimensions.font(14)`.
+     - Styled `ElevatedButton` with `AppColors.primary(context)` (adapts dynamically between `brandPrimaryLight` and `brandPrimaryDark`), `AppColors.white`, and rounded border radius `Dimensions.radius(10)`.
+     - Clean, direct imports of `package:flutter/material.dart`, `../theme_manager/app_colors.dart`, and `../theme_manager/dimensions.dart`.
 
-```text
-.codex/
-├── instructions.md
-└── settings.json
+4. **Design System & Theme Integration**:
+   - Leverages existing `Dimensions` responsive scale methods (`height`, `width`, `font`, `radius`, `icon`, `allPadding`).
+   - Uses `AppColors.primary(context)` to automatically adapt brand colors between Light and Dark theme modes without duplicating tokens.
+   - Uses `AppColors.error` for semantic failure indication.
+
+5. **Test Suite & Verification**:
+   - Update `test/utils/version_test.dart` to assert `arcleVersion == '3.1.0'`.
+   - Add unit tests in `test/templates/widgets_templates_test.dart` validating `WidgetsTemplates.commonRetryWidget()` output, imports, constructor parameters, and tokens.
+   - Add unit tests validating `DimensionsTemplates.dimensions()` contains `heightBox` and `widthBox`.
+   - Add unit tests validating `ConstantsTemplates.appColors()` contains `danger` and `brandPrimary`.
+   - Run complete test suite (`dart test`) and static analysis (`dart analyze`).
+
+### Excluded (Deferred to Subsequent Phase)
+- Security & environment configuration overhaul (e.g. encrypted secrets, secure environment variable loaders, `.env` file security hardening). Per user requirement, this will be handled in a dedicated security update immediately following the completion and verification of the 3.1.0 SDK migration and common widget release.
+- Breaking changes to ARCLE Clean Architecture layer contracts (`core/`, `features/`, `data/`, `domain/`, `presentation/`).
+
+---
+
+## 2. Technical Architecture & Design Details
+
+### A. CommonRetryWidget Template Specification
+
+File path in scaffolded projects:
+`lib/core/common_widgets/common_retry_widget.dart`
+
+Source template generator:
+`WidgetsTemplates.commonRetryWidget()` in `lib/src/templates/core/widgets_templates.dart`
+
+Generated source code:
+```dart
+import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
+import '../theme_manager/dimensions.dart';
+
+class CommonRetryWidget extends StatelessWidget {
+  const CommonRetryWidget({
+    super.key,
+    required this.message,
+    required this.onRetry,
+    required this.buttonName,
+  });
+
+  final String message;
+  final String buttonName;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: Dimensions.allPadding(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: Dimensions.icon(48),
+              color: AppColors.error,
+            ),
+            SizedBox(height: Dimensions.height(12)),
+            Text(
+              message,
+              style: TextStyle(
+                color: AppColors.slate700,
+                fontSize: Dimensions.font(14),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Dimensions.height(16)),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary(context),
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    Dimensions.radius(10),
+                  ),
+                ),
+              ),
+              child: Text(buttonName),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 ```
 
-**After:**
+### B. Dynamic Theming Integration
+- Leverages `AppColors.primary(context)` which dynamically switches between `brandPrimaryDark` and `brandPrimaryLight` depending on theme brightness.
+- Uses `AppColors.error` for the error icon.
+- Uses standard responsive `Dimensions.height(...)` and `Dimensions.width(...)` without unnecessary helper abstractions.
 
-```text
-.codex/
-├── CODEX.md
-└── settings.json
+### C. SDK Constraint & Toolchain Alignment
+
+| Component | Current (3.0.4) | Target (3.1.0) | File Reference |
+| :--- | :--- | :--- | :--- |
+| **CLI Version** | `3.0.4` | `3.1.0` | `pubspec.yaml`, `version.dart` |
+| **Flutter Toolchain** | `3.29.3+` | `3.38.10+ (stable)` | `TOOLCHAIN.md`, `README.md` |
+| **Dart Host SDK** | `>=3.7.0 <4.0.0` | `>=3.10.0 <4.0.0` | `pubspec.yaml` |
+| **Scaffolded Project SDK** | `>=3.7.0 <4.0.0` | `>=3.10.0 <4.0.0` | `project_generator.dart` |
+| **Upgrade Command Target**| `>=3.7.0 <4.0.0` | `>=3.10.0 <4.0.0` | `upgrade_command.dart` |
+| **Android Desugaring** | `2.0.4` | `2.1.4` | `project_generator.dart`, `TOOLCHAIN.md` |
+
+---
+
+## 3. Implementation Breakdown & Affected Files
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                           Execution Workflow                             │
+├─────────┬─────────────────────────────────┬──────────────────────────────┤
+│ Stage 1 │ Version & Package Dependencies  │ pubspec.yaml, version.dart   │
+│ Stage 2 │ Toolchain & Scaffolding Engine  │ project_generator, upgrade   │
+│ Stage 3 │ Common Widgets & Design Tokens  │ widgets, dimensions, colors  │
+│ Stage 4 │ Scaffolding Registration        │ common_project_files.dart    │
+│ Stage 5 │ Unit Tests & Verification       │ widgets_test, version_test   │
+│ Stage 6 │ Documentation Gate              │ README, CHANGELOG, TOOLCHAIN │
+│ Stage 7 │ Security/Environment Preparation│ Staged for subsequent phase  │
+└─────────┴─────────────────────────────────┴──────────────────────────────┘
 ```
 
-Do not rename, delete, or migrate any other folders or files as part of this task.
+### Stage 1: Version & Host Package Specification
+- `pubspec.yaml`:
+  - Bump `version` to `3.1.0`.
+  - Update `environment.sdk` to `">=3.10.0 <4.0.0"`.
+  - Update `io: ^1.1.0`.
+- `lib/src/utils/version.dart`:
+  - Change `const String arcleVersion = '3.1.0';`.
 
-Inspect the actual generator implementation and update the relevant path constants, templates, file writers, tests, and documentation. Ensure no code still expects the old Codex instruction filename.
+### Stage 2: Scaffolding Engine & Upgrade Command
+- `lib/src/generators/project_generator.dart`:
+  - In `_updateSdkConstraint(Directory base)`, update replacement to `'sdk: ">=3.10.0 <4.0.0"'`.
+  - In `_dependencies()`, verify package version constraints for Flutter 3.38.10 compatibility.
+  - In desugaring configuration methods (`_ensureCoreLibraryDesugaringDependency` and `_ensureCoreLibraryDesugaringDependencyKotlin`), bump `com.android.tools:desugar_jdk_libs:2.0.4` to `2.1.4`.
+- `lib/src/commands/upgrade_command.dart`:
+  - In `_upgradeSdkConstraint`, update replacement to `'sdk: ">=3.10.0 <4.0.0"'`.
+  - Update UI output messages and usage text from legacy `v2.0.0` to `v3.1.0`.
 
-Before implementing the filename change, verify whether `CODEX.md` is automatically discovered by the intended Codex environment. If not, identify the compatibility implications and the smallest supported solution. Do not claim automatic loading without evidence.
+### Stage 3: Common Widgets & Theming
+- `lib/src/templates/core/widgets_templates.dart`:
+  - Add `WidgetsTemplates.commonRetryWidget()`.
+- `lib/src/generators/state/common_project_files.dart`:
+  - Register `'lib/core/common_widgets/common_retry_widget.dart': WidgetsTemplates.commonRetryWidget(),` in `buildCommonProjectFiles`.
 
-## 2. Establish One Shared Workflow Contract
+### Stage 5: Unit & Template Tests
+- `test/utils/version_test.dart`:
+  - Update test assertion to verify `3.1.0`.
+- `test/templates/widgets_templates_test.dart`:
+  - Add test group/cases for `WidgetsTemplates.commonRetryWidget()`.
+  - Add tests validating `Dimensions.heightBox` and `Dimensions.widthBox` presence in `DimensionsTemplates`.
+  - Add tests validating `AppColors.danger` and `AppColors.brandPrimary` presence in `ConstantsTemplates`.
 
-Audit the existing workflow rules and agent-specific instruction files.
+### Stage 6: Documentation Gate
+- `TOOLCHAIN.md`: Update Flutter version to `3.38.10+ (stable)`, Dart SDK to `3.10.9+`, and desugaring to `2.1.4`.
+- `README.md`: Update Flutter prerequisites to `3.38.10+`, Dart constraint to `>=3.10.0 <4.0.0`, and add release notes for `v3.1.0`.
+- `CHANGELOG.md`: Add comprehensive `## 3.1.0` release notes covering the SDK migration, `CommonRetryWidget`, and design token additions.
 
-Maintain a consistent mandatory workflow contract across:
+---
 
-- Claude: the existing Claude instruction entry point.
-- Codex: `.codex/CODEX.md`.
-- Gemini: the existing Gemini instruction entry point.
+## 4. Verification & Testing Checklist
 
-Use `.ai/` as the shared source of workflow rules wherever that matches the existing implementation.
+| Check | Command | Expected Outcome | Status |
+| :--- | :--- | :--- | :---: |
+| 1. Code Formatting | `dart format --output=none --set-exit-if-changed .` | Zero unformatted files | PENDING |
+| 2. Static Analysis | `dart analyze lib/ test/` | Zero errors, zero warnings | PENDING |
+| 3. Test Suite | `dart test` | All unit & template tests pass | PENDING |
+| 4. CLI Version | `dart run bin/arcle.dart --version` | Outputs `arcle version 3.1.0` | PENDING |
+| 5. Scaffolding Validation | Verify `buildCommonProjectFiles` | Contains `common_retry_widget.dart` | PENDING |
+| 6. Pub Dry-Run | `dart pub publish --dry-run` | Zero fatal errors, clean validation | PENDING |
 
-Each agent's entry-point file must explicitly identify the shared rule files it must read and require them to be loaded before task-specific investigation or implementation.
+---
 
-Do not assume that creating a file automatically makes an agent load it.
+## 5. Security & Environment Stage (Next Phase Roadmap)
 
-Avoid maintaining three conflicting copies of shared rules. Agent-specific files may contain native integration details, but mandatory shared requirements must remain consistent.
+As directed, the subsequent security update will follow immediately after the completion and verification of this 3.1.0 release. It will encompass:
+1. **Environment Separation & Configuration Hardening**:
+   - Centralizing and securing environment flavor files (`.env`, `prod_env.dart`, `stag_env.dart`, `local_env.dart`).
+   - Preventing sensitive secrets/API keys from accidental exposure in logs, version control, or generated code.
+2. **Environment Validation Diagnostics**:
+   - Expanding `arcle doctor` and project health checks to audit environment file integrity and security compliance.
 
-## 3. Mandatory Workflow
+---
 
-Ensure the shared rules explicitly cover the following.
+## 6. Approval Gate
 
-### Project discovery
-
-- Inspect Git status and relevant diffs before making changes.
-- Preserve existing user modifications.
-- Read relevant source code, configuration, plans, and history.
-- Identify the actual architecture, state management, networking, dependency injection, and project conventions.
-- Verify files, APIs, commands, and packages before relying on them.
-- Report missing or inaccessible required instructions honestly.
-
-### Task planning
-
-- Identify the task objective, scope, acceptance criteria, dependencies, and risks.
-- Record a supplied Jira/task ID when available.
-- Never invent task IDs or claim unperformed Jira actions.
-- Plan before implementation, with planning depth appropriate to the task.
-- Update the plan when the scope or implementation changes.
-- Resume from verified state when continuing work across sessions or agents.
-
-### UI and design system
-
-- Use the project's `Dimensions` utility for supported UI dimensions, padding, margin, spacing, width, and height.
-- Use `AppColors` and the existing theme system for colors and styling.
-- Reuse existing common widgets where appropriate.
-- Avoid scattered hardcoded UI values and duplicate design tokens.
-- Inspect the actual project classes before using them.
-
-For Figma, design MCP, screenshots, or supplied visual references, inspect available resources, match layout, dimensions, typography, spacing, colors, assets, and component states, compare the result against the reference, and disclose unresolved differences. Never claim pixel-perfect accuracy without an actual comparison.
-
-### Clean Architecture
-
-- Follow the architecture that exists in the project.
-- Respect presentation, domain, data, and core responsibilities.
-- Separate screen-level controllers, BLoCs, providers, or bindings when independent responsibilities and lifecycles justify it.
-- Use focused use cases for distinct business operations.
-- Keep API models separate from domain entities when their contracts or meanings differ.
-- Reuse genuinely shared domain concepts rather than duplicating entities unnecessarily.
-- Follow existing dependency injection, routing, repository, mapping, and error-handling conventions.
-- Ask the user when a consequential architectural decision cannot be determined from requirements and source code.
-
-### Coding and security
-
-- Follow existing formatting, naming, null-safety, and analyzer conventions.
-- Use existing logging utilities instead of debug `print()` calls.
-- Avoid unnecessary dependencies and abstractions.
-- Never hardcode secrets or expose sensitive information in logs.
-- Validate input and handle expected failures.
-- Keep changes minimal and preserve unrelated behavior.
-
-### Verification
-
-Run applicable formatting, analysis, tests, and other checks.
-
-Report each check as `PASS`, `FAIL`, `SKIPPED`, or `NOT RUN`. Do not claim success unless supported by actual results.
-
-Review the final Git diff before declaring completion.
-
-### Plan and history management
-
-Preserve ARCLE's actual plan/history locations and supported CLI commands.
-
-Update the project plan and history, and feature-level records where applicable, according to repository conventions.
-
-Verify the available history-command arguments before using them. Never invent unsupported flags, timestamps, duration, or token metrics.
-
-Record reliable timestamps and token usage only when available.
-
-### Documentation and release readiness
-
-Update documentation affected by the change.
-
-Before declaring a release ready, inspect README, CHANGELOG, templates, CLI examples, configuration documentation, and other affected guides. Confirm that documentation matches the implementation.
-
-### Agent switching
-
-Sequential switching between Claude, Codex, and Gemini is supported. Simultaneous multi-agent collaboration is not required.
-
-A continuation agent must inspect the plan, recent history, Git status, current diff, and remaining acceptance criteria before continuing.
-
-### Completion report
-
-Every completed task must report the outcome, changed files, verification results, plan/history updates, remaining risks, and blockers.
-
-Never claim that a task is complete when mandatory acceptance criteria remain unverified.
-
-## 4. Agent-Specific Entry Files
-
-Inspect the existing generated templates for all three agents.
-
-Each entry-point file must:
-
-1. Identify itself as the mandatory project workflow entry point.
-2. Explicitly require reading the applicable `.ai/` rules before task-specific work.
-3. Require project discovery, planning, implementation, verification, and history updates.
-4. Explain what to do if required files are missing.
-5. Avoid contradictory instructions and stale paths.
-6. Preserve supported native agent configuration.
-
-Use the verified existing filename conventions, with `.codex/CODEX.md` as the requested Codex filename.
-
-Do not assume the filename is automatically recognized by Codex. Verify native discovery and address any incompatibility honestly.
-
-## 5. Implementation and Tests
-
-Trace the actual generation pipeline and update the real source code, not just example output.
-
-Add or update tests to verify:
-
-- Correct instruction filename for each agent.
-- Codex generates `CODEX.md` rather than `instructions.md`.
-- Existing settings and folder structure remain intact.
-- Shared mandatory workflow requirements appear consistently across agents.
-- Agent entry files reference valid shared rule paths.
-- No stale Codex filename references remain in relevant generator code or documentation.
-- Existing generation behavior remains correct.
-
-Run relevant tests, formatting, and static analysis. Report any checks that could not be run.
-
-## 6. Required Final Report
-
-Provide:
-
-1. Files and templates inspected.
-2. Exact source files changed.
-3. Confirmation of the Codex filename change.
-4. Verification of Codex instruction discovery and any limitations.
-5. Summary of workflow consistency across all three agents.
-6. Test results.
-7. Documentation changes.
-8. Remaining blockers.
-
-Do not modify unrelated features, delete configuration directories, or change the package version without authorization.
+**Strict Execution Hold**: In strict accordance with the developer's instructions, no production source code will be modified until explicit user approval of this plan is granted.

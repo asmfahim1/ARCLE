@@ -1,3 +1,30 @@
+## 3.1.0
+
+### Core Utilities & Networking
+- **AppLogger.apiCall HTTP Method Logging**:
+  - Added optional `method` parameter (`String?`) to `AppLogger.apiCall` in `lib/core/utils/logger.dart`.
+  - Automatically prints HTTP method (e.g. `GET`, `POST`, `PUT`, `DELETE`, `PATCH`) in debug console logs before the URL and endpoint.
+  - Updated `DioClient` interceptors (`onResponse`, `onError`) and `ApiHttpClient` (`send`, `upload`) templates to pass the request method.
+
+### SDK Migration & Toolchain
+- **Flutter 3.38.10 & Dart 3.10.9 Baseline**:
+  - Raised minimum Dart SDK constraint in `pubspec.yaml` from `>=3.7.0 <4.0.0` to `>=3.10.0 <4.0.0`.
+  - Updated `ProjectGenerator` to automatically scaffold new Flutter projects with `sdk: ">=3.10.0 <4.0.0"`.
+  - Updated `UpgradeCommand` (`arcle upgrade`) to bump legacy project SDK constraints to `>=3.10.0 <4.0.0` and refreshed console banners to `v3.1.0`.
+  - Upgraded Android core library desugaring dependency from `com.android.tools:desugar_jdk_libs:2.0.4` to `2.1.4` across both Groovy and Kotlin DSL build configurations.
+  - Aligned `TOOLCHAIN.md` and `README.md` to reflect Flutter `3.38.10+ (stable)` and Dart SDK `3.10.9+`.
+  - Updated ARCLE direct dependencies (`io: ^1.1.0`).
+
+### Common Widgets & Design System
+- **CommonRetryWidget**:
+  - Added new standard common retry widget template (`lib/core/common_widgets/common_retry_widget.dart`) across all scaffolded architectures.
+  - Takes `message` (`String`), `buttonName` (`String`), and `onRetry` (`VoidCallback`).
+  - Implements responsive UI layout with `Dimensions.allPadding(24)`, `Dimensions.icon(48)`, and `Dimensions.font(14)`.
+  - Integrated with `AppColors.error` for semantic failure indication.
+  - Dynamically adapts button styling to current theme brightness using `AppColors.primary(context)` (`brandPrimaryLight` / `brandPrimaryDark`).
+  - Uses standard responsive vertical spacing via `SizedBox(height: Dimensions.height(12))` and `SizedBox(height: Dimensions.height(16))`.
+  - Registered in `buildCommonProjectFiles` for automatic project scaffolding.
+
 ## 3.0.4
 
 ### AI Agent Workflow & Screen Architecture

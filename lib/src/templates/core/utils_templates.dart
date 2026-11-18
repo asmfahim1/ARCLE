@@ -58,6 +58,7 @@ class AppLogger {
 
   /// Print the complete API exchange using only the fields useful for debugging.
   static void apiCall({
+    String? method,
     required String url,
     required String endpoint,
     Object? requestBody,
@@ -67,7 +68,11 @@ class AppLogger {
     const color = '\\x1B[36m';
     const reset = '\\x1B[0m';
     final buffer = StringBuffer()
-      ..writeln('========== API CALL ==========')
+      ..writeln('========== API CALL ==========');
+    if (method != null && method.isNotEmpty) {
+      buffer.writeln('\${color}** Method **\${reset} \${method.toUpperCase()}');
+    }
+    buffer
       ..writeln('\${color}** URL **\${reset} \$url')
       ..writeln('\${color}** Endpoint **\${reset} \$endpoint')
       ..writeln('\${color}** Request Body **\${reset} \$requestBody')
@@ -298,16 +303,15 @@ class AppValidators {
 }
 ''';
 
-  static String utilsFailure([
-    NetworkClient network = NetworkClient.dio,
-  ]) {
+  static String utilsFailure([NetworkClient network = NetworkClient.dio]) {
     if (network.isHttp) {
       return _httpUtilsFailure();
     }
     return _dioUtilsFailure();
   }
 
-  static String _httpUtilsFailure() => '''
+  static String _httpUtilsFailure() =>
+      '''
 import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -400,7 +404,8 @@ sealed class AppFailure {
 $_commonFailureBody
 ''';
 
-  static String _dioUtilsFailure() => '''
+  static String _dioUtilsFailure() =>
+      '''
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';

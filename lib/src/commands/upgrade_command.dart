@@ -69,7 +69,7 @@ class UpgradeCommand {
         targetDir.uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ??
         'my_app';
 
-    ui.section('⬆️  Upgrading ARCLE Project to v2.0.0');
+    ui.section('⬆️  Upgrading ARCLE Project to v3.1.0');
     ui.step('PROJECT ', projectName);
     ui.step('STATE   ', state.label);
     ui.step('PATH    ', targetDir.path);
@@ -90,7 +90,7 @@ class UpgradeCommand {
     _generateScripts(ui, targetDir, force: force);
 
     console.line('');
-    ui.success('✅ Upgrade to v2.0.0 complete!');
+    ui.success('✅ Upgrade to v3.1.0 complete!');
     ui.info('Next steps:');
     ui.raw('  • Review .ai/settings.yaml and customize for your workflow');
     ui.raw('  • Run "arcle agent add claude" to add Claude Code support');
@@ -116,7 +116,7 @@ class UpgradeCommand {
     var updated = content;
     for (final pattern in patterns) {
       if (pattern.hasMatch(updated)) {
-        updated = updated.replaceAll(pattern, 'sdk: ">=3.7.0 <4.0.0"');
+        updated = updated.replaceAll(pattern, 'sdk: ">=3.10.0 <4.0.0"');
         break;
       }
     }
@@ -129,7 +129,7 @@ class UpgradeCommand {
     }
 
     pubspecFile.writeAsStringSync(updated);
-    ui.itemUpdated('pubspec.yaml (SDK constraint → >=3.7.0 <4.0.0)');
+    ui.itemUpdated('pubspec.yaml (SDK constraint → >=3.10.0 <4.0.0)');
   }
 
   void _upgradeAnalysisOptions(
@@ -230,10 +230,10 @@ class UpgradeCommand {
       'Usage:',
       '  arcle upgrade [options]',
       '',
-      'Upgrades an existing ARCLE project to v2.0.0.',
+      'Upgrades an existing ARCLE project to v3.1.0.',
       '',
       'Actions performed:',
-      '  • Updates pubspec.yaml SDK constraint to >=3.7.0 <4.0.0',
+      '  • Updates pubspec.yaml SDK constraint to >=3.10.0 <4.0.0',
       '  • Refreshes analysis_options.yaml with stricter rules',
       '  • Updates lib/core/utils/dimensions.dart to universal approach',
       '  • Generates .ai/ directory with AI agent configuration',

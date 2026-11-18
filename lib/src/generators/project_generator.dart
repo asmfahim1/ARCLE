@@ -423,8 +423,9 @@ class ProjectGenerator {
 
   _AndroidBuildVersions _resolveAndroidBuildVersions(Directory androidDir) {
     final flutterRoot = _detectFlutterRoot();
-    final templateVersions =
-        flutterRoot == null ? null : _readFlutterTemplateVersions(flutterRoot);
+    final templateVersions = flutterRoot == null
+        ? null
+        : _readFlutterTemplateVersions(flutterRoot);
 
     final existingAgp = _readPluginVersionFromSettings(
       androidDir,
@@ -611,10 +612,9 @@ class ProjectGenerator {
     final pattern = RegExp(r'distributionUrl=.*');
     final replacement =
         'distributionUrl=https\\://services.gradle.org/distributions/gradle-$gradleVersion-all.zip';
-    final updated =
-        pattern.hasMatch(content)
-            ? content.replaceFirst(pattern, replacement)
-            : content;
+    final updated = pattern.hasMatch(content)
+        ? content.replaceFirst(pattern, replacement)
+        : content;
     if (updated == content) return;
     file.writeAsStringSync(updated);
     ui.itemUpdated(
@@ -654,7 +654,7 @@ class ProjectGenerator {
 
     if (!_containsLine(
       lines,
-      "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
+      "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'",
     )) {
       changed = _ensureCoreLibraryDesugaringDependency(lines) || changed;
     }
@@ -877,7 +877,7 @@ class ProjectGenerator {
       lines.add('');
       lines.add('dependencies {');
       lines.add(
-        '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")',
+        '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")',
       );
       lines.add('}');
       return true;
@@ -885,7 +885,7 @@ class ProjectGenerator {
     final indent = _leadingWhitespace(lines[depsIndex]);
     lines.insert(
       depsIndex + 1,
-      '$indent    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")',
+      '$indent    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")',
     );
     return true;
   }
@@ -939,7 +939,7 @@ class ProjectGenerator {
       lines.add('');
       lines.add('dependencies {');
       lines.add(
-        "  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
+        "  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'",
       );
       lines.add('}');
       return true;
@@ -947,7 +947,7 @@ class ProjectGenerator {
     final indent = _leadingWhitespace(lines[depsIndex]);
     lines.insert(
       depsIndex + 1,
-      "$indent  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'",
+      "$indent  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'",
     );
     return true;
   }
@@ -1111,8 +1111,9 @@ end
   }
 
   List<_Dependency> _dependencies() {
-    final version =
-        (stateVersion == null || stateVersion!.isEmpty) ? 'any' : stateVersion!;
+    final version = (stateVersion == null || stateVersion!.isEmpty)
+        ? 'any'
+        : stateVersion!;
     final deps = <_Dependency>[
       network.isHttp
           ? _Dependency('http', '^1.6.0')
@@ -1206,7 +1207,7 @@ end
     var updated = content;
     for (final pattern in patterns) {
       if (pattern.hasMatch(updated)) {
-        updated = updated.replaceAll(pattern, 'sdk: ">=3.7.0 <4.0.0"');
+        updated = updated.replaceAll(pattern, 'sdk: ">=3.10.0 <4.0.0"');
         break;
       }
     }
@@ -1284,13 +1285,13 @@ end
       insertAfter = i + 1;
     }
 
-    final existing =
-        updatedLines
-            .where((line) => line.trimLeft().startsWith('- '))
-            .map((line) => line.trim().substring(2))
-            .toSet();
-    final toAdd =
-        assetsPaths.where((path) => !existing.contains(path)).toList();
+    final existing = updatedLines
+        .where((line) => line.trimLeft().startsWith('- '))
+        .map((line) => line.trim().substring(2))
+        .toSet();
+    final toAdd = assetsPaths
+        .where((path) => !existing.contains(path))
+        .toList();
     if (toAdd.isEmpty) return updatedLines.join('\n');
 
     updatedLines.insertAll(insertAfter, [

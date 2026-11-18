@@ -74,6 +74,8 @@ Map<String, String> buildCommonProjectFiles(
         WidgetsTemplates.commonDialog(),
     'lib/core/common_widgets/common_image_container.dart':
         WidgetsTemplates.commonImageContainer(state),
+    'lib/core/common_widgets/common_retry_widget.dart':
+        WidgetsTemplates.commonRetryWidget(),
     'lib/core/common_widgets/paginated_list_view.dart':
         WidgetsTemplates.paginatedListView(),
     'lib/core/di/app_di.dart': DiTemplates.di(state, network),
@@ -82,9 +84,7 @@ Map<String, String> buildCommonProjectFiles(
     'lib/core/env/stag_env.dart': EnvTemplates.envStag(),
     'lib/core/env/local_env.dart': EnvTemplates.envLocal(),
     'lib/core/env/env_factory.dart': EnvTemplates.envFactory(),
-    'lib/core/services/pref_manager.dart': ServicesTemplates.prefManager(
-      state,
-    ),
+    'lib/core/services/pref_manager.dart': ServicesTemplates.prefManager(state),
     'lib/core/services/session_manager.dart': ServicesTemplates.sessionManager(
       state,
     ),

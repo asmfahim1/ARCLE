@@ -8,8 +8,8 @@ Versions enforced or required by this release. Update the values here **and** in
 
 | Component | Version | Constraint |
 |-----------|---------|-----------|
-| Flutter   | 3.29.3+ (stable) | `>=3.29.3` |
-| Dart SDK  | 3.7.0+ | `>=3.7.0 <4.0.0` |
+| Flutter   | 3.38.10+ (stable) | `>=3.38.10` |
+| Dart SDK  | 3.10.9+ | `>=3.10.0 <4.0.0` |
 
 Source of truth: `pubspec.yaml` → `environment.sdk`
 
@@ -22,7 +22,7 @@ Source of truth: `pubspec.yaml` → `environment.sdk`
 | `compileSdk` | 35 | `lib/src/generators/project_generator.dart` → `_ensureAndroidSdkVersions*` |
 | `targetSdk`  | 35 | same file |
 | `minSdk`     | 21 | same file |
-| Core desugaring library | `com.android.tools:desugar_jdk_libs:2.0.4` | same file → `_ensureCoreLibraryDesugaring*` |
+| Core desugaring library | `com.android.tools:desugar_jdk_libs:2.1.4` | same file → `_ensureCoreLibraryDesugaring*` |
 | `coreLibraryDesugaringEnabled` | `true` | same file |
 
 **How to bump Android SDK values:**

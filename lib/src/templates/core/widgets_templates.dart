@@ -1432,4 +1432,65 @@ class PaginatedListView<T> extends StatelessWidget {
   }
 }
 ''';
+
+  static String commonRetryWidget() => '''
+import 'package:flutter/material.dart';
+import '../theme_manager/app_colors.dart';
+import '../theme_manager/dimensions.dart';
+
+class CommonRetryWidget extends StatelessWidget {
+  const CommonRetryWidget({
+    super.key,
+    required this.message,
+    required this.onRetry,
+    required this.buttonName,
+  });
+
+  final String message;
+  final String buttonName;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: Dimensions.allPadding(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: Dimensions.icon(48),
+              color: AppColors.error,
+            ),
+            SizedBox(height: Dimensions.height(12)),
+            Text(
+              message,
+              style: TextStyle(
+                color: AppColors.slate700,
+                fontSize: Dimensions.font(14),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Dimensions.height(16)),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary(context),
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    Dimensions.radius(10),
+                  ),
+                ),
+              ),
+              child: Text(buttonName),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+''';
 }

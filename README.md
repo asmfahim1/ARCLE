@@ -79,6 +79,13 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 ---
 
 
+## What's New In v3.1.0
+
+- 🚀 **Flutter 3.38.10 & Dart 3.10.9 Alignment** — Updated SDK baseline constraint to `>=3.10.0 <4.0.0`, ensuring immediate compatibility with modern Flutter stable toolchains and compiling with native 16KB page size support.
+- 🔄 **New `CommonRetryWidget`** — Introduced a standardized retry component (`lib/core/common_widgets/common_retry_widget.dart`) across all scaffolded projects with responsive layout (`Dimensions`), semantic error icons, adaptive brand primary theming (`AppColors.primary(context)`), and custom message/retry callbacks.
+- ⬆️ **Upgraded Android Toolchain** — Updated Android core library desugaring dependency to `2.1.4` for Java 11/17 API backporting.
+- 📦 **Modernized Dependencies** — Updated CLI direct dependencies (`io: ^1.1.0`) and aligned project upgrade flows (`arcle upgrade`) to v3.1.0.
+
 ## What's New In v3.0.4
 
 - 🧱 **Mandatory Screen Componentization Rule** — Updated `.ai/coding-rules.md` and agent instruction templates (`CLAUDE.md`, `CODEX.md`, `GEMINI.md`) to strictly enforce clean, declarative `_screen.dart` files:
@@ -281,8 +288,8 @@ The first form appends a row to root `docs/HISTORY.md`; adding `--feature <name>
 
 ## ✅ Requirements
 
-- **Dart SDK**: `>=3.7.0 <4.0.0`
-- **Flutter**: 3.29.3 or higher
+- **Dart SDK**: `>=3.10.0 <4.0.0`
+- **Flutter**: 3.38.10 or higher
 - **Operating System**: macOS, Linux, or Windows
 - **Terminal**: bash, sh, zsh, PowerShell, or Windows Terminal
 
@@ -400,8 +407,8 @@ lib/features/feature_name/presentation/
 
 ## 🎓 Toolchain
 
-- Dart SDK: `>=3.7.0 <4.0.0`
-- Flutter: 3.29.3+ (stable channel recommended)
+- Dart SDK: `>=3.10.0 <4.0.0`
+- Flutter: 3.38.10+ (stable channel recommended)
 
 See `TOOLCHAIN.md` for release-specific versions and environment setup details.
 

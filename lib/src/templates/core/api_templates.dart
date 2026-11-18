@@ -2,12 +2,12 @@ import '../../state_management.dart';
 
 class ApiTemplates {
   static String dioClient(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     return '''
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -62,6 +62,7 @@ class DioClient {
       onResponse: (response, handler) {
         final options = response.requestOptions;
         AppLogger.apiCall(
+          method: options.method,
           url: options.uri.toString(),
           endpoint: options.path,
           requestBody: options.data,
@@ -71,6 +72,7 @@ class DioClient {
       },
       onError: (DioException e, handler) async {
         AppLogger.apiCall(
+          method: e.requestOptions.method,
           url: e.requestOptions.uri.toString(),
           endpoint: e.requestOptions.path,
           requestBody: e.requestOptions.data,
@@ -148,17 +150,15 @@ class DioClient {
   }
 
   static String apiResponse([NetworkClient network = NetworkClient.dio]) {
-    final clientImport =
-        network.isHttp
-            ? "import 'http_client.dart';"
-            : "import 'package:dio/dio.dart';";
+    final clientImport = network.isHttp
+        ? "import 'http_client.dart';"
+        : "import 'package:dio/dio.dart';";
     final responseType = network.isHttp ? 'ApiResponse' : 'Response<dynamic>';
-    final catchClause =
-        network.isHttp
-            ? '''    } catch (e, stack) {
+    final catchClause = network.isHttp
+        ? '''    } catch (e, stack) {
       return Results.failure(AppFailure.fromException(e, stack));
     }'''
-            : '''    } on DioException catch (e) {
+        : '''    } on DioException catch (e) {
       return Results.failure(AppFailure.fromDioException(e));
     } catch (e, stack) {
       return Results.failure(AppFailure.fromException(e, stack));
@@ -496,12 +496,12 @@ class PaginatedResponse<T> {
   }
 
   static String httpClient(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     return '''
 import 'dart:async';
 import 'dart:convert';
@@ -614,6 +614,7 @@ class ApiHttpClient {
     try {
       var response = await execute();
       AppLogger.apiCall(
+        method: method,
         url: uri.toString(),
         endpoint: path,
         requestBody: data,
@@ -688,6 +689,7 @@ class ApiHttpClient {
       final response = await http.Response.fromStream(streamed);
 
       AppLogger.apiCall(
+        method: 'POST',
         url: uri.toString(),
         endpoint: path,
         requestBody: '[Multipart: \${data.keys.join(", ")}]',
@@ -809,12 +811,12 @@ class ApiHttpClient {
   }
 
   static String _httpApiService(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     return '''
 $injectableImport
 import 'http_client.dart';
@@ -948,12 +950,12 @@ class ApiService {
   }
 
   static String _dioApiService(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     return '''
 import 'dart:io';
 import 'package:dio/dio.dart';
