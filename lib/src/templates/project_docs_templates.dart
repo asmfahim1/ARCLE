@@ -5,7 +5,8 @@
 /// which renders the full `arcle gen-doc` architecture document.
 class ProjectDocsTemplates {
   /// Root project plan, seeded at `docs/PLAN.md` on `arcle create`/`init`.
-  static String rootPlan(String projectName) => '''
+  static String rootPlan(String projectName) =>
+      '''
 # $projectName — Project Plan
 
 ## Overview
@@ -26,7 +27,8 @@ Each feature under `lib/features/<feature>/docs/` keeps its own `PLAN.md` and
 
   /// Root project history, seeded at `docs/HISTORY.md` on `arcle create`/`init`.
   /// Agents and `arcle history add` append entries here as work happens.
-  static String rootHistory(String projectName) => '''
+  static String rootHistory(String projectName) =>
+      '''
 # $projectName — Project History
 
 Chronological log of work done on this project by developers and AI agents.
@@ -37,7 +39,8 @@ Newest entries go at the top.
 ''';
 
   /// Per-feature plan, seeded at `lib/features/<feature>/docs/PLAN.md`.
-  static String featurePlan(String name) => '''
+  static String featurePlan(String name) =>
+      '''
 # $name Feature Plan
 
 ## Purpose
@@ -55,7 +58,8 @@ See the root `docs/PLAN.md` for overall project context.
 ''';
 
   /// Per-feature history, seeded at `lib/features/<feature>/docs/HISTORY.md`.
-  static String featureHistory(String name) => '''
+  static String featureHistory(String name) =>
+      '''
 # $name Feature History
 
 Track meaningful changes to this feature here. Newest entries go at the top.

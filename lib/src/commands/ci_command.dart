@@ -18,64 +18,62 @@ class CiCommand {
   static const _providers = ['github', 'gitlab'];
 
   static ArgParser parser() {
-    final addParser =
-        ArgParser()
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of a Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addOption(
-            'branch',
-            help: 'Branch that triggers the pipeline',
-            defaultsTo: 'main',
-          )
-          ..addFlag(
-            'test',
-            help: 'Run flutter test in the pipeline',
-            defaultsTo: true,
-          )
-          ..addFlag(
-            'coverage',
-            help: 'Run flutter test --coverage instead of flutter test',
-            negatable: false,
-          )
-          ..addOption(
-            'build',
-            help: 'Build an artifact in the pipeline',
-            allowed: const ['none', 'apk', 'appbundle'],
-            defaultsTo: 'none',
-          )
-          ..addFlag(
-            'force',
-            abbr: 'f',
-            help: 'Overwrite an existing pipeline file',
-            negatable: false,
-          );
+    final addParser = ArgParser()
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of a Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addOption(
+        'branch',
+        help: 'Branch that triggers the pipeline',
+        defaultsTo: 'main',
+      )
+      ..addFlag(
+        'test',
+        help: 'Run flutter test in the pipeline',
+        defaultsTo: true,
+      )
+      ..addFlag(
+        'coverage',
+        help: 'Run flutter test --coverage instead of flutter test',
+        negatable: false,
+      )
+      ..addOption(
+        'build',
+        help: 'Build an artifact in the pipeline',
+        allowed: const ['none', 'apk', 'appbundle'],
+        defaultsTo: 'none',
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite an existing pipeline file',
+        negatable: false,
+      );
 
-    final removeParser =
-        ArgParser()
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of a Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'force',
-            abbr: 'f',
-            help: 'Skip confirmation prompt',
-            negatable: false,
-          );
+    final removeParser = ArgParser()
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of a Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Skip confirmation prompt',
+        negatable: false,
+      );
 
-    final listParser =
-        ArgParser()..addOption(
-          'path',
-          abbr: 'p',
-          help: 'Directory of a Flutter project',
-          defaultsTo: Directory.current.path,
-        );
+    final listParser = ArgParser()
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of a Flutter project',
+        defaultsTo: Directory.current.path,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -109,8 +107,9 @@ class CiCommand {
 
   Future<int> _runAdd(ArgResults cmd) async {
     final ui = CliUi(console);
-    final provider =
-        cmd.rest.isNotEmpty ? cmd.rest.first.trim().toLowerCase() : null;
+    final provider = cmd.rest.isNotEmpty
+        ? cmd.rest.first.trim().toLowerCase()
+        : null;
 
     if (provider == null || provider.isEmpty) {
       ui.error('Missing CI provider.');
@@ -157,20 +156,19 @@ class CiCommand {
       return ExitCode.success.code;
     }
 
-    final content =
-        provider == 'github'
-            ? GithubActionsTemplates.workflow(
-              branch: branch,
-              runTest: runTest,
-              runCoverage: runCoverage,
-              build: build,
-            )
-            : GitlabCiTemplates.pipeline(
-              branch: branch,
-              runTest: runTest,
-              runCoverage: runCoverage,
-              build: build,
-            );
+    final content = provider == 'github'
+        ? GithubActionsTemplates.workflow(
+            branch: branch,
+            runTest: runTest,
+            runCoverage: runCoverage,
+            build: build,
+          )
+        : GitlabCiTemplates.pipeline(
+            branch: branch,
+            runTest: runTest,
+            runCoverage: runCoverage,
+            build: build,
+          );
 
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(content);
@@ -187,8 +185,9 @@ class CiCommand {
 
   Future<int> _runRemove(ArgResults cmd) async {
     final ui = CliUi(console);
-    final provider =
-        cmd.rest.isNotEmpty ? cmd.rest.first.trim().toLowerCase() : null;
+    final provider = cmd.rest.isNotEmpty
+        ? cmd.rest.first.trim().toLowerCase()
+        : null;
 
     if (provider == null || provider.isEmpty) {
       ui.error('Missing CI provider.');

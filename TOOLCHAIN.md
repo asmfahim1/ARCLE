@@ -24,6 +24,7 @@ Source of truth: `pubspec.yaml` → `environment.sdk`
 | `minSdk`     | 21 | same file |
 | Core desugaring library | `com.android.tools:desugar_jdk_libs:2.1.4` | same file → `_ensureCoreLibraryDesugaring*` |
 | `coreLibraryDesugaringEnabled` | `true` | same file |
+| Android ProGuard Rules | `android/app/proguard-rules.pro` | same file → `_ensureProguardRules` |
 
 **How to bump Android SDK values:**
 1. Update the `replacement:` strings in `_ensureAndroidSdkVersionsGroovy` and `_ensureAndroidSdkVersionsKotlin` in `project_generator.dart`.

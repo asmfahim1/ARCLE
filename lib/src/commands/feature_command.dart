@@ -17,32 +17,31 @@ class FeatureCommand {
   final Console console;
 
   static ArgParser parser() {
-    final create =
-        ArgParser()
-          ..addOption(
-            'state',
-            abbr: 's',
-            allowed: const ['bloc', 'getx', 'riverpod'],
-            help: 'State management option (bloc, getx, riverpod)',
-          )
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of an existing Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'force',
-            abbr: 'f',
-            help: 'Overwrite existing files if they exist',
-            negatable: false,
-          )
-          ..addFlag(
-            'interactive',
-            abbr: 'i',
-            help: 'Prompt for any missing values',
-            defaultsTo: true,
-          );
+    final create = ArgParser()
+      ..addOption(
+        'state',
+        abbr: 's',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
+      )
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of an existing Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing files if they exist',
+        negatable: false,
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Prompt for any missing values',
+        defaultsTo: true,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)

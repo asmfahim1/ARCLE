@@ -157,7 +157,9 @@ class DoctorCommand {
 
     var actions = 0;
     final existingConfig = ArcleConfig.readFrom(targetDir);
-    final pubspec = File('${targetDir.path}${Platform.pathSeparator}pubspec.yaml');
+    final pubspec = File(
+      '${targetDir.path}${Platform.pathSeparator}pubspec.yaml',
+    );
     final hasHttp =
         pubspec.existsSync() && pubspec.readAsStringSync().contains('http:');
     final network =
@@ -202,12 +204,11 @@ class DoctorCommand {
       }
     }
 
-    final config =
-        ArcleConfig(
-          state: state,
-          createdAt: DateTime.now(),
-          network: network,
-        ).toYaml();
+    final config = ArcleConfig(
+      state: state,
+      createdAt: DateTime.now(),
+      network: network,
+    ).toYaml();
     file.writeAsStringSync(config);
     ui.itemUpdated(ArcleConfig.filename);
   }

@@ -301,6 +301,48 @@ The first form appends a row to root `docs/HISTORY.md`; adding `--feature <name>
 - **iOS Release Builds:** Remember to configure Apple signing in Xcode, set your Team ID, and manage provisioning profiles before building for distribution.
 - Web is safe for shared app code, but local notifications and runtime permissions are intentionally treated as unsupported by default.
 
+## 🔒 Secure Build System & Environment Management
+
+ARCLE integrates an enterprise-grade, zero-dependency environment configuration and release build pipeline:
+
+### 1. Zero-Dependency Compile-Time Environment (`.env`)
+- Scaffolded Flutter projects include a single root `.env` (gitignored) and `.env.example` (tracked in git).
+- **No plaintext assets**: ARCLE injects variables directly at compile time via `--dart-define-from-file=.env`. The `.env` file is **never bundled** into the APK assets (unlike packages like `flutter_dotenv`), eliminating trivial asset extraction attacks (`unzip app.apk`).
+- `ProdEnv`, `StagEnv`, and `LocalEnv` classes read `PROD_API_BASE_URL`, `STAG_API_BASE_URL`, and `LOCAL_API_BASE_URL` using compile-time `const String.fromEnvironment(...)`.
+- `FLAVOR` can be switched dynamically at build time or resolved through `EnvFactory.current()`.
+
+### 2. Automated Release Security (`arcle build apk --release`)
+When you build a release APK using ARCLE, the CLI automatically:
+- **Injects Environment**: Passes `--dart-define-from-file=.env` and `--dart-define=FLAVOR=$env`.
+- **Pre-Build Verification**: Validates that `.env` exists; in interactive mode, prompts to copy from `.env.example` if missing.
+- **Dart Symbol Obfuscation**: Injects `--obfuscate` to scramble class names, method names, and architectural identifiers inside the native AOT binary (`libapp.so`).
+- **Symbol Stripping**: Injects `--split-debug-info=build/app/outputs/symbols` to extract debug symbol tables, drastically reducing APK binary size while retaining crash dump symbolication capability.
+- **Android ProGuard / R8 Rules**: Scaffolds `android/app/proguard-rules.pro` and links it in `app/build.gradle` to protect Java/Kotlin Flutter embedding wrappers during Android minification.
+- **Version & APK Artifact Renaming**: Optionally updates `pubspec.yaml` and renames the resulting artifact to `AppName_Flavor_VX.X.X.apk`.
+
+### 3. What Developers Miss When Using Default / Android Studio Builds
+If developers build via `flutter build apk` (without flags) or Android Studio's **Build -> Flutter -> Build APK**:
+| Security Feature | Android Studio / Default CLI | `arcle build apk --release` |
+| :--- | :---: | :---: |
+| **`.env` Injection** | ❌ Ignored (values fall back to defaults) | ✅ **Automatic (`--dart-define-from-file=.env`)** |
+| **Dart Machine Code Obfuscation** | ❌ Disabled (`libapp.so` symbols exposed) | ✅ **Automatic (`--obfuscate`)** |
+| **Debug Symbol Stripping** | ❌ Disabled (bloated APK) | ✅ **Automatic (`--split-debug-info=...`)** |
+| **Flavor Selection** | ❌ Manual define flag required | ✅ **Automatic via `--env prod\|stag\|local`** |
+| **Missing `.env` Guard** | ❌ Silent failure | ✅ **Pre-build check with guided copy** |
+| **ProGuard Rules Scaffolding** | ⚠️ Must be manually written | ✅ **Automatic `proguard-rules.pro`** |
+
+### 4. How to Build Securely Outside ARCLE (CI / IDE)
+If you need to build in CI or an IDE without the ARCLE CLI:
+```bash
+flutter build apk --release \
+  --dart-define-from-file=.env \
+  --dart-define=FLAVOR=prod \
+  --obfuscate \
+  --split-debug-info=build/app/outputs/symbols
+```
+In Android Studio: add `--dart-define-from-file=.env` to **Run/Debug Configurations -> Additional run args**.  
+In VS Code: add `"--dart-define-from-file=.env"` to `args` in `.vscode/launch.json`.
+
 ## Build Behavior
 
 - `arcle build apk --version-name ... --version-code ...` rewrites the target project's `pubspec.yaml` version field before building
@@ -339,6 +381,8 @@ flutter upgrade
 
 ```
 my_awesome_app/
+├── .env                                # Local secrets & API keys (gitignored)
+├── .env.example                        # Template environment keys (committed to git)
 ├── lib/
 │   ├── main.dart                       # App entry point
 │   ├── bootstrap.dart                  # Bootstrap configuration
@@ -349,11 +393,11 @@ my_awesome_app/
 │   │   ├── services/                   # Session, Preferences, Notifications, Permissions
 │   │   ├── theme_manager/              # AppTheme, AppColors, Dimensions
 │   │   ├── di/                         # Dependency injection setup
-│   │   ├── env/                        # Environment configurations
+│   │   ├── env/                        # Environment configurations (Prod, Stag, Local)
 │   │   ├── localization/               # Localization & translation loader
 │   │   ├── route_handler/              # Routing & navigation
 │   │   ├── utils/                      # Constants, dialogs, helpers
-│   │   └── common_widgets/             # Reusable UI widgets
+│   │   └── common_widgets/             # Reusable UI widgets (CommonRetryWidget, etc.)
 │   └── features/
 │       ├── demo/                       # Demo feature (included!)
 │       │   ├── data/

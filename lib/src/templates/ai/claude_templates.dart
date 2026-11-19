@@ -5,7 +5,8 @@ class ClaudeTemplates {
     String projectName,
     StateManagement state, [
     NetworkClient network = NetworkClient.dio,
-  ]) => '''
+  ]) =>
+      '''
 # CLAUDE.md — Mandatory ARCLE Development Workflow Rules
 
 This file is the mandatory entry point for Claude Code in **$projectName**.

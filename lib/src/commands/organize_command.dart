@@ -12,19 +12,18 @@ class OrganizeCommand {
   final Console console;
 
   static ArgParser parser() {
-    final imports =
-        ArgParser()
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of an ARCLE Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'check',
-            help: 'Show files that would change without writing them',
-            negatable: false,
-          );
+    final imports = ArgParser()
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of an ARCLE Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'check',
+        help: 'Show files that would change without writing them',
+        negatable: false,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -182,12 +181,11 @@ class OrganizeCommand {
     if (uri.startsWith('dart:') || uri.startsWith('package:')) {
       return _repairPackageImport(uri, project, packageName);
     }
-    final resolved =
-        File(
-          Uri.file(
-            '${file.parent.path}${Platform.pathSeparator}',
-          ).resolve(uri).toFilePath(),
-        ).absolute.path;
+    final resolved = File(
+      Uri.file(
+        '${file.parent.path}${Platform.pathSeparator}',
+      ).resolve(uri).toFilePath(),
+    ).absolute.path;
     final libRoot = Directory(_join(project.path, 'lib')).absolute.path;
     final normalizedResolved = resolved.replaceAll('\\', '/');
     final normalizedLib = libRoot

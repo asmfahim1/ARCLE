@@ -120,10 +120,9 @@ class DocsGenerator {
     return name
         .split('_')
         .map(
-          (word) =>
-              word.isEmpty
-                  ? ''
-                  : '${word[0].toUpperCase()}${word.substring(1)}',
+          (word) => word.isEmpty
+              ? ''
+              : '${word[0].toUpperCase()}${word.substring(1)}',
         )
         .join(' ');
   }
@@ -174,10 +173,7 @@ class DocsGenerator {
     final endpoints = <String>[];
 
     // Look for remote data sources
-    final sourcesPatterns = [
-      'lib/core/network',
-      'lib/features/*/data/sources',
-    ];
+    final sourcesPatterns = ['lib/core/network', 'lib/features/*/data/sources'];
 
     for (final pattern in sourcesPatterns) {
       if (pattern.contains('*')) {

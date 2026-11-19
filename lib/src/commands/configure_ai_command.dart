@@ -134,10 +134,7 @@ class ConfigureAiCommand {
       files['.claude/settings.json'] = ClaudeTemplates.claudeSettings();
     }
     if (writeCodex) {
-      files['.codex/CODEX.md'] = CodexTemplates.codexMd(
-        projectName,
-        state,
-      );
+      files['.codex/CODEX.md'] = CodexTemplates.codexMd(projectName, state);
       files['.codex/settings.json'] = CodexTemplates.codexSettings(state);
     }
     if (writeGemini) {

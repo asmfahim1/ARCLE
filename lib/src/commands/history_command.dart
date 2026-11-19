@@ -23,26 +23,25 @@ class HistoryCommand {
   final Console console;
 
   static ArgParser parser() {
-    final add =
-        ArgParser()
-          ..addOption('feature', abbr: 'F', help: 'Feature name (snake_case)')
-          ..addOption(
-            'summary',
-            abbr: 's',
-            help: 'One-line summary of the work done',
-          )
-          ..addOption(
-            'agent',
-            abbr: 'a',
-            help: 'Who did the work (e.g. claude, codex, gemini, human)',
-            defaultsTo: 'human',
-          )
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of an ARCLE Flutter project',
-            defaultsTo: Directory.current.path,
-          );
+    final add = ArgParser()
+      ..addOption('feature', abbr: 'F', help: 'Feature name (snake_case)')
+      ..addOption(
+        'summary',
+        abbr: 's',
+        help: 'One-line summary of the work done',
+      )
+      ..addOption(
+        'agent',
+        abbr: 'a',
+        help: 'Who did the work (e.g. claude, codex, gemini, human)',
+        defaultsTo: 'human',
+      )
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of an ARCLE Flutter project',
+        defaultsTo: Directory.current.path,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -80,10 +79,9 @@ class HistoryCommand {
     final agent = (cmd['agent'] as String?)?.trim();
     final agentLabel = (agent == null || agent.isEmpty) ? 'human' : agent;
     final featureInput = (cmd['feature'] as String?)?.trim();
-    final feature =
-        (featureInput == null || featureInput.isEmpty)
-            ? null
-            : StringHelpers.snakeCase(featureInput);
+    final feature = (featureInput == null || featureInput.isEmpty)
+        ? null
+        : StringHelpers.snakeCase(featureInput);
 
     final targetDir = Directory(cmd['path'] as String);
 

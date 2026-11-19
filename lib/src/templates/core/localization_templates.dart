@@ -190,7 +190,8 @@ class _AppLocalizationsDelegate
 }
 ''';
 
-  static String _initialGetxAppStrings(String langCode, String country) => '''
+  static String _initialGetxAppStrings(String langCode, String country) =>
+      '''
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -206,7 +207,8 @@ extension AppLocalizationX on BuildContext {
 ''';
 
   /// Generates getx_localization.dart with a single locale entry.
-  static String initialGetxLocalization(String langCode, String country) => '''
+  static String initialGetxLocalization(String langCode, String country) =>
+      '''
 import 'package:get/get.dart';
 
 class Language extends Translations {

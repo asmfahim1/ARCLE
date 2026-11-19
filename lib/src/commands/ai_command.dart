@@ -19,38 +19,34 @@ class AiCommand {
     final parser = ArgParser()..addFlag('help', abbr: 'h', negatable: false);
 
     // init subcommand
-    final initParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path)
-          ..addOption(
-            'state',
-            abbr: 's',
-            allowed: const ['bloc', 'getx', 'riverpod'],
-            help: 'State management option (bloc, getx, riverpod)',
-          )
-          ..addFlag('force', abbr: 'f', negatable: false);
+    final initParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path)
+      ..addOption(
+        'state',
+        abbr: 's',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
+      )
+      ..addFlag('force', abbr: 'f', negatable: false);
     parser.addCommand('init', initParser);
 
     // sync subcommand
-    final syncParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final syncParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('sync', syncParser);
 
     // validate subcommand
-    final validateParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final validateParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('validate', validateParser);
 
     // doctor subcommand
-    final doctorParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final doctorParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('doctor', doctorParser);
 
     return parser;

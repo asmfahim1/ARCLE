@@ -497,12 +497,12 @@ class SessionManager {
 ''';
 
   static String permissionService(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     return '''
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -624,12 +624,12 @@ class PermissionService {
   }
 
   static String notificationService(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     return '''
 import 'dart:convert';
 import 'package:flutter/foundation.dart';

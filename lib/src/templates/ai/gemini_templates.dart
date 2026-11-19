@@ -1,7 +1,8 @@
 import '../../state_management.dart';
 
 class GeminiTemplates {
-  static String geminiMd(String projectName, StateManagement state) => '''
+  static String geminiMd(String projectName, StateManagement state) =>
+      '''
 # GEMINI.md — Mandatory ARCLE Development Workflow Rules
 
 This file is the mandatory entry point for Google Gemini in **$projectName**.

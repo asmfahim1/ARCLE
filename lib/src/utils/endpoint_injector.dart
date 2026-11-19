@@ -20,7 +20,8 @@ class EndpointInjector {
 
     if (content.contains('${camel}List')) return;
 
-    final block = '''
+    final block =
+        '''
   // ----- $snake endpoints -----
   static const ${camel}List = '/$snake';
   static const ${camel}Detail = '/$snake/{id}';

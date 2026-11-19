@@ -313,10 +313,9 @@ class VerifyCommand {
       return ['test', ...allTests];
     }
 
-    final selectedTests =
-        allTests
-            .where((path) => !_generatedBoilerplateTests.contains(path))
-            .toList();
+    final selectedTests = allTests
+        .where((path) => !_generatedBoilerplateTests.contains(path))
+        .toList();
 
     if (selectedTests.isEmpty) {
       return null;
@@ -328,8 +327,9 @@ class VerifyCommand {
   String _relativePath(String basePath, String fullPath) {
     final normalizedBase = basePath.replaceAll('\\', '/');
     final normalizedFull = fullPath.replaceAll('\\', '/');
-    final baseWithSlash =
-        normalizedBase.endsWith('/') ? normalizedBase : '$normalizedBase/';
+    final baseWithSlash = normalizedBase.endsWith('/')
+        ? normalizedBase
+        : '$normalizedBase/';
     if (normalizedFull.startsWith(baseWithSlash)) {
       return normalizedFull.substring(baseWithSlash.length);
     }
@@ -473,8 +473,9 @@ class VerifyCommand {
 
   int _findEndOfCentralDirectory(List<int> bytes) {
     final minOffset = bytes.length >= 22 ? bytes.length - 22 : 0;
-    final lowerBound =
-        bytes.length > 0x10000 + 22 ? bytes.length - 0x10000 - 22 : 0;
+    final lowerBound = bytes.length > 0x10000 + 22
+        ? bytes.length - 0x10000 - 22
+        : 0;
     for (var offset = minOffset; offset >= lowerBound; offset--) {
       if (bytes[offset] == 0x50 &&
           bytes[offset + 1] == 0x4b &&
@@ -643,9 +644,8 @@ class VerifyCommand {
       return true;
     }
 
-    final features =
-        featuresDir.listSync().whereType<Directory>().toList()
-          ..sort((a, b) => a.path.compareTo(b.path));
+    final features = featuresDir.listSync().whereType<Directory>().toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
 
     if (features.isEmpty) {
       ui.info('No feature modules found.');

@@ -12,45 +12,44 @@ class BuildCommand {
   final Console console;
 
   static ArgParser parser() {
-    final apkParser =
-        ArgParser()
-          ..addFlag(
-            'release',
-            abbr: 'r',
-            help: 'Build in release mode',
-            negatable: false,
-          )
-          ..addFlag(
-            'debug',
-            abbr: 'd',
-            help: 'Build in debug mode',
-            negatable: false,
-          )
-          ..addOption(
-            'env',
-            help: 'Build environment passed as --dart-define=FLAVOR',
-            allowed: const ['prod', 'stag', 'local'],
-          )
-          ..addOption(
-            'version-name',
-            help: 'Override Flutter build-name / Android versionName',
-          )
-          ..addOption(
-            'version-code',
-            help: 'Override Flutter build-number / Android versionCode',
-          )
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of a Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'interactive',
-            abbr: 'i',
-            help: 'Prompt for any missing values',
-            defaultsTo: true,
-          );
+    final apkParser = ArgParser()
+      ..addFlag(
+        'release',
+        abbr: 'r',
+        help: 'Build in release mode',
+        negatable: false,
+      )
+      ..addFlag(
+        'debug',
+        abbr: 'd',
+        help: 'Build in debug mode',
+        negatable: false,
+      )
+      ..addOption(
+        'env',
+        help: 'Build environment passed as --dart-define=FLAVOR',
+        allowed: const ['prod', 'stag', 'local'],
+      )
+      ..addOption(
+        'version-name',
+        help: 'Override Flutter build-name / Android versionName',
+      )
+      ..addOption(
+        'version-code',
+        help: 'Override Flutter build-number / Android versionCode',
+      )
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of a Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'interactive',
+        abbr: 'i',
+        help: 'Prompt for any missing values',
+        defaultsTo: true,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -130,6 +129,34 @@ class BuildCommand {
         return ExitCode.software.code;
       }
     }
+
+    final envFile = File(_join(targetDir.path, '.env'));
+    final envExampleFile = File(_join(targetDir.path, '.env.example'));
+    if (!envFile.existsSync()) {
+      if (envExampleFile.existsSync()) {
+        if (interactive) {
+          ui.warn('No .env file found in project root.');
+          final answer = console
+              .prompt('  Create .env from .env.example? (y/n) [y]: ')
+              ?.trim()
+              .toLowerCase();
+          if (answer == null ||
+              answer.isEmpty ||
+              answer == 'y' ||
+              answer == 'yes') {
+            envExampleFile.copySync(envFile.path);
+            ui.success('Created .env from .env.example');
+          } else {
+            ui.warn(
+              'Proceeding without .env file; default values will be used.',
+            );
+          }
+        } else {
+          ui.warn('No .env file found. Proceeding with default values.');
+        }
+      }
+    }
+
     for (final mode in modes) {
       final buildEnv = env ?? (mode == 'release' ? 'prod' : 'stag');
       if (!_updatePersistentEnv(targetDir, ui, buildEnv)) {
@@ -148,12 +175,20 @@ class BuildCommand {
       ui.info('ARCLE is building APK in $mode mode...');
       ui.info('This may take a few minutes...');
 
-      final args = [
-        'build',
-        'apk',
-        '--$mode',
-        '--dart-define=FLAVOR=$buildEnv',
-      ];
+      final args = ['build', 'apk', '--$mode'];
+      if (envFile.existsSync()) {
+        args.add('--dart-define-from-file=.env');
+        ui.step('DEFINES ', 'Injected --dart-define-from-file=.env');
+      }
+      args.add('--dart-define=FLAVOR=$buildEnv');
+      if (mode == 'release') {
+        final symbolPath = _join('build', 'app/outputs/symbols');
+        args.addAll(['--obfuscate', '--split-debug-info=$symbolPath']);
+        ui.step(
+          'SECURITY',
+          'Dart obfuscation enabled (--obfuscate --split-debug-info)',
+        );
+      }
       final result = await Process.run(
         'flutter',
         args,
@@ -212,16 +247,18 @@ class BuildCommand {
         return (currentName, currentCode);
       }
       if (choice == '2') {
-        final custom =
-            console.prompt('  Type your custom version name: ')?.trim();
+        final custom = console
+            .prompt('  Type your custom version name: ')
+            ?.trim();
         if (custom == null || custom.isEmpty) {
           ui.warn('Version name cannot be empty.');
           continue;
         }
         final customParts = custom.split('+');
         final name = customParts.first.trim();
-        final code =
-            customParts.length > 1 ? customParts[1].trim() : currentCode;
+        final code = customParts.length > 1
+            ? customParts[1].trim()
+            : currentCode;
         if (name.isEmpty || (code != null && int.tryParse(code) == null)) {
           ui.warn(
             'Use a valid version name and optional numeric version code.',
@@ -261,10 +298,9 @@ class BuildCommand {
     final safeName = _sanitizeFilePart(name);
     final safeVersion = _sanitizeFilePart(version.split('+').first);
     final safeEnv = env == null || env.isEmpty ? null : _sanitizeFilePart(env);
-    final newName =
-        safeEnv == null
-            ? '${safeName}_V$safeVersion.apk'
-            : '${safeName}_${safeEnv}_V$safeVersion.apk';
+    final newName = safeEnv == null
+        ? '${safeName}_V$safeVersion.apk'
+        : '${safeName}_${safeEnv}_V$safeVersion.apk';
     final newPath = _join(apkFile.parent.path, newName);
     final targetFile = File(newPath);
     if (targetFile.existsSync()) {
@@ -296,16 +332,15 @@ class BuildCommand {
     final parts = currentVersion.split('+');
     final currentName = parts.first.trim();
     final currentCode = parts.length > 1 ? parts[1].trim() : null;
-    final nextName =
-        (versionName != null && versionName.isNotEmpty)
-            ? versionName
-            : currentName;
-    final nextCode =
-        (versionCode != null && versionCode.isNotEmpty)
-            ? versionCode
-            : currentCode;
-    final nextVersion =
-        nextCode == null || nextCode.isEmpty ? nextName : '$nextName+$nextCode';
+    final nextName = (versionName != null && versionName.isNotEmpty)
+        ? versionName
+        : currentName;
+    final nextCode = (versionCode != null && versionCode.isNotEmpty)
+        ? versionCode
+        : currentCode;
+    final nextVersion = nextCode == null || nextCode.isEmpty
+        ? nextName
+        : '$nextName+$nextCode';
 
     final pattern = RegExp(r'^version\s*:\s*.+$', multiLine: true);
     if (!pattern.hasMatch(content)) {
@@ -402,7 +437,7 @@ class BuildCommand {
       '  arcle build apk [options]',
       '',
       'Options:',
-      '  -r, --release    Build in release mode',
+      '  -r, --release    Build in release mode (auto-obfuscates and strips symbols)',
       '  -d, --debug      Build in debug mode',
       '      --env        Build environment: prod, stag, or local',
       '      --version-name  Override Android versionName',
@@ -410,9 +445,13 @@ class BuildCommand {
       '  -p, --path       Directory of a Flutter project',
       '  -i, --interactive  Prompt for any missing values (default: true)',
       '',
+      'Security Notes:',
+      '  Release builds automatically inject .env (--dart-define-from-file),',
+      '  enable native Dart code obfuscation (--obfuscate), and strip symbols.',
+      '',
       'Examples:',
       '  arcle build apk              # Interactive mode and version selection',
-      '  arcle build apk --release    # Build release APK',
+      '  arcle build apk --release    # Build secure release APK with obfuscation',
       '  arcle build apk --debug      # Build debug APK',
       '  arcle build apk --release --env prod --version-name 1.2.0 --version-code 12',
     ].join('\n');

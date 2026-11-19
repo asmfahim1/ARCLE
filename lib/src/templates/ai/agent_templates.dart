@@ -1,7 +1,8 @@
 import '../../state_management.dart';
 
 class AgentTemplates {
-  static String settingsYaml(StateManagement state) => '''
+  static String settingsYaml(StateManagement state) =>
+      '''
 # ARCLE AI Agent Settings
 # This file is read by all configured AI agents to understand project preferences.
 # Edit freely — ARCLE will never overwrite this file after initial creation.

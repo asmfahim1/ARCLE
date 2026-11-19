@@ -122,8 +122,11 @@ created_at: 2026-03-14T10:00:00.000
     test('readFrom falls back to Dio when network key is missing', () {
       final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
       try {
-        File('${tempDir.path}${Platform.pathSeparator}arcle.yaml')
-            .writeAsStringSync('state: bloc\ncreated_at: 2026-03-14T10:00:00.000\n');
+        File(
+          '${tempDir.path}${Platform.pathSeparator}arcle.yaml',
+        ).writeAsStringSync(
+          'state: bloc\ncreated_at: 2026-03-14T10:00:00.000\n',
+        );
         expect(ArcleConfig.readFrom(tempDir)?.network, NetworkClient.dio);
       } finally {
         tempDir.deleteSync(recursive: true);
@@ -133,8 +136,9 @@ created_at: 2026-03-14T10:00:00.000
     test('readFrom reads the http network client', () {
       final tempDir = Directory.systemTemp.createTempSync('arcle_test_');
       try {
-        File('${tempDir.path}${Platform.pathSeparator}arcle.yaml')
-            .writeAsStringSync(
+        File(
+          '${tempDir.path}${Platform.pathSeparator}arcle.yaml',
+        ).writeAsStringSync(
           'state: riverpod\nnetwork: http\ncreated_at: 2026-03-14T10:00:00.000\n',
         );
         expect(ArcleConfig.readFrom(tempDir)?.network, NetworkClient.http);

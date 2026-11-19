@@ -94,7 +94,8 @@ class FeatureTemplates {
     };
   }
 
-  static String _model(String snake, String className) => '''
+  static String _model(String snake, String className) =>
+      '''
 import '../../domain/entity/${snake}_entity.dart';
 
 class ${className}Model {
@@ -119,7 +120,8 @@ class ${className}Model {
 }
 ''';
 
-  static String _entity(String snake, String className) => '''
+  static String _entity(String snake, String className) =>
+      '''
 class ${className}Entity {
   ${className}Entity({
     required this.id,
@@ -131,7 +133,8 @@ class ${className}Entity {
 }
 ''';
 
-  static String _repositoryContract(String snake, String className) => '''
+  static String _repositoryContract(String snake, String className) =>
+      '''
 import '../../../../core/network/result.dart';
 import '../entity/${snake}_entity.dart';
 
@@ -145,12 +148,12 @@ abstract class ${className}Repository {
     String snake,
     String className,
   ) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc ? '@lazySingleton\n' : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@lazySingleton\n'
+        : '';
     // Use the snake name to preserve word boundaries for endpoints.
     final camelName = StringHelpers.camelCase(snake);
     return '''
@@ -192,14 +195,12 @@ class ${className}RemoteSource {
     String snake,
     String className,
   ) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc
-            ? '@LazySingleton(as: ${className}Repository)\n'
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@LazySingleton(as: ${className}Repository)\n'
+        : '';
     return '''
 import '../../../../core/network/api_failure.dart';
 import '../../../../core/network/result.dart';
@@ -246,10 +247,9 @@ class ${className}RepositoryImpl implements ${className}Repository {
     String snake,
     String className,
   ) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 import '../../../../core/network/result.dart';
@@ -270,7 +270,8 @@ class ${className}UseCase {
 ''';
   }
 
-  static String _blocEvent(String snake, String className) => '''
+  static String _blocEvent(String snake, String className) =>
+      '''
 import 'package:equatable/equatable.dart';
 
 abstract class ${className}Event extends Equatable {
@@ -285,7 +286,8 @@ class Load$className extends ${className}Event {
 }
 ''';
 
-  static String _blocState(String snake, String className) => '''
+  static String _blocState(String snake, String className) =>
+      '''
 import 'package:equatable/equatable.dart';
 import '../../domain/entity/${snake}_entity.dart';
 
@@ -319,7 +321,8 @@ class ${className}State extends Equatable {
 }
 ''';
 
-  static String _blocBloc(String snake, String className) => '''
+  static String _blocBloc(String snake, String className) =>
+      '''
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/usecase/${snake}_usecase.dart';
@@ -358,7 +361,8 @@ class ${className}Bloc extends Bloc<${className}Event, ${className}State> {
 }
 ''';
 
-  static String _blocScreen(String snake, String className) => '''
+  static String _blocScreen(String snake, String className) =>
+      '''
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -397,7 +401,8 @@ class ${className}Screen extends StatelessWidget {
 }
 ''';
 
-  static String _getxController(String snake, String className) => '''
+  static String _getxController(String snake, String className) =>
+      '''
 import 'package:get/get.dart';
 
 import '../../domain/entity/${snake}_entity.dart';
@@ -441,7 +446,8 @@ class ${className}Controller extends GetxController {
 }
 ''';
 
-  static String _getxBinding(String snake, String className) => '''
+  static String _getxBinding(String snake, String className) =>
+      '''
 import 'package:get/get.dart';
 
 import '../../domain/usecase/${snake}_usecase.dart';
@@ -470,7 +476,8 @@ class ${className}Binding extends Bindings {
 }
 ''';
 
-  static String _getxScreen(String snake, String className) => '''
+  static String _getxScreen(String snake, String className) =>
+      '''
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -503,7 +510,8 @@ class ${className}Screen extends StatelessWidget {
 }
 ''';
 
-  static String _riverpodState(String snake, String className) => '''
+  static String _riverpodState(String snake, String className) =>
+      '''
 import 'package:flutter/foundation.dart';
 import '../../domain/entity/${snake}_entity.dart';
 
@@ -566,7 +574,8 @@ class ${className}State {
 }
 ''';
 
-  static String _riverpodProviders(String snake, String className) => '''
+  static String _riverpodProviders(String snake, String className) =>
+      '''
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repository/${snake}_repository.dart';
@@ -643,7 +652,8 @@ class ${className}Notifier extends StateNotifier<${className}State> {
 }
 ''';
 
-  static String _riverpodScreen(String snake, String className) => '''
+  static String _riverpodScreen(String snake, String className) =>
+      '''
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -745,7 +755,8 @@ class ${className}Screen extends ConsumerWidget {
 }
 ''';
 
-  static String _cardWidget(String snake, String className) => '''
+  static String _cardWidget(String snake, String className) =>
+      '''
 import 'package:flutter/material.dart';
 import '../../domain/entity/${snake}_entity.dart';
 

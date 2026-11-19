@@ -18,38 +18,33 @@ class AgentCommand {
     final parser = ArgParser()..addFlag('help', abbr: 'h', negatable: false);
 
     // add subcommand
-    final addParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final addParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('add', addParser);
 
     // remove subcommand
-    final removeParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final removeParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('remove', removeParser);
 
     // switch subcommand
-    final switchParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final switchParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('switch', switchParser);
 
     // list subcommand
-    final listParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final listParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('list', listParser);
 
     // validate subcommand
-    final validateParser =
-        ArgParser()
-          ..addFlag('help', abbr: 'h', negatable: false)
-          ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
+    final validateParser = ArgParser()
+      ..addFlag('help', abbr: 'h', negatable: false)
+      ..addOption('path', abbr: 'p', defaultsTo: Directory.current.path);
     parser.addCommand('validate', validateParser);
 
     return parser;
@@ -242,8 +237,12 @@ class AgentCommand {
     };
 
     for (final entry in agentInstructionMap.entries) {
-      final agentDirName = entry.key == 'custom' ? '.custom-agent' : '.${entry.key}';
-      final agentDir = Directory('${targetDir.path}${Platform.pathSeparator}$agentDirName');
+      final agentDirName = entry.key == 'custom'
+          ? '.custom-agent'
+          : '.${entry.key}';
+      final agentDir = Directory(
+        '${targetDir.path}${Platform.pathSeparator}$agentDirName',
+      );
       if (agentDir.existsSync()) {
         final norm = entry.value.replaceAll('/', Platform.pathSeparator);
         final file = File('${targetDir.path}${Platform.pathSeparator}$norm');
@@ -253,7 +252,9 @@ class AgentCommand {
           final content = file.readAsStringSync();
           if (!content.contains('.ai/architecture-rules.md') ||
               !content.contains('.ai/coding-rules.md')) {
-            ui.warn('${entry.value} is missing references to mandatory .ai/ shared rules');
+            ui.warn(
+              '${entry.value} is missing references to mandatory .ai/ shared rules',
+            );
           }
         } else {
           passed = false;
@@ -267,7 +268,9 @@ class AgentCommand {
       '${targetDir.path}${Platform.pathSeparator}.codex${Platform.pathSeparator}instructions.md',
     );
     if (staleCodex.existsSync()) {
-      ui.warn('.codex/instructions.md is stale/deprecated. Rename or migrate to .codex/CODEX.md');
+      ui.warn(
+        '.codex/instructions.md is stale/deprecated. Rename or migrate to .codex/CODEX.md',
+      );
     }
 
     if (passed) {
@@ -291,12 +294,7 @@ class AgentCommand {
         );
         break;
       case 'codex':
-        _writeFile(
-          ui,
-          targetDir,
-          '.codex/CODEX.md',
-          _codexPlaceholder(),
-        );
+        _writeFile(ui, targetDir, '.codex/CODEX.md', _codexPlaceholder());
         _writeFile(
           ui,
           targetDir,

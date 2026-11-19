@@ -237,10 +237,9 @@ class ReviewCommand {
 
   List<String>? _getChangedDartFiles(Directory dir, {required bool staged}) {
     try {
-      final args =
-          staged
-              ? ['diff', '--staged', '--name-only']
-              : ['diff', 'HEAD', '--name-only'];
+      final args = staged
+          ? ['diff', '--staged', '--name-only']
+          : ['diff', 'HEAD', '--name-only'];
       final result = Process.runSync(
         'git',
         args,
@@ -262,10 +261,9 @@ class ReviewCommand {
   String? _toTestPath(String libPath) {
     if (!libPath.startsWith('lib/')) return null;
     final withoutLib = libPath.substring('lib/'.length);
-    final withoutExt =
-        withoutLib.endsWith('.dart')
-            ? withoutLib.substring(0, withoutLib.length - 5)
-            : withoutLib;
+    final withoutExt = withoutLib.endsWith('.dart')
+        ? withoutLib.substring(0, withoutLib.length - 5)
+        : withoutLib;
     return 'test/${withoutExt}_test.dart';
   }
 

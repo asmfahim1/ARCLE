@@ -217,6 +217,7 @@ class ProjectGenerator {
     _updateDevDependencies(targetDir);
     _writeConfig(targetDir);
     _updateSdkConstraint(targetDir);
+    _updateGitIgnore(targetDir);
     _updateAndroidGradle(targetDir);
     _updateIOSPodfile(targetDir);
     _updateIOSInfoPlist(targetDir);
@@ -367,6 +368,7 @@ class ProjectGenerator {
     _updateSettingsGradle(androidDir, versions);
     _updateGradleWrapper(androidDir, versions);
     _updateAppBuildGradle(androidDir);
+    _ensureProguardRules(androidDir);
   }
 
   void _updateSettingsGradle(
@@ -659,6 +661,10 @@ class ProjectGenerator {
       changed = _ensureCoreLibraryDesugaringDependency(lines) || changed;
     }
 
+    if (!_containsLine(lines, 'proguard-rules.pro')) {
+      changed = _ensureProguardInAppBuildGradleGroovy(lines) || changed;
+    }
+
     if (!_containsLine(lines, 'flutter {')) {
       lines.add('');
       lines.add('flutter {');
@@ -694,6 +700,10 @@ class ProjectGenerator {
     // Kotlin DSL uses `coreLibraryDesugaring("...")`
     if (!_containsLinePattern(lines, r'coreLibraryDesugaring\s*\(')) {
       changed = _ensureCoreLibraryDesugaringDependencyKotlin(lines) || changed;
+    }
+
+    if (!_containsLine(lines, 'proguard-rules.pro')) {
+      changed = _ensureProguardInAppBuildGradleKotlin(lines) || changed;
     }
 
     // Check for flutter block
@@ -960,6 +970,99 @@ class ProjectGenerator {
     final indent = _leadingWhitespace(lines[flutterIndex]);
     lines.insert(flutterIndex + 1, '$indent  source = "../.."');
     return true;
+  }
+
+  bool _ensureProguardInAppBuildGradleGroovy(List<String> lines) {
+    final releaseIndex = lines.indexWhere(
+      (line) => line.trim().startsWith('release {'),
+    );
+    if (releaseIndex != -1) {
+      final indent = _leadingWhitespace(lines[releaseIndex]);
+      lines.insert(
+        releaseIndex + 1,
+        "$indent        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'",
+      );
+      return true;
+    }
+    return false;
+  }
+
+  bool _ensureProguardInAppBuildGradleKotlin(List<String> lines) {
+    final releaseIndex = lines.indexWhere(
+      (line) =>
+          line.trim().startsWith('release {') ||
+          line.trim().startsWith('getByName("release") {'),
+    );
+    if (releaseIndex != -1) {
+      final indent = _leadingWhitespace(lines[releaseIndex]);
+      lines.insert(
+        releaseIndex + 1,
+        '$indent        proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")',
+      );
+      return true;
+    }
+    return false;
+  }
+
+  void _ensureProguardRules(Directory androidDir) {
+    final appDir = Directory('${androidDir.path}${Platform.pathSeparator}app');
+    if (!appDir.existsSync()) return;
+
+    final proguardFile = File(
+      '${appDir.path}${Platform.pathSeparator}proguard-rules.pro',
+    );
+    if (!proguardFile.existsSync()) {
+      const proguardContent = '''
+# ARCLE ProGuard Rules for Android Release Builds
+
+# Flutter wrapper rules
+-keep class io.flutter.app.** { *; }
+-keep class io.flutter.plugin.**  { *; }
+-keep class io.flutter.util.**  { *; }
+-keep class io.flutter.view.**  { *; }
+-keep class io.flutter.** { *; }
+-keep class io.flutter.plugins.**  { *; }
+
+# Prevent obfuscation of serializable / model classes if using reflection
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+
+# Suppress ProGuard warnings for missing references from plugins
+-dontwarn io.flutter.embedding.**
+''';
+      proguardFile.writeAsStringSync(proguardContent);
+      ui.itemCreated(
+        'android${Platform.pathSeparator}app${Platform.pathSeparator}proguard-rules.pro',
+      );
+    }
+  }
+
+  void _updateGitIgnore(Directory base) {
+    final gitIgnoreFile = File(
+      '${base.path}${Platform.pathSeparator}.gitignore',
+    );
+    const rules = '''
+
+# ARCLE Environment configuration
+.env
+.env.*
+!.env.example
+''';
+    if (!gitIgnoreFile.existsSync()) {
+      gitIgnoreFile.writeAsStringSync(rules.trimLeft());
+      ui.itemCreated('.gitignore');
+      return;
+    }
+
+    final content = gitIgnoreFile.readAsStringSync();
+    if (content.contains('.env')) {
+      return;
+    }
+
+    gitIgnoreFile.writeAsStringSync('$content$rules');
+    ui.itemUpdated('.gitignore');
   }
 
   void _updateIOSPodfile(Directory base) {

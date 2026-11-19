@@ -8,14 +8,17 @@ class AppTemplates {
 import 'package:flutter/material.dart';
 
 import 'core/di/app_di.dart';
-import 'core/route_handler/app_route_observer.dart';
+// To restore the last visited screen across app restarts, uncomment the import
+// and the AppRouteStorage.restoreInitialRoute() call below:
+// import 'core/route_handler/app_route_observer.dart';
 import 'app/app.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await setupDependencies();
-  await AppRouteStorage.restoreInitialRoute();
+  // To restore the last visited screen across app restarts, uncomment:
+  // await AppRouteStorage.restoreInitialRoute();
 
   runApp(const App());
 }
@@ -26,7 +29,9 @@ import 'package:flutter/material.dart';
 
 import 'core/di/app_di.dart';
 import 'core/env/env_factory.dart';
-import 'core/route_handler/app_route_observer.dart';
+// To restore the last visited screen across app restarts, uncomment the import
+// and the AppRouteStorage.restoreInitialRoute() call below:
+// import 'core/route_handler/app_route_observer.dart';
 import 'app/app.dart';
 
 Future<void> bootstrap() async {
@@ -34,7 +39,8 @@ Future<void> bootstrap() async {
 
   final env = EnvFactory.current();
   await AppDi().register(env);
-  await AppRouteStorage.restoreInitialRoute();
+  // To restore the last visited screen across app restarts, uncomment:
+  // await AppRouteStorage.restoreInitialRoute();
 
   runApp(const App());
 }
@@ -46,7 +52,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/di/app_di.dart';
 import 'core/env/env_factory.dart';
-import 'core/route_handler/app_route_observer.dart';
+// To restore the last visited screen across app restarts, uncomment the import
+// and the AppRouteStorage.restoreInitialRoute() call below:
+// import 'core/route_handler/app_route_observer.dart';
 import 'app/app.dart';
 
 Future<void> bootstrap() async {
@@ -54,7 +62,8 @@ Future<void> bootstrap() async {
 
   final env = EnvFactory.current();
   final container = await AppDi().register(env);
-  await AppRouteStorage.restoreInitialRoute();
+  // To restore the last visited screen across app restarts, uncomment:
+  // await AppRouteStorage.restoreInitialRoute();
 
   runApp(
     UncontrolledProviderScope(
@@ -101,7 +110,8 @@ import 'package:$projectName/core/utils/constants.dart';
 $stateImports
 import '../core/localization/app_strings.dart';
 $routeImports
-import '../core/route_handler/app_route_observer.dart';
+// To observe routes or track navigation analytics, uncomment the import below:
+// import '../core/route_handler/app_route_observer.dart';
 import '../core/theme_manager/app_theme.dart';
 
 class App extends StatelessWidget {
@@ -154,7 +164,8 @@ MultiBlocProvider(
                 child: child ?? const SizedBox.shrink(),
               );
             },
-            navigatorObservers: [appRouteObserver],
+            // To observe routes or track route changes, uncomment the line below:
+            // navigatorObservers: [appRouteObserver],
             navigatorKey: AppRoutes.navigatorKey,
             initialRoute: AppRoutes.initialRoute,
             onGenerateRoute: AppRouter.onGenerateRoute,
@@ -192,7 +203,8 @@ GetBuilder<AppSettingsController>(
               child: child ?? const SizedBox.shrink(),
             );
           },
-          navigatorObservers: [appRouteObserver],
+          // To observe routes or track route changes, uncomment the line below:
+          // navigatorObservers: [appRouteObserver],
           initialRoute: AppRoutes.initialRoute,
           getPages: AppRouter.pages,
         );
@@ -227,7 +239,8 @@ Consumer(
               child: child ?? const SizedBox.shrink(),
             );
           },
-          navigatorObservers: [appRouteObserver],
+          // To observe routes or track route changes, uncomment the line below:
+          // navigatorObservers: [appRouteObserver],
           navigatorKey: AppRoutes.navigatorKey,
           initialRoute: AppRoutes.initialRoute,
           onGenerateRoute: AppRouter.onGenerateRoute,

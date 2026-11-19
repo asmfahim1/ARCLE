@@ -2,7 +2,8 @@ import '../../state_management.dart';
 
 class CodexTemplates {
   /// Primary instruction generator for OpenAI Codex (.codex/CODEX.md).
-  static String codexMd(String projectName, StateManagement state) => '''
+  static String codexMd(String projectName, StateManagement state) =>
+      '''
 # CODEX.md — Mandatory ARCLE Development Workflow Rules
 
 This file is the mandatory entry point for OpenAI Codex in **$projectName**.

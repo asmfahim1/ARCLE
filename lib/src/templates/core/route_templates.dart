@@ -22,6 +22,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_routes.dart';
 
+/// Handles persistent storage of the user's last visited route.
+///
+/// By default, route restoration is disabled in `lib/bootstrap.dart` so fresh app launches
+/// begin cleanly at [AppRoutes.initialRoute]. To enable route restoration, uncomment
+/// [AppRouteStorage.restoreInitialRoute] in `lib/bootstrap.dart`.
 class AppRouteStorage {
   static const _key = 'last_route';
 
@@ -40,6 +45,10 @@ class AppRouteStorage {
   }
 }
 
+/// Route observer that saves each navigated route to [AppRouteStorage].
+///
+/// To enable route tracking across the app, uncomment [appRouteObserver] in
+/// `lib/app/app.dart` under `navigatorObservers`.
 class AppRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   void _saveRoute(Route<dynamic>? route) {
     final name = route?.settings.name;

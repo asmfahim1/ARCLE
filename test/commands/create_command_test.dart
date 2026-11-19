@@ -83,10 +83,7 @@ void main() {
         CreateCommand.parser().parse(['--network', 'http'])['network'],
         'http',
       );
-      expect(
-        CreateCommand.parser().parse(['-n', 'http'])['network'],
-        'http',
-      );
+      expect(CreateCommand.parser().parse(['-n', 'http'])['network'], 'http');
     });
 
     test('parser rejects invalid network option', () {

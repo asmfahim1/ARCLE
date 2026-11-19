@@ -19,8 +19,9 @@ Map<String, String> buildBlocProjectFiles({
     'assets/langs/bn.json': LocalizationTemplates.bnJson(),
     'lib/core/di/injection.dart': DiTemplates.blocInjection(),
     'lib/core/di/injectable_module.dart': DiTemplates.blocInjectableModule(),
-    'lib/core/di/injection.config.dart':
-        DiTemplates.blocInjectionConfig(network),
+    'lib/core/di/injection.config.dart': DiTemplates.blocInjectionConfig(
+      network,
+    ),
     'lib/core/di/bloc_providers.dart':
         BlocProvidersTemplates.appBlocProviders(),
   });

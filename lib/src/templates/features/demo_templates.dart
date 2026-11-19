@@ -359,10 +359,9 @@ abstract class DemoRepository {
 ''';
 
   static String _loginUsecase(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
@@ -385,10 +384,9 @@ ${injectableAnno}class LoginUseCase {
   }
 
   static String _getUsersUsecase(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
@@ -409,10 +407,9 @@ ${injectableAnno}class GetUsersUseCase {
   }
 
   static String _logoutUsecase(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
     return '''
 $injectableImport
@@ -481,15 +478,13 @@ class UserModel extends UserEntity {
     StateManagement state,
     NetworkClient network,
   ) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
     final injectableAnno = state == StateManagement.bloc ? '@injectable\n' : '';
-    final clientImport =
-        network.isHttp
-            ? "import '../../../../core/network/http_client.dart';\n"
-            : "import 'package:dio/dio.dart';\n";
+    final clientImport = network.isHttp
+        ? "import '../../../../core/network/http_client.dart';\n"
+        : "import 'package:dio/dio.dart';\n";
     final responseType = network.isHttp ? 'ApiResponse' : 'Response<dynamic>';
 
     return '''
@@ -518,14 +513,12 @@ class DemoRemoteDataSource {
   }
 
   static String _demoRepositoryImpl(StateManagement state) {
-    final injectableImport =
-        state == StateManagement.bloc
-            ? "import 'package:injectable/injectable.dart';\n"
-            : '';
-    final injectableAnno =
-        state == StateManagement.bloc
-            ? '@LazySingleton(as: DemoRepository)\n'
-            : '';
+    final injectableImport = state == StateManagement.bloc
+        ? "import 'package:injectable/injectable.dart';\n"
+        : '';
+    final injectableAnno = state == StateManagement.bloc
+        ? '@LazySingleton(as: DemoRepository)\n'
+        : '';
     return '''
 $injectableImport
 import 'package:dartz/dartz.dart';

@@ -66,7 +66,8 @@ class RouteUpdater {
     final routeName = _camelCase(className);
     final importLine =
         "import '../../features/$featureName/presentation/pages/${featureName}_screen.dart';";
-    final caseLines = '''
+    final caseLines =
+        '''
       case AppRoutes.$routeName:
         return MaterialPageRoute(builder: (_) => const ${className}Screen());''';
 

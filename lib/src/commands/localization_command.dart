@@ -16,41 +16,39 @@ class LocalizationCommand {
   final Console console;
 
   static ArgParser parser() {
-    final addParser =
-        ArgParser()
-          ..addOption(
-            'state',
-            abbr: 's',
-            allowed: const ['bloc', 'getx', 'riverpod'],
-            help: 'State management option (bloc, getx, riverpod)',
-          )
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of an ARCLE Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'force',
-            abbr: 'f',
-            help: 'Overwrite existing localization files',
-            negatable: false,
-          );
+    final addParser = ArgParser()
+      ..addOption(
+        'state',
+        abbr: 's',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
+      )
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of an ARCLE Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing localization files',
+        negatable: false,
+      );
 
-    final removeParser =
-        ArgParser()
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of an ARCLE Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'force',
-            abbr: 'f',
-            help: 'Skip confirmation prompt',
-            negatable: false,
-          );
+    final removeParser = ArgParser()
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of an ARCLE Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Skip confirmation prompt',
+        negatable: false,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -284,11 +282,10 @@ class LocalizationCommand {
 
     final original = pubspecFile.readAsStringSync();
     final lines = original.split('\n');
-    final filtered =
-        lines.where((line) {
-          final t = line.trim();
-          return t != '- assets/langs/' && t != '-assets/langs/';
-        }).toList();
+    final filtered = lines.where((line) {
+      final t = line.trim();
+      return t != '- assets/langs/' && t != '-assets/langs/';
+    }).toList();
 
     if (filtered.length < lines.length) {
       pubspecFile.writeAsStringSync(filtered.join('\n'));
@@ -373,10 +370,9 @@ class LocalizationCommand {
   }
 
   String _relative(String base, String full) {
-    final b =
-        base.endsWith(Platform.pathSeparator)
-            ? base
-            : '$base${Platform.pathSeparator}';
+    final b = base.endsWith(Platform.pathSeparator)
+        ? base
+        : '$base${Platform.pathSeparator}';
     return full.startsWith(b) ? full.substring(b.length) : full;
   }
 

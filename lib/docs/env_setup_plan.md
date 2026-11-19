@@ -2,7 +2,7 @@
 
 ## Executive Overview
 
-This document records the architectural discussion, threat analysis, technical impact, and implementation strategy for introducing a secure `.env` and environment management system to ARCLE in version **3.1.0**.
+This document records the architectural discussion, threat analysis, technical impact, value resolution mechanics, developer education, and implementation strategy for introducing a secure `.env` and environment management system to ARCLE in version **3.1.0**.
 
 ---
 
@@ -23,141 +23,335 @@ Currently, ARCLE generates static Dart classes under `lib/core/env/`:
 
 ---
 
-## 2. Security Threat Model: `.env` vs. Reverse Engineering
+## 2. File Architecture: Single `.env` & `.env.example` Model
 
-A critical question is: **Does introducing a `.env` file prevent reverse engineering?**
+Per architectural decision, ARCLE avoids file clutter by maintaining exactly **two** environment configuration files at the project root:
 
-### The Cold Reality of Mobile App Security
-In mobile application security, there are two distinct security domains:
-
-| Domain | What It Protects | Does `.env` Help? |
-| :--- | :--- | :---: |
-| **A. Repository & Supply Chain Security** | Prevents secrets from leaking into Git commits, GitHub/GitLab repositories, pull requests, and CI logs. | **YES (Huge Improvement)** |
-| **B. Client-Side Reverse Engineering** | Prevents an attacker who downloads the APK/IPA from extracting keys, URLs, or secrets. | **Depends heavily on implementation (see below)** |
-
-### Deconstruction of Implementation Approaches
-
-#### Trap 1: The Asset-Based Approach (e.g., `flutter_dotenv` package)
-- **Mechanism**: The `.env` file is declared in `pubspec.yaml` under `assets: - .env` and parsed at runtime via file I/O.
-- **Reverse Engineering Vulnerability**: **FATAL**.
-  - When an APK is unzipped (`unzip app.apk`), the `.env` file sits in `assets/flutter_assets/.env` in **pure, unencrypted plaintext**.
-  - Any attacker using standard tools (`apktool`, `jadx`, or basic file inspection) can read every key in seconds.
-  - **Verdict**: Asset-based `.env` is actually *worse* than compiled Dart code.
-
-#### Trap 2: The Native Flutter Approach (`--dart-define-from-file`) — **RECOMMENDED**
-- **Mechanism**: Introduced in Flutter 3.7+, Flutter natively supports `--dart-define-from-file=<path_to_env_file>`.
-  - Keys in `.env` are injected at build time as compile-time constants via `const String.fromEnvironment('KEY')`.
-  - **Zero third-party packages required** (pure Dart/Flutter).
-  - The `.env` file itself is **NEVER bundled** into the APK or IPA assets.
-  - Constants are compiled into Dart's AOT machine code snapshot (`libapp.so`).
-- **Reverse Engineering Reality**:
-  - Because values are compiled into `libapp.so`, they cannot be retrieved by unzipping assets.
-  - However, strings in binary can still be inspected via binary strings analysis (`strings libapp.so`), memory dumping, or network proxy inspection (MITMProxy/Charles).
-  - **Verdict**: Superior to asset bundling, clean zero-dependency implementation, protects Git repository.
-
-#### The Golden Rule of Mobile Architecture
-> **No client-side mobile application can securely hold a true backend secret.**
-> 
-> - **Client-Safe Keys** (Can be in client via `.env`): Base URLs, Firebase Web API key, Google Maps keys (restricted by Android SHA-1 / iOS Bundle ID), Sentry DSN, Stripe publishable key (`pk_live_...`).
-> - **Forbidden in Client** (Must NEVER be in mobile app): Stripe secret key (`sk_live_...`), AWS private keys, database credentials, JWT private signing keys. These must always live on a secure backend server.
-
----
-
-## 3. Deep Dive: ProGuard/R8 Rules & Data Encryption
-
-### A. Can ProGuard / R8 Rules Protect Environment Secrets?
-- **What ProGuard / R8 Does**:
-  - ProGuard/R8 is an Android build tool that shrinks, optimizes, and obfuscates **Java and Kotlin bytecode** (`classes.dex`).
-- **The Flutter Reality**:
-  - In a Flutter app, all your Dart code (`lib/`, business logic, UI, and environment variables) compiles into **`libapp.so`**, which is an **ARM native machine code ELF binary**.
-  - **ProGuard does NOT touch Dart code or `libapp.so`**. ProGuard only obfuscates the native Android host layer (`MainActivity.kt`, Android plugins, Gradle libraries).
-- **How to Obfuscate Flutter/Dart Code**:
-  - To obfuscate Dart code, Flutter provides its own native compiler flag:
-    ```bash
-    flutter build apk --obfuscate --split-debug-info=<symbols-directory>
-    ```
-  - This strips symbol names and class names from `libapp.so`, making disassembly significantly harder.
-- **Can ARCLE Provide ProGuard Rules?**:
-  - **Yes, for the Android native layer**: ARCLE can scaffold an optimized `android/app/proguard-rules.pro` that strips unused classes, protects JNI bridges, and disables sensitive Android debugging flags.
-
----
-
-### B. Can We Encrypt the Data Inside the `.env` File?
-A common proposal is: *"Can we encrypt `.env` so if someone finds it, they cannot decrypt it?"*
-
-#### The "Key Storage Dilemma" (Client-Side Cryptography Paradox)
-1. **If you encrypt `.env` on disk**:
-   - The mobile app must decrypt the file at runtime in order to use `apiBaseUrl` or API keys.
-   - To decrypt it, the app needs the **Decryption Key** and the **Decryption Algorithm**.
-   - Where does the decryption key live?
-     - If the key is stored inside the app (in Dart code, Java code, or C++ NDK), an attacker who decompiles the app can find the key and run the exact same decryption logic.
-     - Storing both the lock and the key in the user's hand is the classic mobile security dilemma (**Kerckhoffs's principle violation**).
-2. **If we use Native `--dart-define-from-file`**:
-   - The `.env` file is **NEVER in the APK**. There is **no file to find or decrypt**.
-   - The values exist only on the developer's machine at build time. The build process bakes the compiled strings directly into the machine code of `libapp.so`.
-
-#### What About Compile-Time XOR / Obfuscation (like `envied`)?
-- Libraries like `envied` do not store an encrypted file. Instead, at build time:
-  - They convert each secret string into an array of random bytes and XOR masks.
-  - At runtime, a getter evaluates `mask1 ^ mask2 ^ mask3` in memory to reconstruct the string just before making an HTTP request.
-- **Does it work?**
-  - It stops simple `strings libapp.so` commands from seeing the plaintext string in binary.
-  - However, an attacker running dynamic analysis (e.g. Frida hook on the getter, or dumping memory, or sniffing traffic with an HTTP proxy) still retrieves the string in memory or in transit.
-- **Trade-off for ARCLE**:
-  - `envied` requires `build_runner` code generation, adding build complexity and third-party dependencies.
-  - Native `--dart-define-from-file` combined with Flutter's `--obfuscate` flag gives 90% of the benefit with **zero extra dependencies** and **zero build_runner overhead**.
-
----
-
-### C. The Network Interception Catch (MITM)
-Even if a key is encrypted with military-grade encryption inside the binary, the moment the app sends:
-```http
-GET https://api.mybackend.com/users
-Authorization: Bearer <SECRET_TOKEN>
 ```
-An attacker with a proxy tool (Charles Proxy, Proxyman, MITMProxy, Burp Suite) and a user-installed root CA certificate can see the secret in **plaintext HTTP traffic**.
+my_app/
+├── .env.example          # Committed to Git: defines template keys with dummy values
+├── .env                  # In .gitignore: holds actual local, staging, and production values
+├── .gitignore            # Ignores .env, preserves .env.example
+```
 
-**The True Defense**:
-To truly block reverse engineering and token theft:
-1. **Native Compile-Time Injection**: `--dart-define-from-file` (never put plaintext files in APK).
-2. **Binary Obfuscation**: `flutter build apk --obfuscate --split-debug-info=...`.
-3. **ProGuard / R8 Rules**: `proguard-rules.pro` for the Android native wrapper.
-4. **SSL / Certificate Pinning**: Pinning the server's public key hash in the HTTP client (Dio/Http) so proxies cannot inspect network traffic.
-5. **Backend-For-Frontend (BFF) Pattern**: Never giving the mobile app sensitive third-party API keys; all sensitive operations must go through your own backend API.
+### A. Structure of `.env` (Project Root)
+```properties
+# ─────────────────────────────────────────────────────────────────────────────
+# ARCLE Application Environment Configuration
+# DO NOT COMMIT THIS FILE TO VERSION CONTROL
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Active Flavor: prod | stag | local
+FLAVOR=stag
+
+# ── Production Environment ──────────────────────────────────────────────────
+PROD_API_BASE_URL=https://api.example.com
+PROD_API_KEY=prod_secret_key_placeholder
+
+# ── Staging Environment ─────────────────────────────────────────────────────
+STAG_API_BASE_URL=https://staging.api.example.com
+STAG_API_KEY=staging_secret_key_placeholder
+
+# ── Local Development Environment ───────────────────────────────────────────
+LOCAL_API_BASE_URL=http://10.0.2.2:3000
+LOCAL_API_KEY=local_debug_key_placeholder
+```
+
+### B. Structure of `.env.example` (Project Root)
+```properties
+# ─────────────────────────────────────────────────────────────────────────────
+# ARCLE Environment Template
+# Copy this file to .env and fill in your actual credentials.
+# ─────────────────────────────────────────────────────────────────────────────
+
+FLAVOR=stag
+
+PROD_API_BASE_URL=https://api.example.com
+PROD_API_KEY=your_production_api_key
+
+STAG_API_BASE_URL=https://staging.api.example.com
+STAG_API_KEY=your_staging_api_key
+
+LOCAL_API_BASE_URL=http://10.0.2.2:3000
+LOCAL_API_KEY=your_local_api_key
+```
+
+### C. Git Configuration (`.gitignore`)
+```gitignore
+# ARCLE Environment files
+.env
+.env.*
+!.env.example
+```
 
 ---
 
-## 4. Proposed Solution: The Pure, Zero-Dependency ARCLE Environment System
+## 3. How Dart Env Classes Read from `.env`
 
-### Key Pillars
-1. **Zero External Packages**: Use native Flutter `--dart-define-from-file`, avoiding package bloat, version incompatibilities, and asset bundling security vulnerabilities.
-2. **No `.env` in APK Assets**: The environment files are strictly build-time inputs; they are never bundled into the compiled application.
-3. **Git Leak Prevention**: Scaffold `.env.example` (committed to Git) and `.env.local` / `.env.stag` / `.env.prod` (ignored via `.gitignore`).
-4. **Clean Architecture Integration**: `lib/core/env/` provides strongly-typed Dart access via `Env` interface and `EnvFactory`, pulling values through `const String.fromEnvironment(...)`.
-5. **Android Native Hardening**: Provide pre-configured `android/app/proguard-rules.pro` with standard release shrinking, JNI protection, and logging stripping.
-6. **CLI Automation**:
-   - `arcle create`: Scaffolds `.env.example`, `.env.local`, `.env.stag`, `.env.prod`, updates `.gitignore`, and configures ProGuard.
-   - `arcle build apk --env prod`: Automatically binds `--dart-define-from-file=.env.prod` and `--obfuscate --split-debug-info=...`.
-   - `arcle doctor`: Validates that `.env` files are present and properly ignored by Git.
+All three classes (`ProdEnv`, `StagEnv`, `LocalEnv`) reside in `lib/core/env/` and read their respective prefixed keys from the single `.env` file via compile-time constants:
+
+```dart
+// lib/core/env/prod_env.dart
+class ProdEnv implements Env {
+  @override
+  String get name => 'prod';
+
+  @override
+  String get apiBaseUrl => const String.fromEnvironment(
+        'PROD_API_BASE_URL',
+        defaultValue: 'https://api.example.com',
+      );
+}
+
+// lib/core/env/stag_env.dart
+class StagEnv implements Env {
+  @override
+  String get name => 'stag';
+
+  @override
+  String get apiBaseUrl => const String.fromEnvironment(
+        'STAG_API_BASE_URL',
+        defaultValue: 'https://staging.api.example.com',
+      );
+}
+
+// lib/core/env/local_env.dart
+class LocalEnv implements Env {
+  @override
+  String get name => 'local';
+
+  @override
+  String get apiBaseUrl => const String.fromEnvironment(
+        'LOCAL_API_BASE_URL',
+        defaultValue: 'http://10.0.2.2:3000',
+      );
+}
+```
+
+### Dynamic Environment Resolution in `EnvFactory`
+```dart
+// lib/core/env/env_factory.dart
+class EnvFactory {
+  static Env current() {
+    const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'stag');
+
+    switch (flavor) {
+      case 'prod':
+        return ProdEnv();
+      case 'stag':
+        return StagEnv();
+      case 'local':
+        return LocalEnv();
+      default:
+        return StagEnv();
+    }
+  }
+
+  static Env getEnv() => current();
+}
+```
 
 ---
 
-## 5. Architectural Comparison: Options for ARCLE 3.1.0
+## 4. Value Resolution & Missing `.env` Handling at Build Time
 
-| Feature | Asset-Based (`flutter_dotenv`) | XOR Obfuscation (`envied`) | Native ARCLE (`--dart-define-from-file` + `--obfuscate`) |
+To prevent runtime crashes (`DioException: Invalid URI`) when `.env` is absent on a fresh clone:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   3-Tier Missing .env Protection                       │
+├─────────┬───────────────────────────┬──────────────────────────────────┤
+│ Tier 1  │ ARCLE CLI Pre-Build Gate  │ CLI checks .env before building; │
+│         │ (Build Time)              │ auto-creates or halts with error │
+├─────────┼───────────────────────────┼──────────────────────────────────┤
+│ Tier 2  │ Dart Const Default Fallback│ defaultValue prevents empty /    │
+│         │ (Compile Time)            │ null string crashes              │
+├─────────┼───────────────────────────┼──────────────────────────────────┤
+│ Tier 3  │ Bootstrap Assertion       │ Logs clear diagnostic error      │
+│         │ (Runtime Initialization)  │ instead of confusing HTTP errors │
+└─────────┴───────────────────────────┴──────────────────────────────────┘
+```
+
+1. **Tier 1 (CLI Pre-Build Gate)**:
+   - When running `arcle build apk`, ARCLE checks if `.env` exists.
+   - If missing, in interactive mode it prompts to copy `.env.example` $\rightarrow$ `.env`. In CI mode, it halts with an actionable error.
+2. **Tier 2 (Dart Compile-Time Default)**:
+   - `const String.fromEnvironment(..., defaultValue: '...')` ensures that if a developer runs raw `flutter run` without `.env`, the app does not crash.
+3. **Tier 3 (Runtime Bootstrap Assertion)**:
+   - `lib/bootstrap.dart` validates that `EnvFactory.current().apiBaseUrl` is not empty, printing an explicit warning to the console immediately on startup.
+
+### D. Impact Analysis on `bootstrap.dart` & Dependency Injection
+
+A vital architectural question is: **Will our `.env` changes break or require modifying `bootstrap.dart`?**
+
+```dart
+Future<void> bootstrap() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final env = EnvFactory.current();
+  await AppDi().register(env);
+  await AppRouteStorage.restoreInitialRoute();
+
+  runApp(const App());
+}
+```
+
+#### Why `bootstrap.dart` Remains 100% Intact (Zero Breaking Changes):
+1. **Perfect Abstraction Barrier**: `bootstrap.dart` does not know or care whether environment variables came from hardcoded strings, `.env`, or build flags. It simply requests `final env = EnvFactory.current();`.
+2. **Identical Contract**: `EnvFactory.current()` still returns a polymorphic instance of `Env` (`ProdEnv`, `StagEnv`, or `LocalEnv`).
+3. **Seamless Dependency Injection**: `await AppDi().register(env)` receives the exact same `Env` object interface. Services like `DioClient`, `ApiClient`, and controllers read `env.apiBaseUrl` without knowing where the string originated.
+4. **Conclusion**: `bootstrap.dart` **does NOT break**, requires zero refactoring, and continues to function exactly as designed.
+
+---
+
+## 5. Security Truth & Reverse Engineering Analysis
+
+### What `.env` with Native `--dart-define-from-file` Solves:
+1. **Never in APK Assets**: Unlike `flutter_dotenv`, native Flutter `--dart-define-from-file` **never bundles the `.env` file into the APK**. It is strictly a build-time input.
+2. **No Unencrypted Files to Decompile**: An attacker unzipping the APK will find **zero `.env` files**.
+3. **Compiled into Machine Code**: Key values are compiled directly into the Dart AOT snapshot binary (`libapp.so`).
+4. **Git Repository Hygiene**: Completely prevents committing production credentials to GitHub/GitLab.
+
+### What `.env` Alone Does NOT Solve:
+1. **Binary Strings Inspection**: If obfuscation is not applied, raw plaintext strings can still be found inside `libapp.so` using `strings libapp.so`.
+2. **Network Proxying (MITM)**: Any secret transmitted over HTTP/HTTPS can be intercepted with proxy tools (Charles, Proxyman, Burp Suite) unless Certificate Pinning is enabled.
+3. **Client-Side Secret Storage**: True backend secrets (e.g. AWS secret keys, Stripe secret key `sk_live`) must NEVER be placed in a mobile client.
+
+---
+
+## 6. ARCLE Build Security vs. Default Flutter / Android Studio Build
+
+This section empowers developers by explaining why `arcle build apk` is superior to default Flutter build commands, while providing manual fallback steps if they must build outside ARCLE.
+
+### Comparison Matrix
+
+| Capability | Default Flutter Build (`flutter build apk`) | Android Studio GUI (`Build > Flutter > Release APK`) | ARCLE CLI (`arcle build apk --release`) |
 | :--- | :---: | :---: | :---: |
-| **External Dependencies** | Needs 1 package | Needs 2 packages + `build_runner` | **0 (Pure Dart/Flutter)** |
-| **`.env` file in APK** | ❌ Plaintext in assets | ✅ Not in assets | ✅ **Not in assets** |
-| **Git Leaks Blocked** | ✅ Via `.gitignore` | ✅ Via `.gitignore` | ✅ **Via `.gitignore`** |
-| **Binary `strings` scan** | ❌ Plaintext | ✅ XOR masked | ⚠️ Native ARM machine code (obfuscated) |
-| **Memory / Frida dump** | ❌ Visible | ❌ Visible | ❌ Visible |
-| **Build Speed** | Fast | Slow (code generation) | **Instant (native compile-time)** |
-| **Maintenance & Compatibility** | Risk of package staleness | High build_runner breakage risk | **Guaranteed future-proof by Flutter SDK** |
+| **`.env` File Injection** | ❌ Ignored (must pass flag manually) | ❌ Ignored (no flag support in menu) | ✅ **Automatic (`--dart-define-from-file=.env`)** |
+| **Dart Symbol Obfuscation** | ❌ Disabled by default | ❌ Disabled by default | ✅ **Automatic (`--obfuscate`)** |
+| **Debug Symbol Stripping** | ❌ Disabled (symbols remain in APK) | ❌ Disabled | ✅ **Automatic (`--split-debug-info=...`)** |
+| **Flavor Selection** | ❌ Requires manual `--dart-define` | ❌ Not supported | ✅ **Automatic via `--env prod\|stag\|local`** |
+| **Missing `.env` Guard** | ❌ Silent failure / empty URLs | ❌ Silent failure / empty URLs | ✅ **Pre-build check with guided copy** |
+| **Output File Renaming** | ❌ Generic `app-release.apk` | ❌ Generic `app-release.apk` | ✅ **`my_app_prod_V1.0.0.apk`** |
+| **Android ProGuard Rules** | ⚠️ Only if configured manually | ⚠️ Only if configured manually | ✅ **Pre-scaffolded `proguard-rules.pro`** |
+
+### What Developers Miss When Using Default / Android Studio Builds
+1. **Un-injected `.env`**: Android Studio's release build menu does not pass `--dart-define-from-file=.env`. The compiled APK will have empty environment values or fall back to mock staging defaults.
+2. **Un-obfuscated Machine Code**: Default Flutter builds do not obfuscate `libapp.so`. Class names, function names, and architecture strings remain readable under disassemblers (Ghidra, IDA Pro).
+3. **Bloated APK Size**: Without `--split-debug-info`, debugging symbols are packed into the APK, increasing download size.
 
 ---
 
-## 6. Actionable Decisions for Discussion
+## 7. Developer Security Guide: How to Build Securely Outside ARCLE
 
-1. **Do you prefer the pure, zero-dependency native approach (`--dart-define-from-file` + `--obfuscate` + `proguard-rules.pro`)?**
-2. **Should `arcle build apk` automatically include `--obfuscate` and `--split-debug-info` for release builds?**
-3. **File Layout**: Confirm multi-file (`.env.local`, `.env.stag`, `.env.prod`, `.env.example`) as the primary pattern.
+If a developer or CI environment must build without using `arcle build apk`, they must follow these exact steps to match ARCLE's security standards:
+
+### A. Command-Line Release Build (Terminal / CI)
+```bash
+flutter build apk --release \
+  --dart-define-from-file=.env \
+  --dart-define=FLAVOR=prod \
+  --obfuscate \
+  --split-debug-info=build/app/outputs/symbols
+```
+
+### B. Android Studio / VS Code Configuration
+To run or build with environment variables in Android Studio / VS Code:
+1. In Android Studio: Open **Run/Debug Configurations** $\rightarrow$ **Edit Configurations**.
+2. In **Additional run args**, add:
+   ```text
+   --dart-define-from-file=.env
+   ```
+3. In VS Code: In `.vscode/launch.json`, add to your configuration:
+   ```json
+   "args": [
+     "--dart-define-from-file=.env"
+   ]
+   ```
+
+---
+
+## 8. Implementation Blueprint for ARCLE 3.1.0
+
+### A. Template Additions
+1. **`.env.example` Template**: Generated at project root by `ProjectGenerator`.
+2. **`.env` Template**: Generated with default local/staging values so the project runs immediately.
+3. **`.gitignore` Template**: Updated to ensure `.env` is ignored and `.env.example` is tracked.
+4. **`EnvTemplates` (`lib/src/templates/core/env_templates.dart`)**:
+   - `ProdEnv`: Reads `PROD_API_BASE_URL`.
+   - `StagEnv`: Reads `STAG_API_BASE_URL`.
+   - `LocalEnv`: Reads `LOCAL_API_BASE_URL`.
+   - `EnvFactory`: Reads `FLAVOR` and routes to the matching class.
+5. **Android ProGuard Template**: Scaffolds `android/app/proguard-rules.pro` and links it in `app/build.gradle`.
+
+### B. CLI Automation in `BuildCommand` (`lib/src/commands/build_command.dart`)
+1. Pre-build check: Verify `.env` exists; if missing, offer to copy from `.env.example`.
+2. Automatically inject `--dart-define-from-file=.env` into `flutter build apk`.
+3. If `--release`, automatically inject `--obfuscate --split-debug-info=build/app/outputs/symbols`.
+4. Inject `--dart-define=FLAVOR=$env`.
+
+---
+
+## 9. Route Observer Decoupling & Optional Enablement
+
+### Rationale
+Currently, scaffolded projects automatically register `AppRouteObserver` and call `AppRouteStorage.restoreInitialRoute()` upon application bootstrap.
+While useful for certain apps, enabling this by default creates unexpected behavior for new projects:
+1. **Bypassing Auth/Splash Logic**: Restoring the last visited screen from `SharedPreferences` on cold restart can cause the app to skip initial Splash, authentication checks, or onboarding flows.
+2. **Coupling Initial Navigation**: Fresh projects should follow predictable, deterministic navigation (`AppRoutes.initialRoute`).
+3. **Developer Optionality**: Route observation and state restoration should be an explicit opt-in feature, complete with clear inline documentation guiding developers on how and why to enable it.
+
+### Planned Changes in Scaffolding Templates
+
+#### 1. In `lib/bootstrap.dart` (across BLoC, GetX, Riverpod):
+Comment out the initial route restoration line and provide an actionable developer comment:
+```dart
+Future<void> bootstrap() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final env = EnvFactory.current();
+  await AppDi().register(env);
+
+  // NOTE: To persist and restore the user's last visited screen across app restarts,
+  // uncomment the line below (ensure auth guards handle restored routes properly):
+  // await AppRouteStorage.restoreInitialRoute();
+
+  runApp(const App());
+}
+```
+
+#### 2. In `lib/app/app.dart` (across BLoC, GetX, Riverpod):
+Comment out `navigatorObservers: [appRouteObserver]` and provide an actionable developer comment:
+```dart
+  // In MaterialApp / GetMaterialApp:
+  // navigatorObservers: [
+  //   // Uncomment below to enable navigation persistence or analytics tracking (Firebase, Sentry, etc.):
+  //   // appRouteObserver,
+  // ],
+```
+
+#### 3. In `lib/core/route_handler/app_route_observer.dart`:
+Keep the implementation file generated, but add a top-level documentation header:
+```dart
+/// Route observer and navigation persistence utility.
+///
+/// By default, route observation is commented out in `lib/bootstrap.dart` and `lib/app/app.dart`.
+///
+/// To enable:
+/// 1. In `lib/bootstrap.dart`: Uncomment `await AppRouteStorage.restoreInitialRoute();`
+/// 2. In `lib/app/app.dart`: Uncomment `appRouteObserver` under `navigatorObservers: [...]`.
+```
+
+---
+
+## 10. Implementation Readiness Checklist
+
+- [x] Add `.env` and `.env.example` file generators to `ProjectGenerator` / `buildCommonProjectFiles`.
+- [x] Add `.env*` to scaffolded `.gitignore` (with `!.env.example` exception).
+- [x] Update `EnvTemplates` (`prod_env.dart`, `stag_env.dart`, `local_env.dart`, `env_factory.dart`) to read prefixed keys from `.env`.
+- [x] Comment out `AppRouteStorage.restoreInitialRoute()` in `bootstrap.dart` template with developer guidelines.
+- [x] Comment out `navigatorObservers: [appRouteObserver]` in `app.dart` template with developer guidelines.
+- [x] Update `BuildCommand` to pre-check `.env`, inject `--dart-define-from-file=.env`, and add `--obfuscate --split-debug-info=...` for release builds.
+- [x] Add tests verifying `.env`, `.env.example`, `.gitignore`, `EnvTemplates`, and commented route observer templates.
+- [x] Run full verification suite (`dart analyze`, `dart test`, `dart pub publish --dry-run`).
+

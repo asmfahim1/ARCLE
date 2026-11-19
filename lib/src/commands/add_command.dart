@@ -21,26 +21,25 @@ class AddCommand {
   final Console console;
 
   static ArgParser parser() {
-    final localeParser =
-        ArgParser()
-          ..addOption(
-            'state',
-            abbr: 's',
-            allowed: const ['bloc', 'getx', 'riverpod'],
-            help: 'State management option (bloc, getx, riverpod)',
-          )
-          ..addOption(
-            'path',
-            abbr: 'p',
-            help: 'Directory of an ARCLE Flutter project',
-            defaultsTo: Directory.current.path,
-          )
-          ..addFlag(
-            'force',
-            abbr: 'f',
-            help: 'Overwrite existing localization files',
-            negatable: false,
-          );
+    final localeParser = ArgParser()
+      ..addOption(
+        'state',
+        abbr: 's',
+        allowed: const ['bloc', 'getx', 'riverpod'],
+        help: 'State management option (bloc, getx, riverpod)',
+      )
+      ..addOption(
+        'path',
+        abbr: 'p',
+        help: 'Directory of an ARCLE Flutter project',
+        defaultsTo: Directory.current.path,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Overwrite existing localization files',
+        negatable: false,
+      );
 
     return ArgParser()
       ..addFlag('help', abbr: 'h', negatable: false)
@@ -70,8 +69,9 @@ class AddCommand {
 
   Future<int> _runAddLocale(ArgResults cmd) async {
     final ui = CliUi(console);
-    final langCode =
-        cmd.rest.isNotEmpty ? cmd.rest.first.trim().toLowerCase() : null;
+    final langCode = cmd.rest.isNotEmpty
+        ? cmd.rest.first.trim().toLowerCase()
+        : null;
 
     if (langCode == null || langCode.isEmpty) {
       ui.error('Missing locale code.');
@@ -319,13 +319,12 @@ class AddCommand {
       final listMatch = RegExp(r'\[([^\]]*)\]').firstMatch(lines[i]);
       if (listMatch == null) continue;
 
-      final codes =
-          listMatch
-              .group(1)!
-              .split(',')
-              .map((s) => s.trim().replaceAll("'", ''))
-              .where((s) => s.isNotEmpty)
-              .toList();
+      final codes = listMatch
+          .group(1)!
+          .split(',')
+          .map((s) => s.trim().replaceAll("'", ''))
+          .where((s) => s.isNotEmpty)
+          .toList();
 
       if (add && !codes.contains(langCode)) {
         codes.add(langCode);
@@ -468,10 +467,9 @@ class AddCommand {
   }
 
   String _relative(String base, String full) {
-    final b =
-        base.endsWith(Platform.pathSeparator)
-            ? base
-            : '$base${Platform.pathSeparator}';
+    final b = base.endsWith(Platform.pathSeparator)
+        ? base
+        : '$base${Platform.pathSeparator}';
     return full.startsWith(b) ? full.substring(b.length) : full;
   }
 

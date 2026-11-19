@@ -5,14 +5,13 @@ class ReportWriter {
     final docs = Directory(_join(project.path, 'docs'));
     docs.createSync(recursive: true);
     final report = File(_join(docs.path, 'report.md'));
-    final buffer =
-        StringBuffer()
-          ..writeln('# ARCLE ${command.capitalize()} Report')
-          ..writeln()
-          ..writeln('Generated: ${DateTime.now().toIso8601String()}')
-          ..writeln()
-          ..writeln('## Results')
-          ..writeln();
+    final buffer = StringBuffer()
+      ..writeln('# ARCLE ${command.capitalize()} Report')
+      ..writeln()
+      ..writeln('Generated: ${DateTime.now().toIso8601String()}')
+      ..writeln()
+      ..writeln('## Results')
+      ..writeln();
     for (final line in lines) {
       buffer.writeln('- $line');
     }

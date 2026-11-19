@@ -277,10 +277,9 @@ class AppSettingsState {
       StateManagement.getx => _getxSettingsBody(),
       StateManagement.riverpod => _riverpodSettingsBody(),
     };
-    final title =
-        state == StateManagement.getx
-            ? "Text('settings'.tr)"
-            : "Text(context.tr('settings'))";
+    final title = state == StateManagement.getx
+        ? "Text('settings'.tr)"
+        : "Text(context.tr('settings'))";
 
     return '''
 import 'package:flutter/material.dart';
@@ -351,18 +350,18 @@ Consumer(
   static String settingsBodyWidget(StateManagement state) {
     const dimensionAccess = 'Dimensions';
     const padding = 'Dimensions.allPadding(20)';
-    final getxImport =
-        state == StateManagement.getx ? "import 'package:get/get.dart';\n" : '';
-    final themeText =
-        state == StateManagement.getx ? "'theme'.tr" : "context.tr('theme')";
-    final darkModeText =
-        state == StateManagement.getx
-            ? "'dark_mode'.tr"
-            : "context.tr('dark_mode')";
-    final languageText =
-        state == StateManagement.getx
-            ? "'language'.tr"
-            : "context.tr('language')";
+    final getxImport = state == StateManagement.getx
+        ? "import 'package:get/get.dart';\n"
+        : '';
+    final themeText = state == StateManagement.getx
+        ? "'theme'.tr"
+        : "context.tr('theme')";
+    final darkModeText = state == StateManagement.getx
+        ? "'dark_mode'.tr"
+        : "context.tr('dark_mode')";
+    final languageText = state == StateManagement.getx
+        ? "'language'.tr"
+        : "context.tr('language')";
     return '''
 import 'package:flutter/material.dart';
 $getxImport

@@ -25,6 +25,25 @@
   - Uses standard responsive vertical spacing via `SizedBox(height: Dimensions.height(12))` and `SizedBox(height: Dimensions.height(16))`.
   - Registered in `buildCommonProjectFiles` for automatic project scaffolding.
 
+### Security & Environment Configuration
+- **Compile-Time `.env` Architecture**:
+  - Implemented single `.env` (local secrets, gitignored) and `.env.example` (committed template) architecture at the project root.
+  - Zero third-party dependencies: uses native compile-time `--dart-define-from-file=.env` injection so `.env` is never bundled into plaintext APK assets.
+  - Updated `ProdEnv`, `StagEnv`, and `LocalEnv` classes to read `PROD_API_BASE_URL`, `STAG_API_BASE_URL`, and `LOCAL_API_BASE_URL` with resilient fallbacks.
+  - Updated `EnvFactory.current()` to resolve active flavor via `const String.fromEnvironment('FLAVOR', defaultValue: 'stag')`.
+  - Added automatic `.gitignore` updating during scaffolding to safeguard `.env` while preserving `!.env.example`.
+- **Release Obfuscation & ProGuard Build Automation**:
+  - `arcle build apk --release` automatically passes `--dart-define-from-file=.env` if `.env` exists.
+  - Pre-build check: detects missing `.env` files and prompts interactive users to initialize one from `.env.example`.
+  - Automatically injects `--obfuscate` and `--split-debug-info=build/app/outputs/symbols` on release builds, obfuscating native Dart machine code (`libapp.so`) and stripping debug symbols.
+  - Scaffolds Android `android/app/proguard-rules.pro` with standard Flutter wrapper keep rules and configures `proguardFiles` in `build.gradle` / `build.gradle.kts`.
+
+### Navigation & Bootstrap Decoupling
+- **Opt-in Route Observation**:
+  - Decoupled `AppRouteStorage.restoreInitialRoute()` and `navigatorObservers: [appRouteObserver]` by commenting them out by default in scaffolded projects.
+  - Prevents unintended screen restoration on cold start for fresh projects, allowing clean, predictable splash/auth flows.
+  - Added clear developer guidelines and inline comments in `lib/bootstrap.dart`, `lib/app/app.dart`, and `lib/core/route_handler/app_route_observer.dart`.
+
 ## 3.0.4
 
 ### AI Agent Workflow & Screen Architecture

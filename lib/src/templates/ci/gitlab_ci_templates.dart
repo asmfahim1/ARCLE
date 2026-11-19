@@ -52,14 +52,12 @@ class GitlabCiTemplates {
     }
 
     if (build != 'none') {
-      final buildCmd =
-          build == 'appbundle'
-              ? 'flutter build appbundle --release'
-              : 'flutter build apk --release';
-      final artifactPath =
-          build == 'appbundle'
-              ? 'build/app/outputs/bundle/release/app-release.aab'
-              : 'build/app/outputs/flutter-apk/app-release.apk';
+      final buildCmd = build == 'appbundle'
+          ? 'flutter build appbundle --release'
+          : 'flutter build apk --release';
+      final artifactPath = build == 'appbundle'
+          ? 'build/app/outputs/bundle/release/app-release.aab'
+          : 'build/app/outputs/flutter-apk/app-release.apk';
 
       buffer.writeln();
       buffer.writeln('build_$build:');

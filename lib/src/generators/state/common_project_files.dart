@@ -25,6 +25,8 @@ Map<String, String> buildCommonProjectFiles(
 }) {
   final files = <String, String>{
     'analysis_options.yaml': AnalysisTemplates.analysisOptions(),
+    '.env': EnvTemplates.envFile(),
+    '.env.example': EnvTemplates.envExampleFile(),
     'lib/bootstrap.dart': AppTemplates.bootstrap(state),
     'lib/app/app.dart': AppTemplates.app(state, projectName: projectName),
     'lib/main.dart': AppTemplates.mainEntry(),

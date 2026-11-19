@@ -53,10 +53,7 @@ void main() {
         InitCommand.parser().parse(['--network', 'http'])['network'],
         'http',
       );
-      expect(
-        InitCommand.parser().parse(['-n', 'http'])['network'],
-        'http',
-      );
+      expect(InitCommand.parser().parse(['-n', 'http'])['network'], 'http');
     });
 
     test('parser rejects invalid network option', () {

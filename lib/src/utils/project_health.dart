@@ -220,7 +220,10 @@ class ProjectHealthValidator {
     StateManagement state,
   ) {
     final issues = <ProjectHealthIssue>[];
-    final hasHttp = RegExp(r'^\s*http\s*:', multiLine: true).hasMatch(pubspecContent);
+    final hasHttp = RegExp(
+      r'^\s*http\s*:',
+      multiLine: true,
+    ).hasMatch(pubspecContent);
     final networkDep = hasHttp ? 'http' : 'dio';
     final requiredDependencies = <String>[
       networkDep,
@@ -322,10 +325,9 @@ class ProjectHealthValidator {
             severity: ProjectIssueSeverity.warning,
             code: 'missing_${_issueSafe(relativePath)}',
             message: 'Missing expected ARCLE file: $relativePath',
-            fixDescription:
-                relativePath.startsWith('lib/core/di/')
-                    ? 'Regenerate ARCLE DI files.'
-                    : null,
+            fixDescription: relativePath.startsWith('lib/core/di/')
+                ? 'Regenerate ARCLE DI files.'
+                : null,
           ),
         );
       }
