@@ -13,27 +13,32 @@ void main(List<String> args) async {
 ///
 /// 1. Initialize a new project with Clean Architecture:
 ///    ```bash
-///    arcle init -n my_app -s bloc
+///    arcle create my_app --state bloc
 ///    ```
 ///
-/// 2. Create a new feature:
+/// 2. Scaffold Clean Architecture in an existing project:
 ///    ```bash
-///    arcle feature -n home -s bloc
+///    arcle init --state bloc
 ///    ```
 ///
-/// 3. Generate DI (Dependency Injection):
+/// 3. Create a new feature:
 ///    ```bash
-///    arcle gen_di
+///    arcle feature home --state bloc
 ///    ```
 ///
-/// 4. Build the project with code generation:
+/// 4. Generate DI (Dependency Injection):
 ///    ```bash
-///    arcle build
+///    arcle gen-di
 ///    ```
 ///
-/// 5. Generate documentation:
+/// 5. Build release APK with security features:
 ///    ```bash
-///    arcle gen_doc
+///    arcle build apk --release
+///    ```
+///
+/// 6. Generate documentation:
+///    ```bash
+///    arcle gen-doc
 ///    ```
 ///
 /// For more information about the available commands and options,

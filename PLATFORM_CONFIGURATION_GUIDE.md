@@ -21,13 +21,18 @@ As of the latest version, ARCLE CLI now provides **automatic and comprehensive p
 
 #### Modern Java Support
 - **Core Library Desugaring**: Enabled for Java 8+ features on devices running Android 6.0+
-- **Dependency**: `com.android.tools:desugar_jdk_libs:2.0.4`
+- **Dependency**: `com.android.tools:desugar_jdk_libs:2.1.4`
 - Ensures apps run smoothly across all supported Android versions
+
+#### Android ProGuard / R8 Rules
+- **ProGuard Configuration**: `android/app/proguard-rules.pro` automatically generated with Flutter wrapper keep rules
+- **Linked in Gradle**: Automatically registered in `buildTypes.release` for both Groovy and Kotlin DSL build files
 
 #### Gradle Files Updated
 1. **settings.gradle / settings.gradle.kts** - Plugin version synchronization
 2. **gradle-wrapper.properties** - Correct Gradle distribution URL
 3. **app/build.gradle / app/build.gradle.kts** - Flutter source configuration
+4. **app/proguard-rules.pro** - Release obfuscation and shrinking keep rules
 
 ### iOS Configuration
 

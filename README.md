@@ -83,6 +83,9 @@ ARCLE removes repetitive setup work for scalable Flutter apps.
 
 - 🚀 **Flutter 3.38.10 & Dart 3.10.9 Alignment** — Updated SDK baseline constraint to `>=3.10.0 <4.0.0`, ensuring immediate compatibility with modern Flutter stable toolchains and compiling with native 16KB page size support.
 - 🔄 **New `CommonRetryWidget`** — Introduced a standardized retry component (`lib/core/common_widgets/common_retry_widget.dart`) across all scaffolded projects with responsive layout (`Dimensions`), semantic error icons, adaptive brand primary theming (`AppColors.primary(context)`), and custom message/retry callbacks.
+- 🔐 **Compile-Time `.env` Architecture** — Pure compile-time secret management using native Flutter `--dart-define-from-file=.env` (zero plaintext asset bundling, immune to APK asset extraction).
+- 🛡️ **Automated Release Security** — Release builds (`arcle build apk --release`) automatically apply Dart code obfuscation (`--obfuscate`), strip debug symbols (`--split-debug-info`), link Android ProGuard rules (`android/app/proguard-rules.pro`), and guard against missing `.env` files.
+- 🌐 **Enhanced Network Method Logging** — Added optional `method` parameter to `AppLogger.apiCall`, printing structured HTTP request methods in debug console logs across Dio and Http clients.
 - ⬆️ **Upgraded Android Toolchain** — Updated Android core library desugaring dependency to `2.1.4` for Java 11/17 API backporting.
 - 📦 **Modernized Dependencies** — Updated CLI direct dependencies (`io: ^1.1.0`) and aligned project upgrade flows (`arcle upgrade`) to v3.1.0.
 
